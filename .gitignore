@@ -124,17 +124,25 @@ ehthumbs.db
 Desktop.ini
 
 # Data storage (MVP file-based storage)
-data/users/
-data/destinations/
-data/price_history/
-data/flight_matches/
-
-# Keep data directory structure but ignore actual data files
-!data/.gitkeep
+data/users/*.json
+data/system/api-cache.json
 !data/users/.gitkeep
-!data/destinations/.gitkeep
-!data/price_history/.gitkeep
-!data/flight_matches/.gitkeep
+!data/system/.gitkeep
+!data/system/system-config.json
+!data/system/demo-data.json
+
+# Logs directory
+logs/*.log
+!logs/.gitkeep
+
+# Claude-specific
+.claude/
+!.claude/commands/
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
 
 # Production builds
 frontend/dist/

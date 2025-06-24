@@ -1,0 +1,2 @@
+# This file ensures the system directory is tracked by git
+# Actual system data files should be ignored via .gitignore

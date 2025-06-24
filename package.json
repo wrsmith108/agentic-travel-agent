@@ -1,36 +1,68 @@
 {
   "name": "agentic-travel-agent",
   "version": "1.0.0",
-  "description": "AI-powered travel planning assistant that proactively monitors flight options",
-  "main": "index.js",
+  "description": "AI-powered travel planning assistant with proactive flight monitoring",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
   "scripts": {
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
-    "dev:backend": "cd backend && npm run dev",
     "dev:frontend": "cd frontend && npm run dev",
-    "build": "npm run build:frontend && npm run build:backend",
+    "dev:backend": "cd backend && npm run dev",
+    "build": "npm run build:backend && npm run build:frontend",
     "build:frontend": "cd frontend && npm run build",
     "build:backend": "cd backend && npm run build",
-    "start": "cd backend && npm start",
+    "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
+    "start:frontend": "cd frontend && npm run preview",
+    "start:backend": "cd backend && npm run start",
+    "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install",
+    "clean": "npm run clean:frontend && npm run clean:backend",
+    "clean:frontend": "cd frontend && rm -rf dist node_modules",
+    "clean:backend": "cd backend && npm run clean && rm -rf node_modules",
+    "lint": "npm run lint:frontend && npm run lint:backend",
+    "lint:frontend": "cd frontend && npm run lint",
+    "lint:backend": "cd backend && npm run lint",
+    "lint:fix": "npm run lint:fix:frontend && npm run lint:fix:backend",
+    "lint:fix:frontend": "cd frontend && npm run lint:fix",
+    "lint:fix:backend": "cd backend && npm run lint:fix",
+    "typecheck": "npm run typecheck:frontend && npm run typecheck:backend",
+    "typecheck:frontend": "cd frontend && npm run typecheck",
+    "typecheck:backend": "cd backend && npm run typecheck",
     "test": "npm run test:backend && npm run test:frontend",
-    "test:backend": "cd backend && npm test",
-    "test:frontend": "cd frontend && npm test",
-    "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install"
+    "test:frontend": "cd frontend && npm run test",
+    "test:backend": "cd backend && npm run test",
+    "test:coverage": "npm run test:coverage:backend && npm run test:coverage:frontend",
+    "test:coverage:frontend": "cd frontend && npm run test:coverage",
+    "test:coverage:backend": "cd backend && npm run test:coverage",
+    "test:e2e": "cd frontend && npm run test:e2e",
+    "test:integration": "cd backend && npm run test:integration",
+    "format": "npm run format:frontend && npm run format:backend",
+    "format:frontend": "cd frontend && npm run format",
+    "format:backend": "cd backend && npm run format",
+    "format:check": "npm run format:check:frontend && npm run format:check:backend",
+    "format:check:frontend": "cd frontend && npm run format:check",
+    "format:check:backend": "cd backend && npm run format:check"
+  },
+  "devDependencies": {
+    "claude-flow": "^1.0.72",
+    "concurrently": "^9.0.1",
+    "@types/node": "^22.7.4"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
   },
   "keywords": [
     "travel",
     "ai",
     "flight-monitoring",
-    "amadeus",
+    "travel-agent",
+    "typescript",
     "react",
     "nodejs"
   ],
   "author": "Agentic Travel Agent Team",
-  "license": "MIT",
-  "devDependencies": {
-    "concurrently": "^8.2.2"
-  },
-  "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=8.0.0"
-  }
+  "license": "MIT"
 }

@@ -1,0 +1,34 @@
+{
+  "compilerOptions": {
+    // Workspace Settings (2025 Standards)
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true
+  },
+  "files": [],
+  "references": [
+    {
+      "path": "./frontend"
+    },
+    {
+      "path": "./backend"
+    }
+  ],
+  "include": [],
+  "exclude": [
+    "node_modules",
+    "**/dist",
+    "**/build",
+    "**/*.test.*",
+    "**/*.spec.*"
+  ]
+}

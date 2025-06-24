@@ -1,0 +1,110 @@
+{
+  "profile": {
+    "id": "d1990300-072a-4c8e-b361-982db5ae193c",
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "john.doe.1750652013681@example.com",
+    "preferences": {
+      "currency": "CAD",
+      "timezone": "America/Toronto",
+      "preferredDepartureAirport": "YYZ",
+      "communicationFrequency": "daily"
+    },
+    "activeSearches": [
+      "8121eaea-ccd5-4b36-9e8e-4145810d709d",
+      "15b98f51-370b-4a27-86a6-e09dedf775f5",
+      "860ec714-227d-4290-b073-b32876b108d3",
+      "0a18dd6e-136a-46c2-8479-0c78a26b323c"
+    ],
+    "searchHistory": [],
+    "createdAt": "2025-06-23T04:13:33.681Z",
+    "updatedAt": "2025-06-23T04:13:34.037Z"
+  },
+  "searches": {
+    "8121eaea-ccd5-4b36-9e8e-4145810d709d": {
+      "id": "8121eaea-ccd5-4b36-9e8e-4145810d709d",
+      "criteria": {
+        "origin": "YYZ",
+        "destination": "NRT",
+        "departureDate": "2025-04-20T00:00:00.000Z",
+        "passengers": {
+          "adults": 1,
+          "children": 0,
+          "infants": 0
+        },
+        "travelClass": "economy",
+        "maxPrice": 1200,
+        "currency": "CAD",
+        "nonStop": false
+      },
+      "status": "active",
+      "priceHistory": [],
+      "createdAt": "2025-06-23T04:13:33.681Z",
+      "updatedAt": "2025-06-23T04:13:33.681Z"
+    },
+    "15b98f51-370b-4a27-86a6-e09dedf775f5": {
+      "id": "15b98f51-370b-4a27-86a6-e09dedf775f5",
+      "criteria": {
+        "origin": "YYZ",
+        "destination": "NRT",
+        "departureDate": "2025-04-20T00:00:00.000Z",
+        "passengers": {
+          "adults": 1,
+          "children": 0,
+          "infants": 0
+        },
+        "travelClass": "economy",
+        "maxPrice": 1200,
+        "currency": "CAD",
+        "nonStop": false
+      },
+      "status": "active",
+      "priceHistory": [],
+      "createdAt": "2025-06-23T04:13:33.681Z",
+      "updatedAt": "2025-06-23T04:13:33.681Z"
+    },
+    "860ec714-227d-4290-b073-b32876b108d3": {
+      "id": "860ec714-227d-4290-b073-b32876b108d3",
+      "criteria": {
+        "origin": "YYZ",
+        "destination": "NRT",
+        "departureDate": "2025-04-20T00:00:00.000Z",
+        "passengers": {
+          "adults": 1,
+          "children": 0,
+          "infants": 0
+        },
+        "travelClass": "economy",
+        "maxPrice": 1200,
+        "currency": "CAD",
+        "nonStop": false
+      },
+      "status": "active",
+      "priceHistory": [],
+      "createdAt": "2025-06-23T04:13:33.681Z",
+      "updatedAt": "2025-06-23T04:13:33.681Z"
+    },
+    "0a18dd6e-136a-46c2-8479-0c78a26b323c": {
+      "id": "0a18dd6e-136a-46c2-8479-0c78a26b323c",
+      "criteria": {
+        "origin": "YYZ",
+        "destination": "NRT",
+        "departureDate": "2025-04-20T00:00:00.000Z",
+        "passengers": {
+          "adults": 1,
+          "children": 0,
+          "infants": 0
+        },
+        "travelClass": "economy",
+        "maxPrice": 1200,
+        "currency": "CAD",
+        "nonStop": false
+      },
+      "status": "active",
+      "priceHistory": [],
+      "createdAt": "2025-06-23T04:13:33.681Z",
+      "updatedAt": "2025-06-23T04:13:33.681Z"
+    }
+  },
+  "version": "1.0.0"
+}
