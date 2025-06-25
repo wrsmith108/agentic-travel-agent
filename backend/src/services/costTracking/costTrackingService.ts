@@ -40,8 +40,10 @@ export class CostTrackingService {
     const timestamp = new Date().toISOString();
     const totalTokens = inputTokens + outputTokens;
     
-    // Calculate cost
-    const pricing = DEFAULT_MODEL_PRICING[modelId] ?? DEFAULT_MODEL_PRICING['claude-3-opus-20240229'];
+    // Calculate cost - fallback ensures pricing is always defined
+    const modelPricing = DEFAULT_MODEL_PRICING[modelId];
+    const defaultPricing = DEFAULT_MODEL_PRICING['claude-3-opus-20240229']!;
+    const pricing = modelPricing || defaultPricing;
     const inputCost = (inputTokens / 1_000_000) * pricing.inputTokenCost;
     const outputCost = (outputTokens / 1_000_000) * pricing.outputTokenCost;
     const estimatedCost = inputCost + outputCost;
@@ -170,7 +172,8 @@ export class CostTrackingService {
     const storedQuota = await this.loadUserQuota(userId);
     if (storedQuota) {
       // Reset daily usage if new day
-      const today = new Date().toISOString().split('T')[0];
+      const isoDate = new Date().toISOString();
+      const today = isoDate.split('T')[0] as string;
       if (storedQuota.usage.currentDay !== today) {
         storedQuota.usage.currentDay = today;
         storedQuota.usage.dailyTokensUsed = 0;
@@ -198,7 +201,7 @@ export class CostTrackingService {
       tier,
       limits,
       usage: {
-        currentDay: new Date().toISOString().split('T')[0],
+        currentDay: new Date().toISOString().split('T')[0] as string,
         currentMonth: new Date().toISOString().slice(0, 7),
         dailyTokensUsed: 0,
         monthlyTokensUsed: 0,
@@ -287,7 +290,7 @@ export class CostTrackingService {
         breakdown.byModel[modelId].tokens += record.tokenUsage.totalTokens;
 
         // By day breakdown
-        const day = record.timestamp.split('T')[0];
+        const day = record.timestamp.split('T')[0] as string;
         breakdown.byDay[day] = (breakdown.byDay[day] || 0) + record.cost;
       }
     }
