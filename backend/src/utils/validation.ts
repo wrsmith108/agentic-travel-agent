@@ -204,3 +204,64 @@ export const ValidationPatterns = {
   ISO_DURATION: /^P(\d+Y)?(\d+M)?(\d+D)?(T(\d+H)?(\d+M)?(\d+(\.\d+)?S)?)?$/,
   SAFE_STRING: /^[^<>]*$/,
 };
+
+// Auth validation
+export interface ValidationResult {
+  isValid: boolean;
+  errors?: Array<{ field: string; message: string }>;
+}
+
+export const validateRegisterRequest = (data: any): ValidationResult => {
+  const errors: Array<{ field: string; message: string }> = [];
+
+  // Email validation
+  if (!data.email || typeof data.email !== 'string') {
+    errors.push({ field: 'email', message: 'Email is required' });
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+    errors.push({ field: 'email', message: 'Invalid email format' });
+  }
+
+  // Password validation
+  if (!data.password || typeof data.password !== 'string') {
+    errors.push({ field: 'password', message: 'Password is required' });
+  } else if (data.password.length < 8) {
+    errors.push({ field: 'password', message: 'Password must be at least 8 characters long' });
+  } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(data.password)) {
+    errors.push({ field: 'password', message: 'Password must contain uppercase, lowercase, and number' });
+  }
+
+  // Name validation
+  if (!data.firstName || typeof data.firstName !== 'string' || data.firstName.trim().length === 0) {
+    errors.push({ field: 'firstName', message: 'First name is required' });
+  }
+
+  if (!data.lastName || typeof data.lastName !== 'string' || data.lastName.trim().length === 0) {
+    errors.push({ field: 'lastName', message: 'Last name is required' });
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors: errors.length > 0 ? errors : undefined,
+  };
+};
+
+export const validateLoginRequest = (data: any): ValidationResult => {
+  const errors: Array<{ field: string; message: string }> = [];
+
+  // Email validation
+  if (!data.email || typeof data.email !== 'string') {
+    errors.push({ field: 'email', message: 'Email is required' });
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+    errors.push({ field: 'email', message: 'Invalid email format' });
+  }
+
+  // Password validation
+  if (!data.password || typeof data.password !== 'string') {
+    errors.push({ field: 'password', message: 'Password is required' });
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors: errors.length > 0 ? errors : undefined,
+  };
+};

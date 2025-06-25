@@ -141,10 +141,14 @@ app.get('/api/v1', (_req: Request, res: Response) => {
 });
 
 // API Routes
-import authRoutes from './routes/auth';
+// Switch between old and new auth implementation
+const USE_NEW_AUTH = process.env.USE_NEW_AUTH === 'true' || false;
+import authRoutesOld from './routes/auth';
+import authRoutesNew from './routes/authNew';
 import billingRoutes from './routes/billing';
 import demoRoutes from './routes/demo';
 
+const authRoutes = USE_NEW_AUTH ? authRoutesNew : authRoutesOld;
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/billing', billingRoutes);
 app.use('/api/v1/demo', demoRoutes);
