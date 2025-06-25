@@ -50,12 +50,14 @@ export const FlightSearchSchema = z.object({
   criteria: FlightSearchCriteriaSchema.omit({ id: true }),
   status: z.enum(['active', 'paused', 'completed']).default('active'),
   lastChecked: z.string().datetime().optional(),
-  bestPriceFound: z.object({
-    price: z.number().positive(),
-    currency: z.enum(['CAD', 'USD', 'EUR', 'GBP']),
-    foundAt: z.string().datetime(),
-    flightDetails: z.record(z.unknown()),
-  }).optional(),
+  bestPriceFound: z
+    .object({
+      price: z.number().positive(),
+      currency: z.enum(['CAD', 'USD', 'EUR', 'GBP']),
+      foundAt: z.string().datetime(),
+      flightDetails: z.record(z.unknown()),
+    })
+    .optional(),
   priceHistory: z.array(PriceDataPointSchema).default([]),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
@@ -84,11 +86,13 @@ export const UserDataFileSchema = z.object({
   searches: z.record(z.string().uuid(), FlightSearchSchema).default({}),
   version: z.string().default('1.0.0'),
   lastBackup: z.string().datetime().optional(),
-  costTracking: z.object({
-    quota: z.any().optional(), // Complex UserQuota type from costControl schema
-    apiCalls: z.array(z.any()).optional(), // Array of APICallRecord
-    lastUpdated: z.string().datetime().optional(),
-  }).optional(),
+  costTracking: z
+    .object({
+      quota: z.any().optional(), // Complex UserQuota type from costControl schema
+      apiCalls: z.array(z.any()).optional(), // Array of APICallRecord
+      lastUpdated: z.string().datetime().optional(),
+    })
+    .optional(),
 });
 
 // Export types
@@ -102,7 +106,10 @@ export type UserDataFile = z.infer<typeof UserDataFileSchema>;
 /**
  * Helper type for creating new users (without generated fields)
  */
-export type CreateUserProfile = Omit<UserProfile, 'id' | 'createdAt' | 'updatedAt' | 'activeSearches' | 'searchHistory'>;
+export type CreateUserProfile = Omit<
+  UserProfile,
+  'id' | 'createdAt' | 'updatedAt' | 'activeSearches' | 'searchHistory'
+>;
 
 /**
  * Helper type for updating user profiles

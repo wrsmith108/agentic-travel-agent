@@ -8,12 +8,7 @@ export class AppError extends Error {
   public code?: string;
   public details?: unknown;
 
-  constructor(
-    statusCode: number,
-    message: string,
-    code?: string,
-    details?: unknown
-  ) {
+  constructor(statusCode: number, message: string, code?: string, details?: unknown) {
     super(message);
     this.statusCode = statusCode;
     if (code !== undefined) {

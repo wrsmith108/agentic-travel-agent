@@ -107,7 +107,6 @@ export async function testApiConnectivity(): Promise<ApiTestResult[]> {
     });
   }
 
-
   return results;
 }
 

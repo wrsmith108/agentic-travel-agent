@@ -16,7 +16,7 @@ export const requestLoggingMiddleware = (req: Request, res: Response, next: Next
   res.on('finish', () => {
     const duration = Date.now() - start;
     const route = req.route?.path || req.path || 'unknown';
-    
+
     // Log slow requests
     if (duration > 2000) {
       logger.warn('Slow request detected', {
@@ -78,7 +78,7 @@ export const getHealthStatus = async (): Promise<HealthStatus> => {
   // Determine overall health status
   const checks = Object.values(health.checks).flat();
   const apiChecks = Object.values(health.checks.externalApis);
-  
+
   if (checks.some((check) => check === false)) {
     health.status = 'unhealthy';
   } else if (apiChecks.some((check) => check === false)) {

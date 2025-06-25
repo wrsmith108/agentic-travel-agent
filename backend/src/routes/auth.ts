@@ -40,7 +40,7 @@ const authLimiter = rateLimit({
       userAgent: req.get('User-Agent'),
       endpoint: req.originalUrl,
     });
-    
+
     res.status(429).json({
       success: false,
       error: {
@@ -85,12 +85,10 @@ const registrationLimiter = rateLimit({
 // JWT Authentication middleware
 const authenticateJWT = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const requestLogger = createRequestLogger(req.id || uuidv4());
-  
+
   try {
     const authHeader = req.header('Authorization');
-    const token = authHeader && authHeader.startsWith('Bearer ') 
-      ? authHeader.substring(7) 
-      : null;
+    const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.substring(7) : null;
 
     if (!token) {
       requestLogger.warn('Authentication attempt without token', {
@@ -98,7 +96,7 @@ const authenticateJWT = async (req: Request, res: Response, next: NextFunction):
         userAgent: req.get('User-Agent'),
         endpoint: req.originalUrl,
       });
-      
+
       res.status(401).json({
         success: false,
         error: {
@@ -117,7 +115,7 @@ const authenticateJWT = async (req: Request, res: Response, next: NextFunction):
         userAgent: req.get('User-Agent'),
         endpoint: req.originalUrl,
       });
-      
+
       res.status(401).json({
         success: false,
         error: {
@@ -132,7 +130,7 @@ const authenticateJWT = async (req: Request, res: Response, next: NextFunction):
     // Add user info to request
     (req as any).user = payload;
     (req as any).sessionId = payload.sessionId;
-    
+
     next();
   } catch (error) {
     requestLogger.error('JWT authentication failed', error);
@@ -151,7 +149,7 @@ const authenticateJWT = async (req: Request, res: Response, next: NextFunction):
 const validateRequest = <T extends z.ZodSchema>(schema: T) => {
   return (req: Request, res: Response, next: NextFunction): void => {
     const requestLogger = createRequestLogger(req.id || uuidv4());
-    
+
     try {
       schema.parse(req.body);
       next();
@@ -162,7 +160,7 @@ const validateRequest = <T extends z.ZodSchema>(schema: T) => {
           body: req.body,
           endpoint: req.originalUrl,
         });
-        
+
         res.status(400).json({
           success: false,
           error: {
@@ -192,12 +190,13 @@ const getDeviceInfo = (req: Request) => ({
  * POST /api/v1/auth/register
  * User registration endpoint
  */
-router.post('/register', 
+router.post(
+  '/register',
   registrationLimiter,
   validateRequest(RegisterRequestSchema),
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const requestLogger = createRequestLogger(req.id || uuidv4());
-    
+
     try {
       requestLogger.info('Registration attempt started', {
         email: req.body.email,
@@ -206,14 +205,14 @@ router.post('/register',
       });
 
       const result = await authService.registerUser(req.body);
-      
+
       if (result.success) {
         const successResult = result as AuthSuccessResponse;
         requestLogger.info('User registration successful', {
           userId: successResult.data.user.id,
           email: successResult.data.user.email,
         });
-        
+
         res.status(201).json(result);
       } else {
         const errorResult = result as AuthErrorResponse;
@@ -222,7 +221,7 @@ router.post('/register',
           message: errorResult.error.message,
           email: req.body.email,
         });
-        
+
         // Map auth error types to HTTP status codes
         const statusCode = getStatusCodeFromAuthError(errorResult.error.type);
         res.status(statusCode).json(result);
@@ -238,12 +237,13 @@ router.post('/register',
  * POST /api/v1/auth/login
  * User login endpoint
  */
-router.post('/login',
+router.post(
+  '/login',
   authLimiter,
   validateRequest(LoginRequestSchema),
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const requestLogger = createRequestLogger(req.id || uuidv4());
-    
+
     try {
       // Add device info to request body
       const loginData = {
@@ -259,7 +259,7 @@ router.post('/login',
       });
 
       const result = await authService.loginUser(loginData);
-      
+
       if (result.success) {
         const successResult = result as AuthSuccessResponse;
         requestLogger.info('User login successful', {
@@ -267,7 +267,7 @@ router.post('/login',
           email: successResult.data.user.email,
           sessionId: successResult.data.sessionId,
         });
-        
+
         res.status(200).json(result);
       } else {
         const errorResult = result as AuthErrorResponse;
@@ -276,7 +276,7 @@ router.post('/login',
           message: errorResult.error.message,
           email: req.body.email,
         });
-        
+
         const statusCode = getStatusCodeFromAuthError(errorResult.error.type);
         res.status(statusCode).json(result);
       }
@@ -291,12 +291,13 @@ router.post('/login',
  * POST /api/v1/auth/logout
  * User logout endpoint
  */
-router.post('/logout',
+router.post(
+  '/logout',
   authenticateJWT,
   validateRequest(LogoutRequestSchema.optional()),
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const requestLogger = createRequestLogger(req.id || uuidv4());
-    
+
     try {
       const sessionId = (req as any).sessionId || req.body?.sessionId;
       const userId = (req as any).user?.sub;
@@ -308,13 +309,13 @@ router.post('/logout',
       });
 
       const result = await authService.logoutUser(sessionId);
-      
+
       if (result.success) {
         requestLogger.info('User logout successful', {
           userId,
           sessionId,
         });
-        
+
         res.status(200).json({
           success: true,
           message: result.message,
@@ -326,7 +327,7 @@ router.post('/logout',
           sessionId,
           message: result.message,
         });
-        
+
         res.status(400).json({
           success: false,
           error: {
@@ -347,11 +348,12 @@ router.post('/logout',
  * GET /api/v1/auth/me
  * Get current user information
  */
-router.get('/me',
+router.get(
+  '/me',
   authenticateJWT,
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const requestLogger = createRequestLogger(req.id || uuidv4());
-    
+
     try {
       const userId = (req as any).user?.sub;
       const sessionId = (req as any).sessionId;
@@ -369,7 +371,7 @@ router.get('/me',
           userId,
           sessionId,
         });
-        
+
         res.status(401).json({
           success: false,
           error: {
@@ -388,7 +390,7 @@ router.get('/me',
           userId,
           sessionId,
         });
-        
+
         res.status(404).json({
           success: false,
           error: {
@@ -436,11 +438,12 @@ router.get('/me',
  * POST /api/v1/auth/refresh
  * Refresh JWT token
  */
-router.post('/refresh',
+router.post(
+  '/refresh',
   validateRequest(TokenRefreshRequestSchema),
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const requestLogger = createRequestLogger(req.id || uuidv4());
-    
+
     try {
       requestLogger.info('Token refresh attempt started', {
         ip: req.ip,
@@ -453,7 +456,7 @@ router.post('/refresh',
       // 2. Check if it's not expired or revoked
       // 3. Generate new access token
       // 4. Optionally rotate the refresh token
-      
+
       requestLogger.warn('Token refresh not implemented', {
         ip: req.ip,
         userAgent: req.get('User-Agent'),
@@ -478,12 +481,13 @@ router.post('/refresh',
  * POST /api/v1/auth/forgot-password
  * Password reset request
  */
-router.post('/forgot-password',
+router.post(
+  '/forgot-password',
   passwordResetLimiter,
   validateRequest(PasswordResetRequestSchema),
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const requestLogger = createRequestLogger(req.id || uuidv4());
-    
+
     try {
       requestLogger.info('Password reset request started', {
         email: req.body.email,
@@ -492,20 +496,21 @@ router.post('/forgot-password',
       });
 
       const result = await authService.requestPasswordReset(req.body);
-      
+
       if (result.success) {
         requestLogger.info('Password reset request successful', {
           email: req.body.email,
           tokenGenerated: !!result.token,
         });
-        
+
         res.status(200).json({
           success: true,
           message: result.message,
           // In production, don't return the token - send it via email
-          ...(process.env.NODE_ENV !== 'production' && result.token && { 
-            debug: { resetToken: result.token } 
-          }),
+          ...(process.env.NODE_ENV !== 'production' &&
+            result.token && {
+              debug: { resetToken: result.token },
+            }),
           timestamp: new Date().toISOString(),
         });
       } else {
@@ -513,7 +518,7 @@ router.post('/forgot-password',
           email: req.body.email,
           message: result.message,
         });
-        
+
         res.status(400).json({
           success: false,
           error: {
@@ -525,7 +530,13 @@ router.post('/forgot-password',
       }
     } catch (error) {
       requestLogger.error('Password reset request endpoint error', error);
-      next(new AppError(500, 'Password reset request failed due to server error', 'AUTH_FORGOT_PASSWORD_ERROR'));
+      next(
+        new AppError(
+          500,
+          'Password reset request failed due to server error',
+          'AUTH_FORGOT_PASSWORD_ERROR'
+        )
+      );
     }
   }
 );
@@ -534,11 +545,12 @@ router.post('/forgot-password',
  * POST /api/v1/auth/reset-password
  * Password reset confirmation
  */
-router.post('/reset-password',
+router.post(
+  '/reset-password',
   validateRequest(PasswordResetConfirmSchema),
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const requestLogger = createRequestLogger(req.id || uuidv4());
-    
+
     try {
       requestLogger.info('Password reset confirmation started', {
         token: req.body.token.substring(0, 8) + '...',
@@ -547,14 +559,14 @@ router.post('/reset-password',
       });
 
       const result = await authService.resetPassword(req.body);
-      
+
       if (result.success) {
         const successResult = result as AuthSuccessResponse;
         requestLogger.info('Password reset successful', {
           userId: successResult.data.user.id,
           email: successResult.data.user.email,
         });
-        
+
         res.status(200).json(result);
       } else {
         const errorResult = result as AuthErrorResponse;
@@ -563,13 +575,15 @@ router.post('/reset-password',
           message: errorResult.error.message,
           token: req.body.token.substring(0, 8) + '...',
         });
-        
+
         const statusCode = getStatusCodeFromAuthError(errorResult.error.type);
         res.status(statusCode).json(result);
       }
     } catch (error) {
       requestLogger.error('Password reset confirmation endpoint error', error);
-      next(new AppError(500, 'Password reset failed due to server error', 'AUTH_RESET_PASSWORD_ERROR'));
+      next(
+        new AppError(500, 'Password reset failed due to server error', 'AUTH_RESET_PASSWORD_ERROR')
+      );
     }
   }
 );

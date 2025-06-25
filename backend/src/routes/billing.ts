@@ -41,8 +41,8 @@ router.get('/plans', (_req, res) => {
           limits: {
             dailyTokens: 10000,
             monthlyTokens: 100000,
-            dailyCost: 0.50,
-            monthlyCost: 5.00,
+            dailyCost: 0.5,
+            monthlyCost: 5.0,
             requestsPerMinute: 5,
           },
           features: [
@@ -59,8 +59,8 @@ router.get('/plans', (_req, res) => {
           limits: {
             dailyTokens: 50000,
             monthlyTokens: 1000000,
-            dailyCost: 5.00,
-            monthlyCost: 50.00,
+            dailyCost: 5.0,
+            monthlyCost: 50.0,
             requestsPerMinute: 20,
           },
           features: [
@@ -78,8 +78,8 @@ router.get('/plans', (_req, res) => {
           limits: {
             dailyTokens: 200000,
             monthlyTokens: 5000000,
-            dailyCost: 20.00,
-            monthlyCost: 200.00,
+            dailyCost: 20.0,
+            monthlyCost: 200.0,
             requestsPerMinute: 50,
           },
           features: [
@@ -98,8 +98,8 @@ router.get('/plans', (_req, res) => {
           limits: {
             dailyTokens: 1000000,
             monthlyTokens: 30000000,
-            dailyCost: 100.00,
-            monthlyCost: 1000.00,
+            dailyCost: 100.0,
+            monthlyCost: 1000.0,
             requestsPerMinute: 200,
           },
           features: [

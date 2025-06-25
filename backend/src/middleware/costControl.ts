@@ -27,7 +27,7 @@ export interface CostTrackedRequest extends AuthenticatedRequest {
 export const trackLLMCosts = () => {
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const costReq = req as CostTrackedRequest;
-    
+
     // Skip if not authenticated
     if (!costReq.user || !costReq.sessionUser) {
       next();
@@ -58,7 +58,7 @@ export const trackLLMCosts = () => {
     if (req.body?.messages) {
       const messages = Array.isArray(req.body.messages) ? req.body.messages : [req.body.messages];
       let estimatedTokens = 0;
-      
+
       for (const message of messages) {
         if (typeof message === 'string') {
           estimatedTokens += costTrackingService.estimateTokens(message);
@@ -123,26 +123,22 @@ export const trackLLMCosts = () => {
 
     // Intercept response to track actual usage
     const originalJson = res.json;
-    res.json = function(data: any) {
+    res.json = function (data: any) {
       // Track token usage from response
       if (data?.usage) {
         const inputTokens = data.usage.input_tokens || 0;
         const outputTokens = data.usage.output_tokens || 0;
         const modelId = req.body?.model || 'claude-3-opus-20240229';
-        
+
         // Track asynchronously to not block response
-        costTrackingService.trackTokenUsage(
-          userId,
-          modelId,
-          inputTokens,
-          outputTokens,
-          req.path
-        ).catch(error => {
-          logError('Failed to track token usage', error, {
-            userId,
-            requestId,
+        costTrackingService
+          .trackTokenUsage(userId, modelId, inputTokens, outputTokens, req.path)
+          .catch((error) => {
+            logError('Failed to track token usage', error, {
+              userId,
+              requestId,
+            });
           });
-        });
 
         // Add cost info to response
         const pricing = {
@@ -169,10 +165,10 @@ export const trackLLMCosts = () => {
  */
 export const enforceRateLimits = () => {
   const requestCounts = new Map<string, { count: number; resetTime: number }>();
-  
+
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const costReq = req as CostTrackedRequest;
-    
+
     if (!costReq.user || !costReq.sessionUser) {
       next();
       return;
@@ -202,7 +198,7 @@ export const enforceRateLimits = () => {
     // Check if limit exceeded
     if (userRequests.count > limit) {
       const retryAfter = Math.ceil((userRequests.resetTime - now) / 1000);
-      
+
       logWarn('Rate limit exceeded', {
         userId,
         limit,
@@ -210,7 +206,8 @@ export const enforceRateLimits = () => {
         retryAfter,
       });
 
-      res.status(429)
+      res
+        .status(429)
         .set('Retry-After', String(retryAfter))
         .json({
           success: false,
@@ -250,7 +247,7 @@ export const enforceRateLimits = () => {
 export const trackAPICosts = (service: 'amadeus' | 'sendgrid') => {
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const costReq = req as CostTrackedRequest;
-    
+
     if (!costReq.user || !costReq.sessionUser) {
       next();
       return;
@@ -276,24 +273,26 @@ export const trackAPICosts = (service: 'amadeus' | 'sendgrid') => {
 
     // Intercept response to track cost
     const originalJson = res.json;
-    res.json = function(data: any) {
+    res.json = function (data: any) {
       const duration = Date.now() - startTime;
       const cost = costPerRequest[service] || 0;
 
       // Track API call
-      costTrackingService.trackTokenUsage(
-        userId,
-        service,
-        0, // No input tokens for non-LLM
-        0, // No output tokens for non-LLM
-        req.path
-      ).catch(error => {
-        logError('Failed to track API cost', error, {
+      costTrackingService
+        .trackTokenUsage(
           userId,
           service,
-          requestId,
+          0, // No input tokens for non-LLM
+          0, // No output tokens for non-LLM
+          req.path
+        )
+        .catch((error) => {
+          logError('Failed to track API cost', error, {
+            userId,
+            service,
+            requestId,
+          });
         });
-      });
 
       // Add cost info to response
       data._costTracking = {
@@ -315,7 +314,7 @@ export const trackAPICosts = (service: 'amadeus' | 'sendgrid') => {
 export const getCostSummary = () => {
   return async (req: Request, res: Response): Promise<void> => {
     const costReq = req as CostTrackedRequest;
-    
+
     if (!costReq.user || !costReq.sessionUser) {
       res.status(401).json({
         success: false,
@@ -333,7 +332,7 @@ export const getCostSummary = () => {
 
       // Get user quota
       const quota = await costTrackingService.getUserQuota(userId);
-      
+
       // Get cost breakdown
       const breakdown = await costTrackingService.getUserCostBreakdown(
         userId,

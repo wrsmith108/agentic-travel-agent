@@ -30,7 +30,7 @@ describe('Authentication API', () => {
   beforeEach(() => {
     // Clear all mocks
     jest.clearAllMocks();
-    
+
     testUser = {
       firstName: 'John',
       lastName: 'Doe',
@@ -169,10 +169,7 @@ describe('Authentication API', () => {
       };
 
       // First registration should succeed
-      await request(app)
-        .post('/api/v1/auth/register')
-        .send(registerData)
-        .expect(201);
+      await request(app).post('/api/v1/auth/register').send(registerData).expect(201);
 
       // Second registration with same email should fail
       const response = await request(app)
@@ -195,9 +192,7 @@ describe('Authentication API', () => {
         acceptTerms: true,
       };
 
-      const registerResponse = await request(app)
-        .post('/api/v1/auth/register')
-        .send(registerData);
+      const registerResponse = await request(app).post('/api/v1/auth/register').send(registerData);
 
       createdUserId = registerResponse.body.data.user.id;
     });
@@ -208,10 +203,7 @@ describe('Authentication API', () => {
         password: 'SecurePass123!',
       };
 
-      const response = await request(app)
-        .post('/api/v1/auth/login')
-        .send(loginData)
-        .expect(200);
+      const response = await request(app).post('/api/v1/auth/login').send(loginData).expect(200);
 
       expect(response.body.success).toBe(true);
       expect(response.body.data.user).toMatchObject({
@@ -229,10 +221,7 @@ describe('Authentication API', () => {
         password: 'SecurePass123!',
       };
 
-      const response = await request(app)
-        .post('/api/v1/auth/login')
-        .send(loginData)
-        .expect(401);
+      const response = await request(app).post('/api/v1/auth/login').send(loginData).expect(401);
 
       expect(response.body.success).toBe(false);
       expect(response.body.error.code).toBe('INVALID_CREDENTIALS');
@@ -244,10 +233,7 @@ describe('Authentication API', () => {
         password: 'WrongPassword123!',
       };
 
-      const response = await request(app)
-        .post('/api/v1/auth/login')
-        .send(loginData)
-        .expect(401);
+      const response = await request(app).post('/api/v1/auth/login').send(loginData).expect(401);
 
       expect(response.body.success).toBe(false);
       expect(response.body.error.code).toBe('INVALID_CREDENTIALS');
@@ -260,10 +246,7 @@ describe('Authentication API', () => {
         rememberMe: true,
       };
 
-      const response = await request(app)
-        .post('/api/v1/auth/login')
-        .send(loginData)
-        .expect(200);
+      const response = await request(app).post('/api/v1/auth/login').send(loginData).expect(200);
 
       expect(response.body.success).toBe(true);
       expect(response.body.data.accessToken).toBeDefined();
@@ -281,10 +264,7 @@ describe('Authentication API', () => {
         },
       };
 
-      const response = await request(app)
-        .post('/api/v1/auth/login')
-        .send(loginData)
-        .expect(200);
+      const response = await request(app).post('/api/v1/auth/login').send(loginData).expect(200);
 
       expect(response.body.success).toBe(true);
       expect(response.body.data.sessionUser.lastActivity).toBeDefined();
@@ -303,9 +283,7 @@ describe('Authentication API', () => {
         acceptTerms: true,
       };
 
-      const registerResponse = await request(app)
-        .post('/api/v1/auth/register')
-        .send(registerData);
+      const registerResponse = await request(app).post('/api/v1/auth/register').send(registerData);
 
       accessToken = registerResponse.body.data.accessToken;
       createdUserId = registerResponse.body.data.user.id;
@@ -327,9 +305,7 @@ describe('Authentication API', () => {
     });
 
     it('should reject request without token', async () => {
-      const response = await request(app)
-        .get('/api/v1/auth/me')
-        .expect(401);
+      const response = await request(app).get('/api/v1/auth/me').expect(401);
 
       expect(response.body.success).toBe(false);
       expect(response.body.error.code).toBe('AUTHENTICATION_REQUIRED');
@@ -368,9 +344,7 @@ describe('Authentication API', () => {
         acceptTerms: true,
       };
 
-      const registerResponse = await request(app)
-        .post('/api/v1/auth/register')
-        .send(registerData);
+      const registerResponse = await request(app).post('/api/v1/auth/register').send(registerData);
 
       accessToken = registerResponse.body.data.accessToken;
     });
@@ -403,9 +377,7 @@ describe('Authentication API', () => {
     });
 
     it('should reject logout without token', async () => {
-      const response = await request(app)
-        .post('/api/v1/auth/logout')
-        .expect(401);
+      const response = await request(app).post('/api/v1/auth/logout').expect(401);
 
       expect(response.body.success).toBe(false);
       expect(response.body.error.code).toBe('AUTHENTICATION_REQUIRED');
@@ -422,9 +394,7 @@ describe('Authentication API', () => {
         acceptTerms: true,
       };
 
-      await request(app)
-        .post('/api/v1/auth/register')
-        .send(registerData);
+      await request(app).post('/api/v1/auth/register').send(registerData);
     });
 
     it('should generate password reset token for existing user', async () => {
@@ -471,9 +441,7 @@ describe('Authentication API', () => {
         acceptTerms: true,
       };
 
-      await request(app)
-        .post('/api/v1/auth/register')
-        .send(registerData);
+      await request(app).post('/api/v1/auth/register').send(registerData);
 
       // Generate reset token
       const forgotResponse = await request(app)
@@ -540,10 +508,7 @@ describe('Authentication API', () => {
         confirmPassword: 'NewSecurePass123!',
       };
 
-      await request(app)
-        .post('/api/v1/auth/reset-password')
-        .send(resetData)
-        .expect(200);
+      await request(app).post('/api/v1/auth/reset-password').send(resetData).expect(200);
 
       // Login with new password
       const loginResponse = await request(app)
@@ -611,9 +576,7 @@ describe('Authentication API', () => {
         acceptTerms: true,
       };
 
-      await request(app)
-        .post('/api/v1/auth/register')
-        .send(registerData);
+      await request(app).post('/api/v1/auth/register').send(registerData);
 
       const loginData = {
         email: testUser.email,
@@ -622,17 +585,11 @@ describe('Authentication API', () => {
 
       // Make multiple failed login attempts (rate limit is 5 per 15 minutes)
       for (let i = 0; i < 5; i++) {
-        await request(app)
-          .post('/api/v1/auth/login')
-          .send(loginData)
-          .expect(401);
+        await request(app).post('/api/v1/auth/login').send(loginData).expect(401);
       }
 
       // 6th attempt should be rate limited
-      const response = await request(app)
-        .post('/api/v1/auth/login')
-        .send(loginData)
-        .expect(429);
+      const response = await request(app).post('/api/v1/auth/login').send(loginData).expect(429);
 
       expect(response.body.success).toBe(false);
       expect(response.body.error.code).toBe('RATE_LIMIT_EXCEEDED');
@@ -643,10 +600,7 @@ describe('Authentication API', () => {
 
       // Make multiple password reset attempts (rate limit is 3 per hour)
       for (let i = 0; i < 3; i++) {
-        await request(app)
-          .post('/api/v1/auth/forgot-password')
-          .send(emailData)
-          .expect(200);
+        await request(app).post('/api/v1/auth/forgot-password').send(emailData).expect(200);
       }
 
       // 4th attempt should be rate limited
@@ -672,10 +626,7 @@ describe('Authentication API', () => {
     });
 
     it('should handle missing required fields', async () => {
-      const response = await request(app)
-        .post('/api/v1/auth/login')
-        .send({})
-        .expect(400);
+      const response = await request(app).post('/api/v1/auth/login').send({}).expect(400);
 
       expect(response.body.success).toBe(false);
       expect(response.body.error.code).toBe('VALIDATION_ERROR');

@@ -1,8 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
-import { 
-  UserQuota, 
-  APICallRecord, 
-  TokenUsage, 
+import {
+  UserQuota,
+  APICallRecord,
+  TokenUsage,
   CostAlert,
   DEFAULT_TIER_LIMITS,
   DEFAULT_MODEL_PRICING,
@@ -39,7 +39,7 @@ export class CostTrackingService {
   ): Promise<APICallRecord> {
     const timestamp = new Date().toISOString();
     const totalTokens = inputTokens + outputTokens;
-    
+
     // Calculate cost - fallback ensures pricing is always defined
     const modelPricing = DEFAULT_MODEL_PRICING[modelId];
     const defaultPricing = DEFAULT_MODEL_PRICING['claude-3-opus-20240229']!;
@@ -96,7 +96,7 @@ export class CostTrackingService {
     estimatedTokens: number = 1000
   ): Promise<{ allowed: boolean; reason?: string; fallbackModel?: string }> {
     const quota = await this.getUserQuota(userId);
-    
+
     // Estimate cost for quota check (using default model)
     const pricing = DEFAULT_MODEL_PRICING['claude-3-opus-20240229']!;
     const estimatedCost = (estimatedTokens / 1_000_000) * pricing.outputTokenCost;
@@ -142,11 +142,21 @@ export class CostTrackingService {
     const monthlyCostPercent = (quota.usage.monthlyCostUsed / quota.limits.monthlyCost) * 100;
 
     if (dailyTokenPercent > 80 && quota.alerts.notifyAt80Percent) {
-      await this.sendCostAlert(userId, 'daily_limit_80', quota.limits.dailyTokens, quota.usage.dailyTokensUsed);
+      await this.sendCostAlert(
+        userId,
+        'daily_limit_80',
+        quota.limits.dailyTokens,
+        quota.usage.dailyTokensUsed
+      );
     }
 
     if (monthlyCostPercent > 80 && quota.alerts.notifyAt80Percent) {
-      await this.sendCostAlert(userId, 'monthly_limit_80', quota.limits.monthlyCost, quota.usage.monthlyCostUsed);
+      await this.sendCostAlert(
+        userId,
+        'monthly_limit_80',
+        quota.limits.monthlyCost,
+        quota.usage.monthlyCostUsed
+      );
     }
 
     return { allowed: true };
@@ -195,7 +205,7 @@ export class CostTrackingService {
     // Create default quota for new user
     const tier = userData.preferences?.subscriptionTier ?? 'free';
     const limits = DEFAULT_TIER_LIMITS[tier] ?? DEFAULT_TIER_LIMITS.free;
-    
+
     const newQuota: UserQuota = {
       userId,
       tier,
@@ -230,7 +240,7 @@ export class CostTrackingService {
     costIncurred: number
   ): Promise<void> {
     const quota = await this.getUserQuota(userId);
-    
+
     // Update usage
     quota.usage.dailyTokensUsed += tokensUsed;
     quota.usage.monthlyTokensUsed += tokensUsed;
@@ -239,12 +249,28 @@ export class CostTrackingService {
     quota.updatedAt = new Date().toISOString();
 
     // Check if limits exceeded
-    if (quota.usage.dailyTokensUsed >= quota.limits.dailyTokens && quota.alerts.notifyAt100Percent) {
-      await this.sendCostAlert(userId, 'daily_limit_100', quota.limits.dailyTokens, quota.usage.dailyTokensUsed);
+    if (
+      quota.usage.dailyTokensUsed >= quota.limits.dailyTokens &&
+      quota.alerts.notifyAt100Percent
+    ) {
+      await this.sendCostAlert(
+        userId,
+        'daily_limit_100',
+        quota.limits.dailyTokens,
+        quota.usage.dailyTokensUsed
+      );
     }
 
-    if (quota.usage.monthlyCostUsed >= quota.limits.monthlyCost && quota.alerts.notifyAt100Percent) {
-      await this.sendCostAlert(userId, 'monthly_limit_100', quota.limits.monthlyCost, quota.usage.monthlyCostUsed);
+    if (
+      quota.usage.monthlyCostUsed >= quota.limits.monthlyCost &&
+      quota.alerts.notifyAt100Percent
+    ) {
+      await this.sendCostAlert(
+        userId,
+        'monthly_limit_100',
+        quota.limits.monthlyCost,
+        quota.usage.monthlyCostUsed
+      );
     }
 
     // Save updated quota
@@ -266,7 +292,7 @@ export class CostTrackingService {
     byDay: Record<string, number>;
   }> {
     const records = await this.getUserAPICallRecords(userId, startDate, endDate);
-    
+
     const breakdown = {
       totalCost: 0,
       tokenUsage: { input: 0, output: 0, total: 0 },
@@ -368,14 +394,14 @@ export class CostTrackingService {
       // In production, this would go to time-series database
       // For MVP, we append to a log file
       const validated = validateAPICallRecord(record);
-      
+
       // Store in user's API call history
       const userData = await this.userDataManager.readUserData(record.userId);
       if (userData) {
         const userDataWithCost = userData as any;
         const apiCalls = userDataWithCost.costTracking?.apiCalls || [];
         apiCalls.push(validated as any);
-        
+
         // Keep only last 1000 calls per user
         if (apiCalls.length > 1000) {
           apiCalls.splice(0, apiCalls.length - 1000);
@@ -406,13 +432,13 @@ export class CostTrackingService {
       }
 
       let records = userDataWithCost.costTracking.apiCalls as APICallRecord[];
-      
+
       if (startDate) {
-        records = records.filter(r => r.timestamp >= startDate);
+        records = records.filter((r) => r.timestamp >= startDate);
       }
-      
+
       if (endDate) {
-        records = records.filter(r => r.timestamp <= endDate);
+        records = records.filter((r) => r.timestamp <= endDate);
       }
 
       return records;
@@ -467,7 +493,7 @@ export class CostTrackingService {
     currentUsage: number
   ): string {
     const percentage = ((currentUsage / threshold) * 100).toFixed(1);
-    
+
     switch (type) {
       case 'daily_limit_80':
         return `You've used ${percentage}% of your daily token limit (${currentUsage.toLocaleString()} of ${threshold.toLocaleString()} tokens).`;

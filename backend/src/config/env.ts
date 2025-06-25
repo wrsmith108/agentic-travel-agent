@@ -13,10 +13,13 @@ const envSchema = z.object({
 
   // Session Configuration
   SESSION_SECRET: z.string().min(32).default('test-session-secret-at-least-32-chars-long'),
-  
+
   // JWT Configuration
   JWT_SECRET: z.string().min(32).default('test-jwt-secret-at-least-32-chars-long-for-development'),
-  JWT_REFRESH_SECRET: z.string().min(32).default('test-jwt-refresh-secret-at-least-32-chars-long-for-development'),
+  JWT_REFRESH_SECRET: z
+    .string()
+    .min(32)
+    .default('test-jwt-refresh-secret-at-least-32-chars-long-for-development'),
   REQUIRE_EMAIL_VERIFICATION: z.coerce.boolean().default(false),
 
   // Anthropic API
@@ -31,7 +34,6 @@ const envSchema = z.object({
   SENDGRID_API_KEY: z.string().min(1).default('test-sendgrid-key'),
   SENDGRID_FROM_EMAIL: z.string().email().default('noreply@agentic-travel.com'),
   SENDGRID_ENVIRONMENT: z.enum(['sandbox', 'production']).default('sandbox'),
-
 
   // Notification Configuration
   NOTIFICATION_SERVICE: z.enum(['sendgrid']).default('sendgrid'),
@@ -57,8 +59,8 @@ const envSchema = z.object({
   DATA_RETENTION_DAYS: z.coerce.number().int().positive().default(90),
 
   // Cost Control Configuration
-  DAILY_COST_ALERT_THRESHOLD: z.coerce.number().positive().default(10.00),
-  MONTHLY_COST_ALERT_THRESHOLD: z.coerce.number().positive().default(100.00),
+  DAILY_COST_ALERT_THRESHOLD: z.coerce.number().positive().default(10.0),
+  MONTHLY_COST_ALERT_THRESHOLD: z.coerce.number().positive().default(100.0),
   DEFAULT_USER_TIER: z.enum(['free', 'basic', 'premium', 'enterprise']).default('free'),
   ENABLE_COST_TRACKING: z.coerce.boolean().default(true),
   COST_ALERT_EMAIL: z.string().email().optional(),

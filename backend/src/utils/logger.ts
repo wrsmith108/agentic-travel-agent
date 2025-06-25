@@ -16,12 +16,12 @@ const consoleFormat = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
   winston.format.printf(({ timestamp, level, message, ...meta }) => {
     let logMessage = `${timestamp} [${level}]: ${message}`;
-    
+
     // Add metadata if present
     if (Object.keys(meta).length > 0) {
       logMessage += ` ${JSON.stringify(meta, null, 2)}`;
     }
-    
+
     return logMessage;
   })
 );
@@ -100,7 +100,11 @@ export const logInfo = (message: string, meta?: Record<string, unknown>): void =
   logger.info(message, meta);
 };
 
-export const logError = (message: string, error?: Error | unknown, meta?: Record<string, unknown>): void => {
+export const logError = (
+  message: string,
+  error?: Error | unknown,
+  meta?: Record<string, unknown>
+): void => {
   if (error instanceof Error) {
     logger.error(message, { error: error.message, stack: error.stack, ...meta });
   } else {

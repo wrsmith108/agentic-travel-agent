@@ -1,14 +1,14 @@
 import { Request, Response, NextFunction } from 'express';
-import { 
-  requireAuth, 
-  optionalAuth, 
+import {
+  requireAuth,
+  optionalAuth,
   requireRole,
   isAuthenticated,
   getCurrentUser,
   getCurrentSessionUser,
   hasRole,
   UserRole,
-  AuthenticatedRequest 
+  AuthenticatedRequest,
 } from '../auth';
 import { authService } from '@/services/auth/authService';
 import { AppError } from '../errorHandler';
@@ -430,24 +430,18 @@ describe('Authentication Middleware', () => {
       });
 
       it('should handle multiple roles with requireAll=false', () => {
-        const result = hasRole(
-          mockRequest as AuthenticatedRequest,
-          {
-            requiredRoles: [UserRole.ADMIN, UserRole.USER],
-            requireAll: false,
-          }
-        );
+        const result = hasRole(mockRequest as AuthenticatedRequest, {
+          requiredRoles: [UserRole.ADMIN, UserRole.USER],
+          requireAll: false,
+        });
         expect(result).toBe(true);
       });
 
       it('should handle multiple roles with requireAll=true', () => {
-        const result = hasRole(
-          mockRequest as AuthenticatedRequest,
-          {
-            requiredRoles: [UserRole.ADMIN, UserRole.USER],
-            requireAll: true,
-          }
-        );
+        const result = hasRole(mockRequest as AuthenticatedRequest, {
+          requiredRoles: [UserRole.ADMIN, UserRole.USER],
+          requireAll: true,
+        });
         expect(result).toBe(false);
       });
     });
@@ -488,9 +482,9 @@ describe('Authentication Middleware', () => {
     });
 
     it('should prioritize Authorization header over other sources', async () => {
-      mockRequest.headers = { 
+      mockRequest.headers = {
         authorization: 'Bearer header-token',
-        'x-access-token': 'header-x-token'
+        'x-access-token': 'header-x-token',
       };
       mockRequest.cookies = { access_token: 'cookie-token' };
 
@@ -565,9 +559,9 @@ describe('Authentication Middleware', () => {
   describe('Error logging and metadata', () => {
     it('should log authentication attempts with device information', async () => {
       const validToken = 'valid-jwt-token';
-      mockRequest.headers = { 
+      mockRequest.headers = {
         authorization: `Bearer ${validToken}`,
-        'user-agent': 'Mozilla/5.0 Test Browser'
+        'user-agent': 'Mozilla/5.0 Test Browser',
       };
       mockRequest.ip = '192.168.1.100';
 

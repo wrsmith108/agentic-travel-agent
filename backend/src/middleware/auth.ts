@@ -22,7 +22,7 @@ export interface AuthenticatedRequest extends Request {
 export enum UserRole {
   USER = 'user',
   ADMIN = 'admin',
-  MODERATOR = 'moderator'
+  MODERATOR = 'moderator',
 }
 
 /**
@@ -99,14 +99,14 @@ const createAuthErrorResponse = (
 
 /**
  * requireAuth - Middleware that requires valid authentication
- * 
+ *
  * This middleware:
  * - Validates JWT token presence and authenticity
  * - Verifies session is still active
  * - Enhances request with user data
  * - Logs authentication attempts
  * - Handles all authentication errors gracefully
- * 
+ *
  * @param config - Optional configuration for middleware behavior
  */
 export const requireAuth = (config: AuthMiddlewareConfig = {}) => {
@@ -114,27 +114,31 @@ export const requireAuth = (config: AuthMiddlewareConfig = {}) => {
     const requestId = req.id || uuidv4();
     const requestLogger = config.logRequests !== false ? createRequestLogger(requestId) : null;
     const authReq = req as AuthenticatedRequest;
-    
+
     // Add request ID to request object
     authReq.requestId = requestId;
 
     try {
       // Extract token from request
       const token = extractTokenFromRequest(req);
-      
+
       if (!token) {
         requestLogger?.warn('Authentication required - no token provided', {
           endpoint: req.originalUrl,
           method: req.method,
           ...getDeviceInfo(req),
         });
-        
-        res.status(401).json(createAuthErrorResponse(
-          ErrorCodes.AUTHENTICATION_REQUIRED,
-          'Access token is required',
-          undefined,
-          requestId
-        ));
+
+        res
+          .status(401)
+          .json(
+            createAuthErrorResponse(
+              ErrorCodes.AUTHENTICATION_REQUIRED,
+              'Access token is required',
+              undefined,
+              requestId
+            )
+          );
         return;
       }
 
@@ -147,13 +151,17 @@ export const requireAuth = (config: AuthMiddlewareConfig = {}) => {
           tokenPrefix: token.substring(0, 10) + '...',
           ...getDeviceInfo(req),
         });
-        
-        res.status(401).json(createAuthErrorResponse(
-          ErrorCodes.INVALID_TOKEN,
-          'Invalid or expired access token',
-          undefined,
-          requestId
-        ));
+
+        res
+          .status(401)
+          .json(
+            createAuthErrorResponse(
+              ErrorCodes.INVALID_TOKEN,
+              'Invalid or expired access token',
+              undefined,
+              requestId
+            )
+          );
         return;
       }
 
@@ -184,7 +192,6 @@ export const requireAuth = (config: AuthMiddlewareConfig = {}) => {
       });
 
       next();
-
     } catch (error) {
       requestLogger?.error('Authentication middleware error', error, {
         endpoint: req.originalUrl,
@@ -194,34 +201,42 @@ export const requireAuth = (config: AuthMiddlewareConfig = {}) => {
 
       // Handle specific error types
       if (error instanceof z.ZodError) {
-        res.status(400).json(createAuthErrorResponse(
-          ErrorCodes.VALIDATION_ERROR,
-          'Invalid authentication data',
-          error.errors,
-          requestId
-        ));
+        res
+          .status(400)
+          .json(
+            createAuthErrorResponse(
+              ErrorCodes.VALIDATION_ERROR,
+              'Invalid authentication data',
+              error.errors,
+              requestId
+            )
+          );
         return;
       }
 
-      res.status(500).json(createAuthErrorResponse(
-        ErrorCodes.INTERNAL_SERVER_ERROR,
-        'Authentication system error',
-        undefined,
-        requestId
-      ));
+      res
+        .status(500)
+        .json(
+          createAuthErrorResponse(
+            ErrorCodes.INTERNAL_SERVER_ERROR,
+            'Authentication system error',
+            undefined,
+            requestId
+          )
+        );
     }
   };
 };
 
 /**
  * optionalAuth - Middleware that optionally authenticates requests
- * 
+ *
  * This middleware:
  * - Attempts authentication if token is present
  * - Continues without authentication if no token
  * - Enhances request with user data when authenticated
  * - Never blocks the request
- * 
+ *
  * @param config - Optional configuration for middleware behavior
  */
 export const optionalAuth = (config: AuthMiddlewareConfig = {}) => {
@@ -229,14 +244,14 @@ export const optionalAuth = (config: AuthMiddlewareConfig = {}) => {
     const requestId = req.id || uuidv4();
     const requestLogger = config.logRequests !== false ? createRequestLogger(requestId) : null;
     const authReq = req as AuthenticatedRequest;
-    
+
     // Add request ID to request object
     authReq.requestId = requestId;
 
     try {
       // Extract token from request
       const token = extractTokenFromRequest(req);
-      
+
       // If no token provided, continue without authentication
       if (!token) {
         requestLogger?.info('Optional authentication - no token provided', {
@@ -271,7 +286,7 @@ export const optionalAuth = (config: AuthMiddlewareConfig = {}) => {
           next();
           return;
         }
-        
+
         // Add session user data to request
         authReq.sessionUser = sessionUser;
       }
@@ -297,7 +312,6 @@ export const optionalAuth = (config: AuthMiddlewareConfig = {}) => {
       });
 
       next();
-
     } catch (error) {
       requestLogger?.warn('Optional authentication error (continuing)', error, {
         endpoint: req.originalUrl,
@@ -312,13 +326,13 @@ export const optionalAuth = (config: AuthMiddlewareConfig = {}) => {
 
 /**
  * requireRole - Middleware that requires specific user roles
- * 
+ *
  * This middleware:
  * - Requires authentication (must be used after requireAuth)
  * - Validates user has required role(s)
  * - Supports multiple role configurations
  * - Logs authorization attempts
- * 
+ *
  * @param roles - Single role or array of roles, or role configuration object
  * @param config - Optional configuration for middleware behavior
  */
@@ -338,18 +352,22 @@ export const requireRole = (
           endpoint: req.originalUrl,
           method: req.method,
         });
-        
-        res.status(401).json(createAuthErrorResponse(
-          ErrorCodes.AUTHENTICATION_REQUIRED,
-          'Authentication required for role-based access',
-          undefined,
-          requestId
-        ));
+
+        res
+          .status(401)
+          .json(
+            createAuthErrorResponse(
+              ErrorCodes.AUTHENTICATION_REQUIRED,
+              'Authentication required for role-based access',
+              undefined,
+              requestId
+            )
+          );
         return;
       }
 
       const userRole = authReq.sessionUser.role as UserRole;
-      
+
       // Normalize roles configuration
       let roleConfig: RoleConfig;
       if (typeof roles === 'string') {
@@ -362,8 +380,8 @@ export const requireRole = (
 
       // Check role requirements
       const hasRequiredRole = roleConfig.requireAll
-        ? roleConfig.requiredRoles.every(role => userRole === role || userRole === UserRole.ADMIN)
-        : roleConfig.requiredRoles.some(role => userRole === role || userRole === UserRole.ADMIN);
+        ? roleConfig.requiredRoles.every((role) => userRole === role || userRole === UserRole.ADMIN)
+        : roleConfig.requiredRoles.some((role) => userRole === role || userRole === UserRole.ADMIN);
 
       if (!hasRequiredRole) {
         requestLogger?.warn('Authorization failed - insufficient permissions', {
@@ -373,16 +391,18 @@ export const requireRole = (
           requireAll: roleConfig.requireAll,
           endpoint: req.originalUrl,
         });
-        
-        res.status(403).json(createAuthErrorResponse(
-          ErrorCodes.AUTHORIZATION_FAILED,
-          'Insufficient permissions to access this resource',
-          {
-            userRole,
-            requiredRoles: roleConfig.requiredRoles,
-          },
-          requestId
-        ));
+
+        res.status(403).json(
+          createAuthErrorResponse(
+            ErrorCodes.AUTHORIZATION_FAILED,
+            'Insufficient permissions to access this resource',
+            {
+              userRole,
+              requiredRoles: roleConfig.requiredRoles,
+            },
+            requestId
+          )
+        );
         return;
       }
 
@@ -394,7 +414,6 @@ export const requireRole = (
       });
 
       next();
-
     } catch (error) {
       requestLogger?.error('Role authorization middleware error', error, {
         endpoint: req.originalUrl,
@@ -402,10 +421,11 @@ export const requireRole = (
         userId: authReq.sessionUser?.id,
       });
 
-      res.status(500).json(createAuthErrorResponse(
-        ErrorCodes.INTERNAL_SERVER_ERROR,
-        'Authorization system error'
-      ));
+      res
+        .status(500)
+        .json(
+          createAuthErrorResponse(ErrorCodes.INTERNAL_SERVER_ERROR, 'Authorization system error')
+        );
     }
   };
 };
@@ -440,20 +460,20 @@ export const getCurrentSessionUser = (req: Request): SessionUser | undefined => 
 export const hasRole = (req: Request, role: UserRole | RoleConfig): boolean => {
   const authReq = req as AuthenticatedRequest;
   if (!authReq.sessionUser) return false;
-  
+
   const userRole = authReq.sessionUser.role as UserRole;
-  
+
   // Handle single role
   if (typeof role === 'string') {
     return userRole === role || userRole === UserRole.ADMIN;
   }
-  
+
   // Handle role config
   const config = role as RoleConfig;
   if (config.requireAll) {
-    return config.requiredRoles.every(r => userRole === r || userRole === UserRole.ADMIN);
+    return config.requiredRoles.every((r) => userRole === r || userRole === UserRole.ADMIN);
   } else {
-    return config.requiredRoles.some(r => userRole === r) || userRole === UserRole.ADMIN;
+    return config.requiredRoles.some((r) => userRole === r) || userRole === UserRole.ADMIN;
   }
 };
 
@@ -463,9 +483,9 @@ export const hasRole = (req: Request, role: UserRole | RoleConfig): boolean => {
 export const hasAnyRole = (req: Request, roles: UserRole[]): boolean => {
   const authReq = req as AuthenticatedRequest;
   if (!authReq.sessionUser) return false;
-  
+
   const userRole = authReq.sessionUser.role as UserRole;
-  return roles.some(role => userRole === role) || userRole === UserRole.ADMIN;
+  return roles.some((role) => userRole === role) || userRole === UserRole.ADMIN;
 };
 
 /**
@@ -474,11 +494,11 @@ export const hasAnyRole = (req: Request, roles: UserRole[]): boolean => {
 export const hasAllRoles = (req: Request, roles: UserRole[]): boolean => {
   const authReq = req as AuthenticatedRequest;
   if (!authReq.sessionUser) return false;
-  
+
   const userRole = authReq.sessionUser.role as UserRole;
   if (userRole === UserRole.ADMIN) return true;
-  
-  return roles.every(role => userRole === role);
+
+  return roles.every((role) => userRole === role);
 };
 
 /**
@@ -491,7 +511,7 @@ export const authErrorHandler = (
   next: NextFunction
 ): void => {
   const requestLogger = createRequestLogger(req.id || uuidv4());
-  
+
   requestLogger.error('Authentication error occurred', err, {
     endpoint: req.originalUrl,
     method: req.method,
@@ -506,51 +526,47 @@ export const authErrorHandler = (
 
   // Handle JWT-specific errors
   if (err.name === 'JsonWebTokenError') {
-    res.status(401).json(createAuthErrorResponse(
-      ErrorCodes.AUTHENTICATION_REQUIRED,
-      'Invalid access token'
-    ));
+    res
+      .status(401)
+      .json(createAuthErrorResponse(ErrorCodes.AUTHENTICATION_REQUIRED, 'Invalid access token'));
     return;
   }
 
   if (err.name === 'TokenExpiredError') {
-    res.status(401).json(createAuthErrorResponse(
-      ErrorCodes.AUTHENTICATION_REQUIRED,
-      'Access token has expired'
-    ));
+    res
+      .status(401)
+      .json(
+        createAuthErrorResponse(ErrorCodes.AUTHENTICATION_REQUIRED, 'Access token has expired')
+      );
     return;
   }
 
   // Generic authentication error
-  res.status(500).json(createAuthErrorResponse(
-    ErrorCodes.INTERNAL_SERVER_ERROR,
-    'Authentication system error',
-    500
-  ));
+  res
+    .status(500)
+    .json(
+      createAuthErrorResponse(ErrorCodes.INTERNAL_SERVER_ERROR, 'Authentication system error', 500)
+    );
 };
 
 /**
  * Middleware to add request context enhancement
  * This should be used early in the middleware chain
  */
-export const enhanceRequestContext = (
-  req: Request,
-  _res: Response,
-  next: NextFunction
-): void => {
+export const enhanceRequestContext = (req: Request, _res: Response, next: NextFunction): void => {
   const authReq = req as AuthenticatedRequest;
-  
+
   // Add request ID if not already present
   if (!authReq.requestId) {
     authReq.requestId = req.id || uuidv4();
   }
-  
+
   // Add device info helper
   (authReq as any).getDeviceInfo = () => getDeviceInfo(req);
-  
+
   // Add authentication status helper
   (authReq as any).isAuthenticated = () => isAuthenticated(req);
-  
+
   next();
 };
 
@@ -558,13 +574,13 @@ export const enhanceRequestContext = (
 export const authConfigs = {
   // Standard authentication with full logging
   standard: { logRequests: true, includeUserProfile: false },
-  
+
   // Silent authentication (minimal logging)
   silent: { logRequests: false, includeUserProfile: false },
-  
+
   // Full authentication with user profile
   withProfile: { logRequests: true, includeUserProfile: true },
-  
+
   // Skip session validation (useful for logout endpoints)
   skipSession: { logRequests: true, skipExpiredCheck: true },
 } as const;
@@ -573,10 +589,16 @@ export const authConfigs = {
 export const roleConfigs = {
   // Admin only
   adminOnly: { requiredRoles: [UserRole.ADMIN], requireAll: true } as RoleConfig,
-  
+
   // Admin or moderator
-  moderation: { requiredRoles: [UserRole.ADMIN, UserRole.MODERATOR], requireAll: false } as RoleConfig,
-  
+  moderation: {
+    requiredRoles: [UserRole.ADMIN, UserRole.MODERATOR],
+    requireAll: false,
+  } as RoleConfig,
+
   // Any authenticated user
-  anyUser: { requiredRoles: [UserRole.USER, UserRole.MODERATOR, UserRole.ADMIN], requireAll: false } as RoleConfig,
+  anyUser: {
+    requiredRoles: [UserRole.USER, UserRole.MODERATOR, UserRole.ADMIN],
+    requireAll: false,
+  } as RoleConfig,
 };

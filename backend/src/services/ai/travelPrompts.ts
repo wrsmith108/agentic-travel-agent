@@ -39,7 +39,7 @@ Provide a 1-2 sentence insight that helps the user understand if this is a good 
  */
 export const DEMO_CONVERSATIONS = [
   {
-    user: "I want to visit Tokyo in April",
+    user: 'I want to visit Tokyo in April',
     assistant: `Great choice! Tokyo in April is beautiful with cherry blossoms in full bloom. 🌸
 
 I've found that flights from YYZ to Tokyo typically range from $1,200-1,800 CAD in April. Currently, I'm seeing prices around $1,350, which is about 15% below the seasonal average!
@@ -52,7 +52,7 @@ A few insights for you:
 What specific dates in April are you considering? I can set up price monitoring to alert you when great deals appear.`,
   },
   {
-    user: "What about the week of April 15-22?",
+    user: 'What about the week of April 15-22?',
     assistant: `Perfect timing! The week of April 15-22 is actually in the "sweet spot" for Tokyo travel:
 
 📊 Current prices for YYZ → NRT (April 15-22):
@@ -91,23 +91,23 @@ export const MOCK_PRICE_PATTERNS = {
     },
     bookingCurve: {
       120: 1.15, // 120+ days out: 15% above average
-      90: 1.05,  // 90 days: 5% above average
-      60: 0.95,  // 60 days: 5% below average (sweet spot)
-      45: 0.92,  // 45 days: 8% below average (best prices)
-      30: 1.00,  // 30 days: average
-      21: 1.10,  // 21 days: 10% above average
-      14: 1.20,  // 14 days: 20% above average
-      7: 1.35,   // 7 days: 35% above average
-      3: 1.50,   // 3 days: 50% above average
+      90: 1.05, // 90 days: 5% above average
+      60: 0.95, // 60 days: 5% below average (sweet spot)
+      45: 0.92, // 45 days: 8% below average (best prices)
+      30: 1.0, // 30 days: average
+      21: 1.1, // 21 days: 10% above average
+      14: 1.2, // 14 days: 20% above average
+      7: 1.35, // 7 days: 35% above average
+      3: 1.5, // 3 days: 50% above average
     },
     insights: {
-      bestBookingWindow: "45-60 days before departure",
-      cheapestDays: ["Tuesday", "Wednesday"],
-      avoidDates: ["Golden Week (Apr 29-May 5)", "Obon (Aug 13-16)"],
+      bestBookingWindow: '45-60 days before departure',
+      cheapestDays: ['Tuesday', 'Wednesday'],
+      avoidDates: ['Golden Week (Apr 29-May 5)', 'Obon (Aug 13-16)'],
       alternativeAirports: {
-        KIX: "Osaka (KIX) - Often $200-300 cheaper, 1hr train to Tokyo",
-        NRT: "Narita (NRT) - Main airport, more flight options",
-        HND: "Haneda (HND) - Closer to city but often pricier",
+        KIX: 'Osaka (KIX) - Often $200-300 cheaper, 1hr train to Tokyo',
+        NRT: 'Narita (NRT) - Main airport, more flight options',
+        HND: 'Haneda (HND) - Closer to city but often pricier',
       },
     },
   },
@@ -131,20 +131,20 @@ export const MOCK_PRICE_PATTERNS = {
       90: 1.05,
       60: 0.95,
       45: 0.92,
-      30: 1.00,
-      21: 1.10,
-      14: 1.20,
+      30: 1.0,
+      21: 1.1,
+      14: 1.2,
       7: 1.35,
-      3: 1.50,
+      3: 1.5,
     },
     insights: {
-      bestBookingWindow: "50-70 days before departure",
-      cheapestDays: ["Tuesday", "Wednesday", "Saturday"],
-      avoidDates: ["School holidays", "Bank holidays"],
+      bestBookingWindow: '50-70 days before departure',
+      cheapestDays: ['Tuesday', 'Wednesday', 'Saturday'],
+      avoidDates: ['School holidays', 'Bank holidays'],
       tips: [
-        "Consider Dublin (DUB) + budget flight to London",
-        "British Airways often has sales in January",
-        "Premium economy sometimes only $100-200 more",
+        'Consider Dublin (DUB) + budget flight to London',
+        'British Airways often has sales in January',
+        'Premium economy sometimes only $100-200 more',
       ],
     },
   },
@@ -160,20 +160,21 @@ export function generatePriceInsight(
 ): string {
   const monthKey = date.toLocaleDateString('en-US', { month: 'short' }).toLowerCase();
   const daysUntil = Math.floor((date.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-  
+
   const routeKey = `${route.origin}-${route.destination}`;
   const patterns = MOCK_PRICE_PATTERNS[routeKey as keyof typeof MOCK_PRICE_PATTERNS];
-  
+
   if (!patterns) {
     return `Current price of $${currentPrice} CAD for this route. I'm tracking prices and will alert you to any significant changes.`;
   }
 
   const seasonalData = patterns.seasonal[monthKey as keyof typeof patterns.seasonal];
-  const bookingMultiplier = 'bookingCurve' in patterns 
-    ? Object.entries(patterns.bookingCurve)
-        .sort(([a], [b]) => Number(b) - Number(a))
-        .find(([days]) => daysUntil >= Number(days))?.[1] || 1
-    : 1;
+  const bookingMultiplier =
+    'bookingCurve' in patterns
+      ? Object.entries(patterns.bookingCurve)
+          .sort(([a], [b]) => Number(b) - Number(a))
+          .find(([days]) => daysUntil >= Number(days))?.[1] || 1
+      : 1;
 
   const expectedPrice = Math.round(seasonalData.avg * (bookingMultiplier as number));
   const percentDiff = Math.round(((currentPrice - expectedPrice) / expectedPrice) * 100);
@@ -183,9 +184,9 @@ export function generatePriceInsight(
   } else if (percentDiff < -5) {
     return `✅ Good price! At $${currentPrice}, you're saving about ${Math.abs(percentDiff)}% compared to average ${monthKey} prices. With ${daysUntil} days until departure, prices are likely to increase from here.`;
   } else if (percentDiff < 5) {
-    return `📊 Fair price at $${currentPrice}, right around average for ${monthKey}. ${daysUntil > 45 ? "You have time to wait for a better deal" : "Prices typically increase from here as departure approaches"}.`;
+    return `📊 Fair price at $${currentPrice}, right around average for ${monthKey}. ${daysUntil > 45 ? 'You have time to wait for a better deal' : 'Prices typically increase from here as departure approaches'}.`;
   } else {
-    return `⚠️ Above average at $${currentPrice} (${percentDiff}% higher than typical). ${daysUntil > 60 ? "I'd wait - better deals usually appear 45-60 days out" : "Consider flexible dates or alternative airports for better prices"}.`;
+    return `⚠️ Above average at $${currentPrice} (${percentDiff}% higher than typical). ${daysUntil > 60 ? "I'd wait - better deals usually appear 45-60 days out" : 'Consider flexible dates or alternative airports for better prices'}.`;
   }
 }
 
@@ -200,7 +201,7 @@ export function generateMockPriceHistory(
   const history: Array<{ date: string; price: number; event?: string }> = [];
   const routeKey = `${route.origin}-${route.destination}`;
   const patterns = MOCK_PRICE_PATTERNS[routeKey as keyof typeof MOCK_PRICE_PATTERNS];
-  
+
   if (!patterns) {
     // Generate generic pattern
     for (let i = days; i >= 0; i--) {
@@ -220,33 +221,34 @@ export function generateMockPriceHistory(
     d.setDate(d.getDate() - i);
     const monthKey = d.toLocaleDateString('en-US', { month: 'short' }).toLowerCase();
     const seasonalData = patterns.seasonal[monthKey as keyof typeof patterns.seasonal];
-    
+
     const daysUntilDeparture = Math.floor((date.getTime() - d.getTime()) / (1000 * 60 * 60 * 24));
-    const bookingMultiplier = 'bookingCurve' in patterns 
-      ? Object.entries(patterns.bookingCurve)
-          .sort(([a], [b]) => Number(b) - Number(a))
-          .find(([days]) => daysUntilDeparture >= Number(days))?.[1] || 1
-      : 1;
+    const bookingMultiplier =
+      'bookingCurve' in patterns
+        ? Object.entries(patterns.bookingCurve)
+            .sort(([a], [b]) => Number(b) - Number(a))
+            .find(([days]) => daysUntilDeparture >= Number(days))?.[1] || 1
+        : 1;
 
     const basePrice = seasonalData.avg * (bookingMultiplier as number);
     const variance = (Math.random() - 0.5) * 200; // +/- $100 variance
     const dayOfWeek = d.getDay();
-    const weekdayMultiplier = (dayOfWeek === 2 || dayOfWeek === 3) ? 0.95 : 1; // Tue/Wed discount
-    
+    const weekdayMultiplier = dayOfWeek === 2 || dayOfWeek === 3 ? 0.95 : 1; // Tue/Wed discount
+
     const price = Math.round(basePrice * weekdayMultiplier + variance);
-    
+
     const point: any = {
       date: d.toISOString().split('T')[0] || d.toISOString(),
       price: Math.max(seasonalData.low, Math.min(seasonalData.high, price)),
     };
 
     // Add events for context
-    if (i === 60) point.event = "Sweet spot window opens";
-    if (i === 45) point.event = "Best prices typically here";
-    if (i === 21) point.event = "Last-minute price surge begins";
-    
+    if (i === 60) point.event = 'Sweet spot window opens';
+    if (i === 45) point.event = 'Best prices typically here';
+    if (i === 21) point.event = 'Last-minute price surge begins';
+
     history.push(point);
   }
-  
+
   return history;
 }

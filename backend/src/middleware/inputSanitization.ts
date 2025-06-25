@@ -128,12 +128,7 @@ export function sanitizeObject(obj: any, schema?: z.ZodSchema): any {
       return schema.parse(obj);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        throw new AppError(
-          400,
-          'Invalid input data',
-          ErrorCodes.VALIDATION_ERROR,
-          error.errors
-        );
+        throw new AppError(400, 'Invalid input data', ErrorCodes.VALIDATION_ERROR, error.errors);
       }
       throw error;
     }
@@ -145,14 +140,14 @@ export function sanitizeObject(obj: any, schema?: z.ZodSchema): any {
   }
 
   if (Array.isArray(obj)) {
-    return obj.map(item => sanitizeObject(item));
+    return obj.map((item) => sanitizeObject(item));
   }
 
   const sanitized: any = {};
   for (const [key, value] of Object.entries(obj)) {
     // Sanitize key
     const sanitizedKey = sanitizeString(key, { maxLength: 100, pattern: /^[\w\-_.]+$/ });
-    
+
     // Sanitize value based on type
     if (typeof value === 'string') {
       sanitized[sanitizedKey] = sanitizeString(value, { maxLength: 10000 });
@@ -169,11 +164,13 @@ export function sanitizeObject(obj: any, schema?: z.ZodSchema): any {
 /**
  * Middleware to sanitize all inputs
  */
-export const sanitizeInputs = (options: {
-  bodySchema?: z.ZodSchema;
-  querySchema?: z.ZodSchema;
-  paramsSchema?: z.ZodSchema;
-} = {}) => {
+export const sanitizeInputs = (
+  options: {
+    bodySchema?: z.ZodSchema;
+    querySchema?: z.ZodSchema;
+    paramsSchema?: z.ZodSchema;
+  } = {}
+) => {
   return (req: Request, res: Response, next: NextFunction): void => {
     try {
       // Sanitize body
@@ -189,7 +186,7 @@ export const sanitizeInputs = (options: {
           if (typeof value === 'string') {
             sanitizedQuery[sanitizedKey] = sanitizeString(value, { maxLength: 200 });
           } else if (Array.isArray(value)) {
-            sanitizedQuery[sanitizedKey] = value.map(v => 
+            sanitizedQuery[sanitizedKey] = value.map((v) =>
               typeof v === 'string' ? sanitizeString(v, { maxLength: 200 }) : v
             );
           } else {
@@ -245,11 +242,13 @@ export const sanitizeInputs = (options: {
 /**
  * Sanitize file uploads
  */
-export const sanitizeFileUpload = (options: {
-  allowedTypes?: string[];
-  maxSize?: number; // bytes
-  scanForVirus?: boolean;
-} = {}) => {
+export const sanitizeFileUpload = (
+  options: {
+    allowedTypes?: string[];
+    maxSize?: number; // bytes
+    scanForVirus?: boolean;
+  } = {}
+) => {
   const defaultOptions = {
     allowedTypes: ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'],
     maxSize: 10 * 1024 * 1024, // 10MB
@@ -267,7 +266,7 @@ export const sanitizeFileUpload = (options: {
 
     try {
       const files = req.files ? (Array.isArray(req.files) ? req.files : [req.files]) : [req.file];
-      
+
       for (const file of files) {
         if (!file) continue;
 

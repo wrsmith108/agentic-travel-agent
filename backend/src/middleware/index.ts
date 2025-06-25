@@ -41,10 +41,7 @@ import {
   enhanceRequestContext,
 } from './auth';
 
-import {
-  errorHandler,
-  notFoundHandler,
-} from './errorHandler';
+import { errorHandler, notFoundHandler } from './errorHandler';
 
 // Re-export commonly used middleware combinations
 export const middleware = {
@@ -54,14 +51,14 @@ export const middleware = {
     optional: optionalAuth,
     role: requireRole,
   },
-  
+
   // Error handling middleware
   errors: {
     handler: errorHandler,
     notFound: notFoundHandler,
     auth: authErrorHandler,
   },
-  
+
   // Request enhancement
   enhance: {
     context: enhanceRequestContext,

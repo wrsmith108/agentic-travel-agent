@@ -23,10 +23,7 @@ describe('Demo API Endpoints', () => {
         message: 'Tell me about flight deals',
       };
 
-      const response = await request(app)
-        .post('/api/v1/demo/chat')
-        .send(chatData)
-        .expect(200);
+      const response = await request(app).post('/api/v1/demo/chat').send(chatData).expect(200);
 
       expect(response.body.success).toBe(true);
       expect(response.body.data).toMatchObject({
@@ -48,10 +45,7 @@ describe('Demo API Endpoints', () => {
         sessionId: 'a1b2c3d4-e5f6-4789-0123-456789abcdef', // Valid UUID
       };
 
-      const response = await request(app)
-        .post('/api/v1/demo/chat')
-        .send(chatData)
-        .expect(200);
+      const response = await request(app).post('/api/v1/demo/chat').send(chatData).expect(200);
 
       expect(response.body.success).toBe(true);
       expect(response.body.data).toMatchObject({
@@ -75,10 +69,7 @@ describe('Demo API Endpoints', () => {
         sessionId: validUuid,
       };
 
-      const response = await request(app)
-        .post('/api/v1/demo/chat')
-        .send(chatData)
-        .expect(200);
+      const response = await request(app).post('/api/v1/demo/chat').send(chatData).expect(200);
 
       expect(response.body.data.sessionId).toBe(validUuid);
     });
@@ -88,10 +79,7 @@ describe('Demo API Endpoints', () => {
         message: '',
       };
 
-      const response = await request(app)
-        .post('/api/v1/demo/chat')
-        .send(chatData)
-        .expect(400);
+      const response = await request(app).post('/api/v1/demo/chat').send(chatData).expect(400);
 
       expect(response.body.success).toBe(false);
       expect(response.body.error.code).toBe('VALIDATION_ERROR');
@@ -103,10 +91,7 @@ describe('Demo API Endpoints', () => {
         message: longMessage,
       };
 
-      const response = await request(app)
-        .post('/api/v1/demo/chat')
-        .send(chatData)
-        .expect(400);
+      const response = await request(app).post('/api/v1/demo/chat').send(chatData).expect(400);
 
       expect(response.body.success).toBe(false);
       expect(response.body.error.code).toBe('VALIDATION_ERROR');
@@ -118,10 +103,7 @@ describe('Demo API Endpoints', () => {
         sessionId: 'not-a-valid-uuid',
       };
 
-      const response = await request(app)
-        .post('/api/v1/demo/chat')
-        .send(chatData)
-        .expect(400);
+      const response = await request(app).post('/api/v1/demo/chat').send(chatData).expect(400);
 
       expect(response.body.success).toBe(false);
       expect(response.body.error.code).toBe('VALIDATION_ERROR');
@@ -261,9 +243,7 @@ describe('Demo API Endpoints', () => {
 
   describe('GET /api/v1/demo/routes', () => {
     it('should return available routes with insights', async () => {
-      const response = await request(app)
-        .get('/api/v1/demo/routes')
-        .expect(200);
+      const response = await request(app).get('/api/v1/demo/routes').expect(200);
 
       expect(response.body.success).toBe(true);
       expect(response.body.data).toMatchObject({
@@ -296,9 +276,7 @@ describe('Demo API Endpoints', () => {
     });
 
     it('should include YYZ-NRT and YYZ-LHR routes', async () => {
-      const response = await request(app)
-        .get('/api/v1/demo/routes')
-        .expect(200);
+      const response = await request(app).get('/api/v1/demo/routes').expect(200);
 
       const routes = response.body.data.routes;
       const hasTokyoRoute = routes.some((r: any) => r.origin === 'YYZ' && r.destination === 'NRT');
@@ -309,9 +287,7 @@ describe('Demo API Endpoints', () => {
     });
 
     it('should generate popularity scores between 70-100', async () => {
-      const response = await request(app)
-        .get('/api/v1/demo/routes')
-        .expect(200);
+      const response = await request(app).get('/api/v1/demo/routes').expect(200);
 
       const routes = response.body.data.routes;
       routes.forEach((route: any) => {
@@ -472,9 +448,7 @@ describe('Demo API Endpoints', () => {
     });
 
     it('should handle unsupported HTTP methods', async () => {
-      const response = await request(app)
-        .put('/api/v1/demo/routes')
-        .expect(404);
+      const response = await request(app).put('/api/v1/demo/routes').expect(404);
 
       expect(response.body.success).toBe(false);
     });
@@ -495,10 +469,7 @@ describe('Demo API Endpoints', () => {
         message: '<script>alert("xss")</script>Hello',
       };
 
-      const response = await request(app)
-        .post('/api/v1/demo/chat')
-        .send(chatData)
-        .expect(200);
+      const response = await request(app).post('/api/v1/demo/chat').send(chatData).expect(200);
 
       expect(response.body.data.message).not.toContain('<script>');
       expect(response.body.data.message).toContain('Hello');
@@ -509,10 +480,7 @@ describe('Demo API Endpoints', () => {
         message: "'; DROP TABLE users; --",
       };
 
-      const response = await request(app)
-        .post('/api/v1/demo/chat')
-        .send(chatData)
-        .expect(400);
+      const response = await request(app).post('/api/v1/demo/chat').send(chatData).expect(400);
 
       expect(response.body.success).toBe(false);
       expect(response.body.error.code).toBe('VALIDATION_ERROR');
@@ -522,19 +490,16 @@ describe('Demo API Endpoints', () => {
   describe('Performance', () => {
     it('should respond to chat within reasonable time', async () => {
       const start = Date.now();
-      
-      await request(app)
-        .post('/api/v1/demo/chat')
-        .send({ message: 'Hello' })
-        .expect(200);
-      
+
+      await request(app).post('/api/v1/demo/chat').send({ message: 'Hello' }).expect(200);
+
       const duration = Date.now() - start;
       expect(duration).toBeLessThan(2000); // Should respond within 2 seconds
     });
 
     it('should respond to quick-search within reasonable time', async () => {
       const start = Date.now();
-      
+
       await request(app)
         .post('/api/v1/demo/quick-search')
         .send({
@@ -543,7 +508,7 @@ describe('Demo API Endpoints', () => {
           departureDate: '2024-08-15',
         })
         .expect(200);
-      
+
       const duration = Date.now() - start;
       expect(duration).toBeLessThan(3000); // Should respond within 3 seconds
     });

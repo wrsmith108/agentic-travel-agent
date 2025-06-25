@@ -62,7 +62,7 @@ export const dynamicRateLimiter = rateLimit({
   handler: (req: Request, res: Response) => {
     const authReq = req as AuthenticatedRequest;
     const identifier = authReq.user?.sub || req.ip;
-    
+
     logWarn('Rate limit exceeded', {
       identifier,
       path: req.path,
@@ -178,20 +178,23 @@ export const globalRateLimiter = rateLimit({
   legacyHeaders: false,
   skip: (req: Request) => {
     // Skip for static assets and health checks
-    return req.path.startsWith('/static') || 
-           req.path === '/health' || 
-           req.path === '/api/v1/health';
+    return (
+      req.path.startsWith('/static') || req.path === '/health' || req.path === '/api/v1/health'
+    );
   },
 });
 
 /**
  * Cleanup old rate limit entries periodically
  */
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, value] of userRateLimitStore.entries()) {
-    if (value.resetTime < now) {
-      userRateLimitStore.delete(key);
+setInterval(
+  () => {
+    const now = Date.now();
+    for (const [key, value] of userRateLimitStore.entries()) {
+      if (value.resetTime < now) {
+        userRateLimitStore.delete(key);
+      }
     }
-  }
-}, 5 * 60 * 1000); // Clean every 5 minutes
+  },
+  5 * 60 * 1000
+); // Clean every 5 minutes

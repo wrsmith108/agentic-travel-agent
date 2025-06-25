@@ -1,6 +1,6 @@
 /**
  * Authentication Middleware Usage Examples
- * 
+ *
  * This file demonstrates how to use the authentication middleware
  * in various scenarios with Express routes.
  */
@@ -23,11 +23,12 @@ const exampleRouter = Router();
 /**
  * Example 1: Protected route that requires authentication
  */
-exampleRouter.get('/protected', 
+exampleRouter.get(
+  '/protected',
   requireAuth(), // Basic authentication required
   (req: Request, res: Response) => {
     const authReq = req as AuthenticatedRequest;
-    
+
     res.json({
       message: 'This is a protected route',
       user: authReq.user,
@@ -39,11 +40,12 @@ exampleRouter.get('/protected',
 /**
  * Example 2: Protected route with user profile included
  */
-exampleRouter.get('/profile',
+exampleRouter.get(
+  '/profile',
   requireAuth(authConfigs.withProfile), // Include full user profile
   (req: Request, res: Response) => {
     const authReq = req as AuthenticatedRequest;
-    
+
     res.json({
       message: 'User profile data',
       user: authReq.user,
@@ -55,7 +57,8 @@ exampleRouter.get('/profile',
 /**
  * Example 3: Admin-only route
  */
-exampleRouter.get('/admin',
+exampleRouter.get(
+  '/admin',
   requireAuth(),
   requireRole(UserRole.ADMIN), // Only admins can access
   (req: Request, res: Response) => {
@@ -69,7 +72,8 @@ exampleRouter.get('/admin',
 /**
  * Example 4: Moderator or Admin route
  */
-exampleRouter.get('/moderation',
+exampleRouter.get(
+  '/moderation',
   requireAuth(),
   requireRole(roleConfigs.moderation), // Admin or Moderator
   (req: Request, res: Response) => {
@@ -84,7 +88,8 @@ exampleRouter.get('/moderation',
  * Example 5: Optional authentication route
  * Works with or without authentication
  */
-exampleRouter.get('/public-content',
+exampleRouter.get(
+  '/public-content',
   optionalAuth(), // Authentication is optional
   (req: Request, res: Response) => {
     if (isAuthenticated(req)) {
@@ -107,7 +112,8 @@ exampleRouter.get('/public-content',
 /**
  * Example 6: Silent authentication (minimal logging)
  */
-exampleRouter.get('/api/data',
+exampleRouter.get(
+  '/api/data',
   requireAuth(authConfigs.silent), // Minimal logging for high-traffic API
   (req: Request, res: Response) => {
     res.json({
@@ -120,11 +126,12 @@ exampleRouter.get('/api/data',
 /**
  * Example 7: Multiple role requirements
  */
-exampleRouter.post('/admin/users',
+exampleRouter.post(
+  '/admin/users',
   requireAuth(),
   requireRole({
     requiredRoles: [UserRole.ADMIN],
-    requireAll: true // Must have ALL specified roles
+    requireAll: true, // Must have ALL specified roles
   }),
   (_req: Request, res: Response) => {
     res.json({
@@ -138,7 +145,7 @@ exampleRouter.post('/admin/users',
  */
 const requireUserOrAdmin = (req: Request, res: Response, next: any): void => {
   const user = getCurrentUser(req);
-  
+
   if (!user) {
     res.status(401).json({
       success: false,
@@ -166,12 +173,13 @@ const requireUserOrAdmin = (req: Request, res: Response, next: any): void => {
   }
 };
 
-exampleRouter.get('/users/:userId',
+exampleRouter.get(
+  '/users/:userId',
   requireAuth(),
   requireUserOrAdmin, // Custom authorization logic
   (req: Request, res: Response) => {
     const { userId } = req.params;
-    
+
     res.json({
       message: `User data for ${userId}`,
       requestedBy: getCurrentUser(req)?.sub,
@@ -182,7 +190,8 @@ exampleRouter.get('/users/:userId',
 /**
  * Example 9: Skip session validation (useful for logout)
  */
-exampleRouter.post('/logout',
+exampleRouter.post(
+  '/logout',
   requireAuth(authConfigs.skipSession), // Skip session validation
   (_req: Request, res: Response) => {
     // Logout logic here - session might already be expired
@@ -195,7 +204,8 @@ exampleRouter.post('/logout',
 /**
  * Example 10: Error handling with auth errors
  */
-exampleRouter.get('/sensitive',
+exampleRouter.get(
+  '/sensitive',
   requireAuth(),
   requireRole([UserRole.ADMIN, UserRole.MODERATOR]),
   (_req: Request, res: Response) => {
@@ -219,33 +229,33 @@ export default exampleRouter;
 
 /**
  * Usage in main Express app:
- * 
+ *
  * ```typescript
  * import express from 'express';
- * import { 
- *   enhanceRequestContext, 
+ * import {
+ *   enhanceRequestContext,
  *   authErrorHandler,
- *   middleware 
+ *   middleware
  * } from './middleware';
- * 
+ *
  * const app = express();
- * 
+ *
  * // Add request context enhancement early in middleware chain
  * app.use(enhanceRequestContext);
- * 
+ *
  * // Add routes
  * app.use('/api/examples', exampleRouter);
- * 
+ *
  * // Add auth error handler before general error handler
  * app.use(authErrorHandler);
  * app.use(middleware.errors.handler);
- * 
+ *
  * // Alternative usage with middleware object:
- * app.get('/protected', 
+ * app.get('/protected',
  *   middleware.auth.required(),
  *   (req, res) => { ... }
  * );
- * 
+ *
  * app.get('/admin-only',
  *   middleware.auth.required(),
  *   middleware.auth.role(UserRole.ADMIN),

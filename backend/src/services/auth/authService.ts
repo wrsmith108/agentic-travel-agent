@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
+import { z } from 'zod';
 import { env } from '@/config/env';
 import { logError, logInfo, logWarn } from '@/utils/logger';
 import { UserDataManager } from '@/services/storage/userDataManager';
@@ -64,17 +65,20 @@ class AuthService {
   private readonly passwordResetTokens: Map<string, PasswordResetToken> = new Map();
   private readonly emailVerificationTokens: Map<string, EmailVerificationToken> = new Map();
   private readonly sessions: SessionStorage = {};
-  private readonly failedLoginAttempts: Map<string, { count: number; lastAttempt: Date; lockedUntil?: Date }> = new Map();
+  private readonly failedLoginAttempts: Map<
+    string,
+    { count: number; lastAttempt: Date; lockedUntil?: Date }
+  > = new Map();
   private readonly passwordStorage: Map<string, string> = new Map();
 
   constructor(userDataManager?: UserDataManager) {
     this.userDataManager = userDataManager || new UserDataManager();
     this.jwtSecret = env.JWT_SECRET || this.generateFallbackSecret();
     this.jwtRefreshSecret = env.JWT_REFRESH_SECRET || this.generateFallbackSecret();
-    
+
     // Start cleanup intervals for expired tokens and sessions
     this.startCleanupIntervals();
-    
+
     logInfo('AuthService initialized', {
       jwtSecretConfigured: !!env.JWT_SECRET,
       refreshSecretConfigured: !!env.JWT_REFRESH_SECRET,
@@ -86,12 +90,12 @@ class AuthService {
    */
   async registerUser(data: unknown): Promise<AuthSuccessResponse | AuthErrorResponse> {
     const requestId = uuidv4();
-    
+
     try {
       // Validate input data
       const registerRequest = validateRegisterRequest(data);
-      
-      logInfo('User registration attempt', { 
+
+      logInfo('User registration attempt', {
         email: registerRequest.email,
         requestId,
       });
@@ -99,7 +103,7 @@ class AuthService {
       // Check if user already exists
       const existingUser = await this.userDataManager.findUserByEmail(registerRequest.email);
       if (existingUser) {
-        logWarn('Registration attempt with existing email', { 
+        logWarn('Registration attempt with existing email', {
           email: registerRequest.email,
           requestId,
         });
@@ -145,7 +149,10 @@ class AuthService {
       // Generate email verification token if needed
       let verificationToken: string | undefined;
       if (env.REQUIRE_EMAIL_VERIFICATION) {
-        verificationToken = await this.generateEmailVerificationToken(userProfile.id, userProfile.email);
+        verificationToken = await this.generateEmailVerificationToken(
+          userProfile.id,
+          userProfile.email
+        );
       }
 
       // Create session for the new user
@@ -177,20 +184,26 @@ class AuthService {
         undefined, // No refresh token for new registrations by default
         ['user:read', 'user:update']
       );
-
     } catch (error) {
       logError('User registration failed', error, { requestId });
-      
+
+      // Handle Zod validation errors
+      if (error instanceof z.ZodError) {
+        const firstError = error.errors[0];
+        const message = firstError?.message || 'Validation failed';
+        return createAuthError(
+          'VALIDATION_ERROR',
+          message,
+          { errors: error.errors },
+          'AUTH_002',
+          requestId
+        );
+      }
+
       if (error instanceof Error) {
-        // Handle validation errors
+        // Handle other validation errors
         if (error.message.includes('validation')) {
-          return createAuthError(
-            'VALIDATION_ERROR',
-            error.message,
-            {},
-            'AUTH_002',
-            requestId
-          );
+          return createAuthError('VALIDATION_ERROR', error.message, {}, 'AUTH_002', requestId);
         }
       }
 
@@ -209,12 +222,12 @@ class AuthService {
    */
   async loginUser(data: unknown): Promise<AuthSuccessResponse | AuthErrorResponse> {
     const requestId = uuidv4();
-    
+
     try {
       // Validate input data
       const loginRequest = validateLoginRequest(data);
-      
-      logInfo('User login attempt', { 
+
+      logInfo('User login attempt', {
         email: loginRequest.email,
         rememberMe: loginRequest.rememberMe,
         requestId,
@@ -322,15 +335,23 @@ class AuthService {
       };
 
       // Create session with appropriate duration
-      const sessionDuration = loginRequest.rememberMe ? 
-        AUTH_CONSTANTS.SESSION_DURATION.REMEMBER_ME : 
-        AUTH_CONSTANTS.SESSION_DURATION.DEFAULT;
+      const sessionDuration = loginRequest.rememberMe
+        ? AUTH_CONSTANTS.SESSION_DURATION.REMEMBER_ME
+        : AUTH_CONSTANTS.SESSION_DURATION.DEFAULT;
 
-      const deviceInfo = loginRequest.deviceInfo ? {
-        ...(loginRequest.deviceInfo.userAgent && { userAgent: loginRequest.deviceInfo.userAgent }),
-        ...(loginRequest.deviceInfo.ipAddress && { ipAddress: loginRequest.deviceInfo.ipAddress }),
-        ...(loginRequest.deviceInfo.fingerprint && { fingerprint: loginRequest.deviceInfo.fingerprint }),
-      } : undefined;
+      const deviceInfo = loginRequest.deviceInfo
+        ? {
+            ...(loginRequest.deviceInfo.userAgent && {
+              userAgent: loginRequest.deviceInfo.userAgent,
+            }),
+            ...(loginRequest.deviceInfo.ipAddress && {
+              ipAddress: loginRequest.deviceInfo.ipAddress,
+            }),
+            ...(loginRequest.deviceInfo.fingerprint && {
+              fingerprint: loginRequest.deviceInfo.fingerprint,
+            }),
+          }
+        : undefined;
 
       const { sessionId, accessToken, refreshToken, expiresAt } = await this.createUserSession(
         sessionUser,
@@ -355,10 +376,9 @@ class AuthService {
         refreshToken,
         ['user:read', 'user:update', 'user:delete']
       );
-
     } catch (error) {
       logError('User login failed', error, { requestId });
-      
+
       return createAuthError(
         'SERVER_ERROR',
         'Login failed due to server error',
@@ -372,13 +392,15 @@ class AuthService {
   /**
    * Generate password reset token and initiate reset process
    */
-  async requestPasswordReset(data: unknown): Promise<{ success: boolean; message: string; token?: string }> {
+  async requestPasswordReset(
+    data: unknown
+  ): Promise<{ success: boolean; message: string; token?: string }> {
     const requestId = uuidv4();
-    
+
     try {
       const resetRequest = validatePasswordResetRequest(data);
-      
-      logInfo('Password reset requested', { 
+
+      logInfo('Password reset requested', {
         email: resetRequest.email,
         requestId,
       });
@@ -387,7 +409,7 @@ class AuthService {
       const userProfile = await this.userDataManager.findUserByEmail(resetRequest.email);
       if (!userProfile) {
         // Don't reveal that user doesn't exist for security
-        logWarn('Password reset request for non-existent user', { 
+        logWarn('Password reset request for non-existent user', {
           email: resetRequest.email,
           requestId,
         });
@@ -423,10 +445,9 @@ class AuthService {
         message: 'Password reset token generated',
         token: resetToken, // Remove this in production - send via email instead
       };
-
     } catch (error) {
       logError('Password reset request failed', error, { requestId });
-      
+
       return {
         success: false,
         message: 'Password reset request failed',
@@ -439,11 +460,11 @@ class AuthService {
    */
   async resetPassword(data: unknown): Promise<AuthSuccessResponse | AuthErrorResponse> {
     const requestId = uuidv4();
-    
+
     try {
       const resetConfirm = validatePasswordResetConfirm(data);
-      
-      logInfo('Password reset confirmation attempt', { 
+
+      logInfo('Password reset confirmation attempt', {
         token: resetConfirm.token.substring(0, 8) + '...',
         requestId,
       });
@@ -516,10 +537,9 @@ class AuthService {
         undefined,
         ['user:read', 'user:update']
       );
-
     } catch (error) {
       logError('Password reset failed', error, { requestId });
-      
+
       return createAuthError(
         'SERVER_ERROR',
         'Password reset failed due to server error',
@@ -533,13 +553,16 @@ class AuthService {
   /**
    * Change password for authenticated user
    */
-  async changePassword(userId: string, data: unknown): Promise<{ success: boolean; message: string }> {
+  async changePassword(
+    userId: string,
+    data: unknown
+  ): Promise<{ success: boolean; message: string }> {
     const requestId = uuidv4();
-    
+
     try {
       const changePasswordRequest = validateChangePassword(data);
-      
-      logInfo('Password change attempt', { 
+
+      logInfo('Password change attempt', {
         userId,
         requestId,
       });
@@ -563,7 +586,10 @@ class AuthService {
         };
       }
 
-      const currentPasswordValid = await bcrypt.compare(changePasswordRequest.currentPassword, storedPasswordHash);
+      const currentPasswordValid = await bcrypt.compare(
+        changePasswordRequest.currentPassword,
+        storedPasswordHash
+      );
       if (!currentPasswordValid) {
         return {
           success: false,
@@ -591,10 +617,9 @@ class AuthService {
         success: true,
         message: 'Password changed successfully',
       };
-
     } catch (error) {
       logError('Password change failed', error, { userId, requestId });
-      
+
       return {
         success: false,
         message: 'Password change failed',
@@ -627,7 +652,6 @@ class AuthService {
       sessionData.lastAccessedAt = new Date().toISOString();
 
       return sessionData.user;
-
     } catch (error) {
       logError('Session validation failed', error, { sessionId });
       return null;
@@ -640,7 +664,7 @@ class AuthService {
   async validateJWTToken(token: string): Promise<JWTPayload | null> {
     try {
       const payload = jwt.verify(token, this.jwtSecret) as JWTPayload;
-      
+
       // Validate session still exists
       const sessionUser = await this.validateSession(payload.sessionId);
       if (!sessionUser) {
@@ -648,7 +672,6 @@ class AuthService {
       }
 
       return payload;
-
     } catch (error) {
       if (error instanceof jwt.JsonWebTokenError) {
         logWarn('Invalid JWT token', { error: error.message });
@@ -667,7 +690,7 @@ class AuthService {
       const sessionData = this.sessions[sessionId];
       if (sessionData) {
         delete this.sessions[sessionId];
-        
+
         logInfo('User logged out', {
           userId: sessionData.userId,
           sessionId,
@@ -678,10 +701,9 @@ class AuthService {
         success: true,
         message: 'Logged out successfully',
       };
-
     } catch (error) {
       logError('Logout failed', error, { sessionId });
-      
+
       return {
         success: false,
         message: 'Logout failed',
@@ -720,10 +742,12 @@ class AuthService {
     // In a real implementation, this would be stored in a database
     // For now, return default status
     const failedAttempts = this.failedLoginAttempts.get(userId);
-    
+
     return {
       isEmailVerified: true, // Default for now
-      isAccountLocked: failedAttempts ? failedAttempts.count >= AUTH_CONSTANTS.SECURITY.MAX_FAILED_ATTEMPTS : false,
+      isAccountLocked: failedAttempts
+        ? failedAttempts.count >= AUTH_CONSTANTS.SECURITY.MAX_FAILED_ATTEMPTS
+        : false,
       isAccountSuspended: false,
       failedLoginAttempts: failedAttempts?.count || 0,
       lastFailedLoginAt: failedAttempts?.lastAttempt.toISOString(),
@@ -735,7 +759,9 @@ class AuthService {
 
   private generateFallbackSecret(): string {
     const secret = crypto.randomBytes(64).toString('hex');
-    logWarn('Using generated fallback JWT secret - set JWT_SECRET environment variable for production');
+    logWarn(
+      'Using generated fallback JWT secret - set JWT_SECRET environment variable for production'
+    );
     return secret;
   }
 
@@ -783,14 +809,17 @@ class AuthService {
     // Create refresh token for longer sessions
     let refreshToken: string | undefined;
     if (duration > AUTH_CONSTANTS.SESSION_DURATION.DEFAULT) {
-      refreshToken = jwt.sign(
-        { ...jwtPayload, type: 'refresh' },
-        this.jwtRefreshSecret,
-        { expiresIn: AUTH_CONSTANTS.TOKEN_EXPIRY.REFRESH_TOKEN }
-      );
+      refreshToken = jwt.sign({ ...jwtPayload, type: 'refresh' }, this.jwtRefreshSecret, {
+        expiresIn: AUTH_CONSTANTS.TOKEN_EXPIRY.REFRESH_TOKEN,
+      });
     }
 
-    const result: { sessionId: string; accessToken: string; refreshToken?: string; expiresAt: string } = {
+    const result: {
+      sessionId: string;
+      accessToken: string;
+      refreshToken?: string;
+      expiresAt: string;
+    } = {
       sessionId,
       accessToken,
       expiresAt: expiresAt.toISOString(),
@@ -803,9 +832,11 @@ class AuthService {
     return result;
   }
 
-  private async checkLoginRateLimit(email: string): Promise<{ allowed: boolean; lockedUntil?: Date }> {
+  private async checkLoginRateLimit(
+    email: string
+  ): Promise<{ allowed: boolean; lockedUntil?: Date }> {
     const attempts = this.failedLoginAttempts.get(email);
-    
+
     if (!attempts) {
       return { allowed: true };
     }
@@ -890,7 +921,7 @@ class AuthService {
 
   private async invalidateAllUserSessions(userId: string): Promise<void> {
     const sessionIds = Object.keys(this.sessions).filter(
-      sessionId => this.sessions[sessionId]?.userId === userId
+      (sessionId) => this.sessions[sessionId]?.userId === userId
     );
 
     for (const sessionId of sessionIds) {
@@ -902,9 +933,7 @@ class AuthService {
 
   private async invalidateOtherUserSessions(userId: string, keepSessionId?: string): Promise<void> {
     const sessionIds = Object.keys(this.sessions).filter(
-      sessionId => 
-        this.sessions[sessionId]?.userId === userId && 
-        sessionId !== keepSessionId
+      (sessionId) => this.sessions[sessionId]?.userId === userId && sessionId !== keepSessionId
     );
 
     for (const sessionId of sessionIds) {

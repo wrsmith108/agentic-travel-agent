@@ -26,28 +26,30 @@ export const EmailSchema = z
 /**
  * User registration request schema
  */
-export const RegisterRequestSchema = z.object({
-  firstName: z
-    .string()
-    .min(1, 'First name is required')
-    .max(50, 'First name must not exceed 50 characters')
-    .trim(),
-  lastName: z
-    .string()
-    .min(1, 'Last name is required')
-    .max(50, 'Last name must not exceed 50 characters')
-    .trim(),
-  email: EmailSchema,
-  password: PasswordSchema,
-  confirmPassword: z.string(),
-  acceptTerms: z.boolean().refine(val => val === true, {
-    message: 'You must accept the terms and conditions'
-  }),
-  marketingOptIn: z.boolean().default(false),
-}).refine(data => data.password === data.confirmPassword, {
-  message: 'Passwords do not match',
-  path: ['confirmPassword']
-});
+export const RegisterRequestSchema = z
+  .object({
+    firstName: z
+      .string()
+      .min(1, 'First name is required')
+      .max(50, 'First name must not exceed 50 characters')
+      .trim(),
+    lastName: z
+      .string()
+      .min(1, 'Last name is required')
+      .max(50, 'Last name must not exceed 50 characters')
+      .trim(),
+    email: EmailSchema,
+    password: PasswordSchema,
+    confirmPassword: z.string(),
+    acceptTerms: z.boolean().refine((val) => val === true, {
+      message: 'You must accept the terms and conditions',
+    }),
+    marketingOptIn: z.boolean().default(false),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
+  });
 
 /**
  * User login request schema
@@ -56,11 +58,13 @@ export const LoginRequestSchema = z.object({
   email: EmailSchema,
   password: z.string().min(1, 'Password is required'),
   rememberMe: z.boolean().default(false),
-  deviceInfo: z.object({
-    userAgent: z.string().optional(),
-    ipAddress: z.string().optional(),
-    fingerprint: z.string().optional(),
-  }).optional(),
+  deviceInfo: z
+    .object({
+      userAgent: z.string().optional(),
+      ipAddress: z.string().optional(),
+      fingerprint: z.string().optional(),
+    })
+    .optional(),
 });
 
 /**
@@ -73,26 +77,30 @@ export const PasswordResetRequestSchema = z.object({
 /**
  * Password reset confirmation schema
  */
-export const PasswordResetConfirmSchema = z.object({
-  token: z.string().min(1, 'Reset token is required'),
-  newPassword: PasswordSchema,
-  confirmPassword: z.string(),
-}).refine(data => data.newPassword === data.confirmPassword, {
-  message: 'Passwords do not match',
-  path: ['confirmPassword']
-});
+export const PasswordResetConfirmSchema = z
+  .object({
+    token: z.string().min(1, 'Reset token is required'),
+    newPassword: PasswordSchema,
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
+  });
 
 /**
  * Change password schema (for authenticated users)
  */
-export const ChangePasswordSchema = z.object({
-  currentPassword: z.string().min(1, 'Current password is required'),
-  newPassword: PasswordSchema,
-  confirmPassword: z.string(),
-}).refine(data => data.newPassword === data.confirmPassword, {
-  message: 'Passwords do not match',
-  path: ['confirmPassword']
-});
+export const ChangePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, 'Current password is required'),
+    newPassword: PasswordSchema,
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
+  });
 
 /**
  * Email verification schema
@@ -180,7 +188,7 @@ export const AuthErrorTypeSchema = z.enum([
   'VALIDATION_ERROR',
   'SERVER_ERROR',
   'NETWORK_ERROR',
-  'UNKNOWN_ERROR'
+  'UNKNOWN_ERROR',
 ]);
 
 /**
@@ -201,10 +209,7 @@ export const AuthErrorResponseSchema = z.object({
 /**
  * Generic auth response schema (success or error)
  */
-export const AuthResponseSchema = z.union([
-  AuthSuccessResponseSchema,
-  AuthErrorResponseSchema
-]);
+export const AuthResponseSchema = z.union([AuthSuccessResponseSchema, AuthErrorResponseSchema]);
 
 /**
  * Token refresh request schema
@@ -246,13 +251,17 @@ export const SecuritySettingsSchema = z.object({
   suspiciousActivityAlerts: z.boolean().default(true),
   sessionTimeout: z.number().int().min(300).max(86400).default(3600), // 5min to 24h
   allowMultipleSessions: z.boolean().default(true),
-  trustedDevices: z.array(z.object({
-    id: z.string().uuid(),
-    name: z.string(),
-    fingerprint: z.string(),
-    addedAt: z.string().datetime(),
-    lastUsedAt: z.string().datetime(),
-  })).default([]),
+  trustedDevices: z
+    .array(
+      z.object({
+        id: z.string().uuid(),
+        name: z.string(),
+        fingerprint: z.string(),
+        addedAt: z.string().datetime(),
+        lastUsedAt: z.string().datetime(),
+      })
+    )
+    .default([]),
 });
 
 // Export all TypeScript types

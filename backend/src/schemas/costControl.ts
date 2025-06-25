@@ -20,15 +20,15 @@ export const ModelPricingConfig = z.record(z.string(), ModelPricingSchema);
 export const DEFAULT_MODEL_PRICING: z.infer<typeof ModelPricingConfig> = {
   'claude-3-opus-20240229': {
     modelId: 'claude-3-opus-20240229',
-    inputTokenCost: 15.00, // $15 per 1M input tokens
-    outputTokenCost: 75.00, // $75 per 1M output tokens
+    inputTokenCost: 15.0, // $15 per 1M input tokens
+    outputTokenCost: 75.0, // $75 per 1M output tokens
     contextWindow: 200000,
     isDefault: true,
   },
   'claude-3-sonnet-20240229': {
     modelId: 'claude-3-sonnet-20240229',
-    inputTokenCost: 3.00, // $3 per 1M input tokens
-    outputTokenCost: 15.00, // $15 per 1M output tokens
+    inputTokenCost: 3.0, // $3 per 1M input tokens
+    outputTokenCost: 15.0, // $15 per 1M output tokens
     contextWindow: 200000,
     isDefault: false,
   },
@@ -101,32 +101,32 @@ export const DEFAULT_TIER_LIMITS = {
   free: {
     dailyTokens: 10000, // ~10 conversations
     monthlyTokens: 100000,
-    dailyCost: 0.50,
-    monthlyCost: 5.00,
+    dailyCost: 0.5,
+    monthlyCost: 5.0,
     concurrentRequests: 1,
     requestsPerMinute: 5,
   },
   basic: {
     dailyTokens: 50000,
     monthlyTokens: 1000000,
-    dailyCost: 5.00,
-    monthlyCost: 50.00,
+    dailyCost: 5.0,
+    monthlyCost: 50.0,
     concurrentRequests: 2,
     requestsPerMinute: 20,
   },
   premium: {
     dailyTokens: 200000,
     monthlyTokens: 5000000,
-    dailyCost: 20.00,
-    monthlyCost: 200.00,
+    dailyCost: 20.0,
+    monthlyCost: 200.0,
     concurrentRequests: 5,
     requestsPerMinute: 50,
   },
   enterprise: {
     dailyTokens: 1000000,
     monthlyTokens: 30000000,
-    dailyCost: 100.00,
-    monthlyCost: 1000.00,
+    dailyCost: 100.0,
+    monthlyCost: 1000.0,
     concurrentRequests: 20,
     requestsPerMinute: 200,
   },
@@ -136,7 +136,13 @@ export const DEFAULT_TIER_LIMITS = {
 export const CostAlertSchema = z.object({
   id: z.string().uuid(),
   userId: z.string().uuid(),
-  type: z.enum(['daily_limit_80', 'daily_limit_100', 'monthly_limit_80', 'monthly_limit_100', 'unusual_spike']),
+  type: z.enum([
+    'daily_limit_80',
+    'daily_limit_100',
+    'monthly_limit_80',
+    'monthly_limit_100',
+    'unusual_spike',
+  ]),
   threshold: z.number().positive(),
   currentUsage: z.number().nonnegative(),
   message: z.string(),
@@ -155,10 +161,14 @@ export const SystemCostMetricsSchema = z.object({
   }),
   userCount: z.number().int().nonnegative(),
   averageCostPerUser: z.number().nonnegative(),
-  topUsers: z.array(z.object({
-    userId: z.string().uuid(),
-    cost: z.number().nonnegative(),
-  })).max(10),
+  topUsers: z
+    .array(
+      z.object({
+        userId: z.string().uuid(),
+        cost: z.number().nonnegative(),
+      })
+    )
+    .max(10),
 });
 
 // Request context for cost tracking
@@ -173,11 +183,13 @@ export const CostContextSchema = z.object({
 // Model fallback configuration
 export const ModelFallbackSchema = z.object({
   primary: z.string(),
-  fallbacks: z.array(z.object({
-    modelId: z.string(),
-    triggerCondition: z.enum(['quota_exceeded', 'rate_limit', 'error', 'cost_threshold']),
-    maxRetries: z.number().int().positive().default(2),
-  })),
+  fallbacks: z.array(
+    z.object({
+      modelId: z.string(),
+      triggerCondition: z.enum(['quota_exceeded', 'rate_limit', 'error', 'cost_threshold']),
+      maxRetries: z.number().int().positive().default(2),
+    })
+  ),
 });
 
 // Export types

@@ -12,15 +12,15 @@ describe('CostTrackingService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Setup mock implementation
     mockInstance = {
       readUserData: jest.fn(),
       updateUserData: jest.fn(),
     };
-    
+
     mockUserDataManager.mockImplementation(() => mockInstance as any);
-    
+
     // Create service instance
     costTrackingService = new CostTrackingService();
   });
@@ -82,7 +82,7 @@ describe('CostTrackingService', () => {
         },
       });
 
-      // Verify cost calculation: 
+      // Verify cost calculation:
       // Input: 1000 tokens = 0.001M * $15 = $0.015
       // Output: 2000 tokens = 0.002M * $75 = $0.150
       // Total: $0.165
@@ -130,12 +130,12 @@ describe('CostTrackingService', () => {
 
       // Verify quota was updated (called twice - once for quota, once for api call)
       expect(mockInstance.updateUserData).toHaveBeenCalledTimes(2);
-      
+
       // Check the quota update call
       const quotaUpdateCall = mockInstance.updateUserData.mock.calls.find(
-        call => call[1]?.costTracking?.quota
+        (call) => call[1]?.costTracking?.quota
       );
-      
+
       expect(quotaUpdateCall).toBeDefined();
       expect(quotaUpdateCall[1].costTracking.quota.usage.dailyTokensUsed).toBe(2500);
       expect(quotaUpdateCall[1].costTracking.quota.usage.monthlyTokensUsed).toBe(51500);
@@ -328,7 +328,7 @@ describe('CostTrackingService', () => {
     it('should estimate tokens based on text length', () => {
       const text = 'Hello, this is a test message.';
       const estimated = costTrackingService.estimateTokens(text);
-      
+
       // 30 characters / 4 = 7.5, rounded up to 8
       expect(estimated).toBe(8);
     });

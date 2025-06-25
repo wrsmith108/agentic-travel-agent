@@ -17,10 +17,7 @@ declare module 'amadeus' {
   }
 
   export interface ReferenceDataLocations {
-    get(params: {
-      keyword: string;
-      subType: string;
-    }): Promise<LocationsResponse>;
+    get(params: { keyword: string; subType: string }): Promise<LocationsResponse>;
   }
 
   export interface ReferenceData {
@@ -28,11 +25,7 @@ declare module 'amadeus' {
   }
 
   export default class Amadeus {
-    constructor(options: {
-      clientId: string;
-      clientSecret: string;
-      hostname?: string;
-    });
+    constructor(options: { clientId: string; clientSecret: string; hostname?: string });
 
     referenceData: ReferenceData;
 
