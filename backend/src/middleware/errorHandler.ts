@@ -114,6 +114,11 @@ export const errorHandler = (
     statusCode = 503;
     errorCode = ErrorCodes.SERVICE_UNAVAILABLE;
     message = 'External service unavailable';
+  } else if (err instanceof SyntaxError && 'body' in err) {
+    // JSON parse error from body-parser
+    statusCode = 400;
+    errorCode = ErrorCodes.BAD_REQUEST;
+    message = 'Invalid JSON in request body';
   }
 
   const errorResponse: ApiErrorResponse = {

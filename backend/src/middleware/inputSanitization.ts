@@ -219,6 +219,10 @@ export const sanitizeInputs = (options: {
             message: error.message,
             details: error.details,
           },
+          meta: {
+            timestamp: new Date().toISOString(),
+            ...(req.id && { requestId: req.id }),
+          },
         });
       } else {
         logError('Input sanitization error', error);
@@ -227,6 +231,10 @@ export const sanitizeInputs = (options: {
           error: {
             code: ErrorCodes.INTERNAL_SERVER_ERROR,
             message: 'Input validation failed',
+          },
+          meta: {
+            timestamp: new Date().toISOString(),
+            ...(req.id && { requestId: req.id }),
           },
         });
       }

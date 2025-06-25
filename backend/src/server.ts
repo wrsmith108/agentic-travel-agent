@@ -134,9 +134,11 @@ app.get('/api/v1', (_req: Request, res: Response) => {
 // API Routes
 import authRoutes from './routes/auth';
 import billingRoutes from './routes/billing';
+import demoRoutes from './routes/demo';
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/billing', billingRoutes);
+app.use('/api/v1/demo', demoRoutes);
 
 // Additional routes will be added here
 // app.use('/api/v1/users', userRoutes);
