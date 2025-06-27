@@ -3,6 +3,7 @@
  */
 
 import { Router, Request, Response } from 'express';
+import { z } from 'zod';
 import { authenticate } from '@/middleware/authNew';
 import { validateRequest } from '@/middleware/validation';
 import {
@@ -18,14 +19,13 @@ import {
 } from '@/services/ai/conversationService';
 import {
   CreateConversationRequestSchema,
-  SendMessageRequestSchema,
   UpdateContextRequestSchema,
   createConversationSuccess,
   createConversationListSuccess,
   createMessageSuccess,
   createConversationError,
 } from '@/types/conversation';
-import { asUserId } from '@/services/storage/functional';
+import { UserId } from '@/types/brandedTypes';
 
 const router = Router();
 
@@ -39,9 +39,9 @@ router.use(authenticate);
 router.post(
   '/',
   validateRequest(CreateConversationRequestSchema),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<Response | void> => {
     try {
-      const userId = asUserId(req.user!.id);
+      const userId = UserId(req.user!.id);
       const { initialMessage } = req.body;
 
       const result = createConversation(userId, initialMessage);
@@ -63,10 +63,10 @@ router.post(
         })),
       };
 
-      res.status(201).json(createConversationSuccess(conversation));
+      return res.status(201).json(createConversationSuccess(conversation));
     } catch (error) {
       console.error('Create conversation error:', error);
-      res.status(500).json(
+      return res.status(500).json(
         createConversationError('SYSTEM_ERROR', 'Failed to create conversation')
       );
     }
@@ -77,9 +77,9 @@ router.post(
  * Get all conversations for the authenticated user
  * GET /api/v1/conversations
  */
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', async (req: Request, res: Response): Promise<Response | void> => {
   try {
-    const userId = asUserId(req.user!.id);
+    const userId = UserId(req.user!.id);
 
     const result = getUserConversations(userId);
 
@@ -99,10 +99,10 @@ router.get('/', async (req: Request, res: Response) => {
       })),
     }));
 
-    res.json(createConversationListSuccess(conversations));
+    return res.json(createConversationListSuccess(conversations));
   } catch (error) {
     console.error('Get conversations error:', error);
-    res.status(500).json(
+    return res.status(500).json(
       createConversationError('SYSTEM_ERROR', 'Failed to get conversations')
     );
   }
@@ -112,9 +112,15 @@ router.get('/', async (req: Request, res: Response) => {
  * Get a specific conversation
  * GET /api/v1/conversations/:id
  */
-router.get('/:id', async (req: Request, res: Response) => {
+router.get('/:id', async (req: Request, res: Response): Promise<Response | void> => {
   try {
-    const userId = asUserId(req.user!.id);
+    if (!req.params.id) {
+      return res.status(400).json(
+        createConversationError('INVALID_INPUT', 'Conversation ID is required')
+      );
+    }
+
+    const userId = UserId(req.user!.id);
     const conversationId = asConversationId(req.params.id);
 
     const result = getConversation(conversationId, userId);
@@ -136,10 +142,10 @@ router.get('/:id', async (req: Request, res: Response) => {
       })),
     };
 
-    res.json(createConversationSuccess(conversation));
+    return res.json(createConversationSuccess(conversation));
   } catch (error) {
     console.error('Get conversation error:', error);
-    res.status(500).json(
+    return res.status(500).json(
       createConversationError('SYSTEM_ERROR', 'Failed to get conversation')
     );
   }
@@ -156,9 +162,15 @@ router.post(
       content: z.string().min(1).max(4000),
     })
   ),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<Response | void> => {
     try {
-      const userId = asUserId(req.user!.id);
+      if (!req.params.id) {
+        return res.status(400).json(
+          createConversationError('INVALID_INPUT', 'Conversation ID is required')
+        );
+      }
+
+      const userId = UserId(req.user!.id);
       const conversationId = asConversationId(req.params.id);
       const { content } = req.body;
 
@@ -180,10 +192,10 @@ router.post(
         timestamp: result.value.timestamp.toISOString(),
       };
 
-      res.json(createMessageSuccess(message));
+      return res.json(createMessageSuccess(message));
     } catch (error) {
       console.error('Send message error:', error);
-      res.status(500).json(
+      return res.status(500).json(
         createConversationError('SYSTEM_ERROR', 'Failed to send message')
       );
     }
@@ -197,9 +209,15 @@ router.post(
 router.patch(
   '/:id/context',
   validateRequest(UpdateContextRequestSchema.omit({ conversationId: true })),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<Response | void> => {
     try {
-      const userId = asUserId(req.user!.id);
+      if (!req.params.id) {
+        return res.status(400).json(
+          createConversationError('INVALID_INPUT', 'Conversation ID is required')
+        );
+      }
+
+      const userId = UserId(req.user!.id);
       const conversationId = asConversationId(req.params.id);
       const { context } = req.body;
 
@@ -222,10 +240,10 @@ router.patch(
         })),
       };
 
-      res.json(createConversationSuccess(conversation));
+      return res.json(createConversationSuccess(conversation));
     } catch (error) {
       console.error('Update context error:', error);
-      res.status(500).json(
+      return res.status(500).json(
         createConversationError('SYSTEM_ERROR', 'Failed to update context')
       );
     }
@@ -236,9 +254,15 @@ router.patch(
  * Clear conversation messages
  * POST /api/v1/conversations/:id/clear
  */
-router.post('/:id/clear', async (req: Request, res: Response) => {
+router.post('/:id/clear', async (req: Request, res: Response): Promise<Response | void> => {
   try {
-    const userId = asUserId(req.user!.id);
+    if (!req.params.id) {
+      return res.status(400).json(
+        createConversationError('INVALID_INPUT', 'Conversation ID is required')
+      );
+    }
+
+    const userId = UserId(req.user!.id);
     const conversationId = asConversationId(req.params.id);
 
     const result = clearConversation(conversationId, userId);
@@ -257,10 +281,10 @@ router.post('/:id/clear', async (req: Request, res: Response) => {
       messages: [],
     };
 
-    res.json(createConversationSuccess(conversation));
+    return res.json(createConversationSuccess(conversation));
   } catch (error) {
     console.error('Clear conversation error:', error);
-    res.status(500).json(
+    return res.status(500).json(
       createConversationError('SYSTEM_ERROR', 'Failed to clear conversation')
     );
   }
@@ -270,9 +294,15 @@ router.post('/:id/clear', async (req: Request, res: Response) => {
  * Export conversation as markdown
  * GET /api/v1/conversations/:id/export
  */
-router.get('/:id/export', async (req: Request, res: Response) => {
+router.get('/:id/export', async (req: Request, res: Response): Promise<Response | void> => {
   try {
-    const userId = asUserId(req.user!.id);
+    if (!req.params.id) {
+      return res.status(400).json(
+        createConversationError('INVALID_INPUT', 'Conversation ID is required')
+      );
+    }
+
+    const userId = UserId(req.user!.id);
     const conversationId = asConversationId(req.params.id);
 
     const result = exportConversation(conversationId, userId);
@@ -285,10 +315,10 @@ router.get('/:id/export', async (req: Request, res: Response) => {
 
     res.setHeader('Content-Type', 'text/markdown');
     res.setHeader('Content-Disposition', `attachment; filename="conversation-${conversationId}.md"`);
-    res.send(result.value);
+    return res.send(result.value);
   } catch (error) {
     console.error('Export conversation error:', error);
-    res.status(500).json(
+    return res.status(500).json(
       createConversationError('SYSTEM_ERROR', 'Failed to export conversation')
     );
   }
@@ -298,9 +328,15 @@ router.get('/:id/export', async (req: Request, res: Response) => {
  * Delete a conversation
  * DELETE /api/v1/conversations/:id
  */
-router.delete('/:id', async (req: Request, res: Response) => {
+router.delete('/:id', async (req: Request, res: Response): Promise<Response | void> => {
   try {
-    const userId = asUserId(req.user!.id);
+    if (!req.params.id) {
+      return res.status(400).json(
+        createConversationError('INVALID_INPUT', 'Conversation ID is required')
+      );
+    }
+
+    const userId = UserId(req.user!.id);
     const conversationId = asConversationId(req.params.id);
 
     const result = deleteConversation(conversationId, userId);
@@ -311,16 +347,13 @@ router.delete('/:id', async (req: Request, res: Response) => {
       return res.status(statusCode).json(createConversationError(type, message, details));
     }
 
-    res.status(204).send();
+    return res.status(204).send();
   } catch (error) {
     console.error('Delete conversation error:', error);
-    res.status(500).json(
+    return res.status(500).json(
       createConversationError('SYSTEM_ERROR', 'Failed to delete conversation')
     );
   }
 });
-
-// Import zod at the top of the file since we use it directly
-import { z } from 'zod';
 
 export default router;

@@ -36,8 +36,8 @@ async function getUserRateLimit(userId: string): Promise<{ windowMs: number; max
  */
 function keyGenerator(req: Request): string {
   const authReq = req as AuthenticatedRequest;
-  if (authReq.user?.sub) {
-    return `user:${authReq.user.sub}`;
+  if (authReq.user?.id) {
+    return `user:${authReq.user.id}`;
   }
   // Fall back to IP for unauthenticated requests
   return `ip:${req.ip}`;
@@ -50,8 +50,8 @@ export const dynamicRateLimiter = rateLimit({
   windowMs: 60 * 1000, // Default 1 minute
   max: async (req: Request) => {
     const authReq = req as AuthenticatedRequest;
-    if (authReq.user?.sub) {
-      const limits = await getUserRateLimit(authReq.user.sub);
+    if (authReq.user?.id) {
+      const limits = await getUserRateLimit(authReq.user.id);
       return limits.max;
     }
     return 10; // Default for unauthenticated
@@ -61,7 +61,7 @@ export const dynamicRateLimiter = rateLimit({
   legacyHeaders: false,
   handler: (req: Request, res: Response) => {
     const authReq = req as AuthenticatedRequest;
-    const identifier = authReq.user?.sub || req.ip;
+    const identifier = authReq.user?.id || req.ip;
 
     logWarn('Rate limit exceeded', {
       identifier,
@@ -137,8 +137,8 @@ export const apiRateLimiters = {
     windowMs: 60 * 1000, // 1 minute
     max: async (req: Request) => {
       const authReq = req as AuthenticatedRequest;
-      if (authReq.user?.sub) {
-        const quota = await costTrackingService.getUserQuota(authReq.user.sub);
+      if (authReq.user?.id) {
+        const quota = await costTrackingService.getUserQuota(authReq.user.id);
         // More restrictive for AI endpoints
         return Math.floor(quota.limits.requestsPerMinute / 2);
       }

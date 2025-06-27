@@ -241,7 +241,7 @@ export const validateRegisterRequest = (data: any): ValidationResult => {
 
   return {
     isValid: errors.length === 0,
-    errors: errors.length > 0 ? errors : undefined,
+    ...(errors.length > 0 && { errors }),
   };
 };
 
@@ -262,6 +262,6 @@ export const validateLoginRequest = (data: any): ValidationResult => {
 
   return {
     isValid: errors.length === 0,
-    errors: errors.length > 0 ? errors : undefined,
+    ...(errors.length > 0 && { errors }),
   };
 };

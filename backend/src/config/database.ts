@@ -57,7 +57,7 @@ export const createDatabasePool = (config: DatabaseConfig): Pool => {
   });
 
   // Handle client connections
-  pool.on('connect', (client) => {
+  pool.on('connect', () => {
     logger.debug('Database client connected', { 
       totalCount: pool.totalCount,
       idleCount: pool.idleCount,
@@ -66,7 +66,7 @@ export const createDatabasePool = (config: DatabaseConfig): Pool => {
   });
 
   // Handle client disconnections
-  pool.on('remove', (client) => {
+  pool.on('remove', () => {
     logger.debug('Database client removed', { 
       totalCount: pool.totalCount,
       idleCount: pool.idleCount,

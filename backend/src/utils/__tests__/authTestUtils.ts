@@ -3,7 +3,6 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { JWTPayload, SessionUser, SessionData } from '@/schemas/auth';
 import { UserProfile } from '@/schemas/user';
-import { UserRole } from '@/middleware/auth';
 
 /**
  * Test utilities for authentication testing
@@ -31,8 +30,6 @@ export const createMockUserProfile = (overrides?: Partial<UserProfile>): UserPro
     },
     activeSearches: [],
     searchHistory: [],
-    savedDestinations: [],
-    bookingHistory: [],
     createdAt: now,
     updatedAt: now,
     ...overrides,

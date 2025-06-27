@@ -10,12 +10,12 @@ import type {
   UserId,
   ResetToken,
   RequestId,
-} from '@/types/brandedTypes';
+} from './types';
 import {
   PlainPassword as createPlainPassword,
   HashedPassword as createHashedPassword,
   ResetToken as createResetToken,
-} from '@/types/brandedTypes';
+} from './types';
 import type {
   Result,
   AuthError,
@@ -26,7 +26,7 @@ import type {
   IdGenerator,
   TimeProvider,
 } from './types';
-import { success, failure } from './types';
+import { ok, err } from './types';
 import { AUTH_CONSTANTS } from '@/schemas/auth';
 
 /**
@@ -38,9 +38,9 @@ export const hashPassword = async (
 ): Promise<Result<HashedPassword, AuthError>> => {
   try {
     const hash = await bcrypt.hash(password, saltRounds);
-    return success(createHashedPassword(hash));
+    return ok(createHashedPassword(hash));
   } catch (error) {
-    return failure({
+    return err({
       type: 'SERVER_ERROR',
       message: 'Failed to hash password',
       details: { error: error instanceof Error ? error.message : 'Unknown error' },
@@ -57,9 +57,9 @@ export const verifyPassword = async (
 ): Promise<Result<boolean, AuthError>> => {
   try {
     const isValid = await bcrypt.compare(password, hash);
-    return success(isValid);
+    return ok(isValid);
   } catch (error) {
-    return failure({
+    return err({
       type: 'SERVER_ERROR',
       message: 'Failed to verify password',
       details: { error: error instanceof Error ? error.message : 'Unknown error' },
@@ -73,9 +73,9 @@ export const verifyPassword = async (
 export const generateResetToken = (): Result<ResetToken, AuthError> => {
   try {
     const token = crypto.randomBytes(32).toString('hex');
-    return success(createResetToken(token));
+    return ok(createResetToken(token));
   } catch (error) {
-    return failure({
+    return err({
       type: 'SERVER_ERROR',
       message: 'Failed to generate reset token',
       details: { error: error instanceof Error ? error.message : 'Unknown error' },
@@ -100,11 +100,11 @@ export const createPasswordResetToken = async (
   try {
     // Generate token
     const tokenResult = generateResetToken();
-    if (!tokenResult.success) {
+    if (!tokenResult.ok) {
       return tokenResult;
     }
 
-    const token = tokenResult.data;
+    const token = tokenResult.value;
     const now = timeProvider.now();
     const expiresAt = new Date(now.getTime() + AUTH_CONSTANTS.TOKEN_EXPIRY.RESET_TOKEN * 1000);
 
@@ -126,10 +126,10 @@ export const createPasswordResetToken = async (
       requestId,
     });
 
-    return success(token);
+    return ok(token);
   } catch (error) {
     logger.error('Failed to create password reset token', error, { userId, requestId });
-    return failure({
+    return err({
       type: 'SERVER_ERROR',
       message: 'Failed to create password reset token',
       details: { error: error instanceof Error ? error.message : 'Unknown error' },
@@ -154,29 +154,29 @@ export const validateResetToken = async (
     const tokenRecord = await tokenStorage.retrieve(token);
 
     if (!tokenRecord) {
-      return failure({
+      return err({
         type: 'TOKEN_INVALID',
         message: 'Invalid reset token',
       });
     }
 
     if (tokenRecord.used) {
-      return failure({
+      return err({
         type: 'TOKEN_INVALID',
         message: 'Reset token has already been used',
       });
     }
 
     if (tokenRecord.expiresAt < timeProvider.now()) {
-      return failure({
+      return err({
         type: 'TOKEN_EXPIRED',
         message: 'Reset token has expired',
       });
     }
 
-    return success({ userId: tokenRecord.userId, token: tokenRecord });
+    return ok({ userId: tokenRecord.userId, token: tokenRecord });
   } catch (error) {
-    return failure({
+    return err({
       type: 'SERVER_ERROR',
       message: 'Failed to validate reset token',
       details: { error: error instanceof Error ? error.message : 'Unknown error' },
@@ -206,31 +206,31 @@ export const resetPasswordWithToken = async (
     token
   );
 
-  if (!validationResult.success) {
+  if (!validationResult.ok) {
     return validationResult;
   }
 
-  const { userId } = validationResult.data;
+  const { userId } = validationResult.value;
 
   try {
     // Hash new password
     const hashResult = await hashPassword(newPassword);
-    if (!hashResult.success) {
+    if (!hashResult.ok) {
       return hashResult;
     }
 
     // Update password
-    await passwordStorage.store(userId, hashResult.data);
+    await passwordStorage.store(userId, hashResult.value);
 
     // Mark token as used
     await tokenStorage.markUsed(token);
 
     logger.info('Password reset successful', { userId, requestId });
 
-    return success(userId);
+    return ok(userId);
   } catch (error) {
     logger.error('Password reset failed', error, { userId, requestId });
-    return failure({
+    return err({
       type: 'SERVER_ERROR',
       message: 'Failed to reset password',
       details: { error: error instanceof Error ? error.message : 'Unknown error' },
@@ -259,7 +259,7 @@ export const changeUserPassword = async (
     const currentHash = await passwordStorage.retrieve(userId);
     if (!currentHash) {
       logger.error('Password hash not found for user during change', null, { userId });
-      return failure({
+      return err({
         type: 'SERVER_ERROR',
         message: 'Authentication system error',
         requestId,
@@ -268,12 +268,12 @@ export const changeUserPassword = async (
 
     // Verify current password
     const verifyResult = await verifyPassword(currentPassword, currentHash);
-    if (!verifyResult.success) {
+    if (!verifyResult.ok) {
       return verifyResult;
     }
 
-    if (!verifyResult.data) {
-      return failure({
+    if (!verifyResult.value) {
+      return err({
         type: 'INVALID_CREDENTIALS',
         message: 'Current password is incorrect',
         requestId,
@@ -282,19 +282,19 @@ export const changeUserPassword = async (
 
     // Hash new password
     const hashResult = await hashPassword(newPassword);
-    if (!hashResult.success) {
+    if (!hashResult.ok) {
       return hashResult;
     }
 
     // Update password
-    await passwordStorage.store(userId, hashResult.data);
+    await passwordStorage.store(userId, hashResult.value);
 
     logger.info('Password changed successfully', { userId, requestId });
 
-    return success(undefined);
+    return ok(undefined);
   } catch (error) {
     logger.error('Password change failed', error, { userId, requestId });
-    return failure({
+    return err({
       type: 'SERVER_ERROR',
       message: 'Password change failed',
       details: { error: error instanceof Error ? error.message : 'Unknown error' },
@@ -308,46 +308,46 @@ export const changeUserPassword = async (
  */
 export const validatePasswordStrength = (password: string): Result<PlainPassword, AuthError> => {
   if (password.length < 8) {
-    return failure({
+    return err({
       type: 'VALIDATION_ERROR',
       message: 'Password must be at least 8 characters long',
     });
   }
 
   if (password.length > 128) {
-    return failure({
+    return err({
       type: 'VALIDATION_ERROR',
       message: 'Password must not exceed 128 characters',
     });
   }
 
   if (!/[a-z]/.test(password)) {
-    return failure({
+    return err({
       type: 'VALIDATION_ERROR',
       message: 'Password must contain at least one lowercase letter',
     });
   }
 
   if (!/[A-Z]/.test(password)) {
-    return failure({
+    return err({
       type: 'VALIDATION_ERROR',
       message: 'Password must contain at least one uppercase letter',
     });
   }
 
   if (!/[0-9]/.test(password)) {
-    return failure({
+    return err({
       type: 'VALIDATION_ERROR',
       message: 'Password must contain at least one number',
     });
   }
 
   if (!/[^a-zA-Z0-9]/.test(password)) {
-    return failure({
+    return err({
       type: 'VALIDATION_ERROR',
       message: 'Password must contain at least one special character',
     });
   }
 
-  return success(createPlainPassword(password));
+  return ok(createPlainPassword(password));
 };

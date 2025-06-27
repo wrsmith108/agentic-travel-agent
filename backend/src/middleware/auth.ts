@@ -10,10 +10,11 @@ import { JWTPayload, SessionUser } from '@/schemas/auth';
  * Extended Request interface to include authenticated user data
  */
 export interface AuthenticatedRequest extends Request {
-  user?: JWTPayload;
+  jwtPayload?: JWTPayload; // Renamed to avoid conflict with global Express user type
   sessionUser?: SessionUser;
   sessionId?: string;
-  requestId: string;
+  requestId?: string; // Made optional since it's added during middleware execution
+  id?: string; // From global Express extension in server.ts
 }
 
 /**
@@ -113,9 +114,9 @@ export const requireAuth = (config: AuthMiddlewareConfig = {}) => {
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const requestId = req.id || uuidv4();
     const requestLogger = config.logRequests !== false ? createRequestLogger(requestId) : null;
-    const authReq = req as AuthenticatedRequest;
-
-    // Add request ID to request object
+    
+    // Type assertion with proper interface extension
+    const authReq = req as unknown as AuthenticatedRequest;
     authReq.requestId = requestId;
 
     try {
@@ -172,8 +173,17 @@ export const requireAuth = (config: AuthMiddlewareConfig = {}) => {
       }
 
       // Add authenticated user data to request
-      authReq.user = jwtPayload;
+      authReq.jwtPayload = jwtPayload;
       authReq.sessionId = jwtPayload.sessionId;
+      
+      // Also add user in the format expected by the global Express type
+      // (for compatibility with authNew.ts global declaration)
+      (req as any).user = {
+        id: jwtPayload.sub,
+        email: jwtPayload.email,
+        role: jwtPayload.role,
+        sessionId: jwtPayload.sessionId,
+      };
 
       // Optionally include full user profile
       if (config.includeUserProfile) {
@@ -243,9 +253,9 @@ export const optionalAuth = (config: AuthMiddlewareConfig = {}) => {
   return async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
     const requestId = req.id || uuidv4();
     const requestLogger = config.logRequests !== false ? createRequestLogger(requestId) : null;
-    const authReq = req as AuthenticatedRequest;
-
-    // Add request ID to request object
+    
+    // Type assertion with proper interface extension
+    const authReq = req as unknown as AuthenticatedRequest;
     authReq.requestId = requestId;
 
     try {
@@ -292,8 +302,17 @@ export const optionalAuth = (config: AuthMiddlewareConfig = {}) => {
       }
 
       // Add authenticated user data to request
-      authReq.user = jwtPayload;
+      authReq.jwtPayload = jwtPayload;
       authReq.sessionId = jwtPayload.sessionId;
+      
+      // Also add user in the format expected by the global Express type
+      // (for compatibility with authNew.ts global declaration)
+      (req as any).user = {
+        id: jwtPayload.sub,
+        email: jwtPayload.email,
+        role: jwtPayload.role,
+        sessionId: jwtPayload.sessionId,
+      };
 
       // Optionally include full user profile
       if (config.includeUserProfile) {
@@ -343,7 +362,14 @@ export const requireRole = (
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const requestId = req.id || uuidv4();
     const requestLogger = config.logRequests !== false ? createRequestLogger(requestId) : null;
-    const authReq = req as AuthenticatedRequest;
+    
+    // Type assertion with proper interface extension
+    const authReq = req as unknown as AuthenticatedRequest;
+    
+    // Ensure requestId is set
+    if (!authReq.requestId) {
+      authReq.requestId = requestId;
+    }
 
     try {
       // Ensure user is authenticated and has session user
@@ -434,23 +460,23 @@ export const requireRole = (
  * Utility middleware to check if user is authenticated (for conditional logic)
  */
 export const isAuthenticated = (req: Request): boolean => {
-  const authReq = req as AuthenticatedRequest;
-  return !!(authReq.user || authReq.sessionUser);
+  const authReq = req as unknown as AuthenticatedRequest;
+  return !!(authReq.jwtPayload && authReq.sessionUser);
 };
 
 /**
  * Utility middleware to get current user from request
  */
 export const getCurrentUser = (req: Request): JWTPayload | undefined => {
-  const authReq = req as AuthenticatedRequest;
-  return authReq.user;
+  const authReq = req as unknown as AuthenticatedRequest;
+  return authReq.jwtPayload;
 };
 
 /**
  * Utility middleware to get current session user from request
  */
 export const getCurrentSessionUser = (req: Request): SessionUser | undefined => {
-  const authReq = req as AuthenticatedRequest;
+  const authReq = req as unknown as AuthenticatedRequest;
   return authReq.sessionUser;
 };
 
@@ -458,7 +484,7 @@ export const getCurrentSessionUser = (req: Request): SessionUser | undefined => 
  * Utility middleware to check if user has specific role
  */
 export const hasRole = (req: Request, role: UserRole | RoleConfig): boolean => {
-  const authReq = req as AuthenticatedRequest;
+  const authReq = req as unknown as AuthenticatedRequest;
   if (!authReq.sessionUser) return false;
 
   const userRole = authReq.sessionUser.role as UserRole;
@@ -481,7 +507,7 @@ export const hasRole = (req: Request, role: UserRole | RoleConfig): boolean => {
  * Utility middleware to check if user has any of the specified roles
  */
 export const hasAnyRole = (req: Request, roles: UserRole[]): boolean => {
-  const authReq = req as AuthenticatedRequest;
+  const authReq = req as unknown as AuthenticatedRequest;
   if (!authReq.sessionUser) return false;
 
   const userRole = authReq.sessionUser.role as UserRole;
@@ -492,7 +518,7 @@ export const hasAnyRole = (req: Request, roles: UserRole[]): boolean => {
  * Utility middleware to check if user has all of the specified roles
  */
 export const hasAllRoles = (req: Request, roles: UserRole[]): boolean => {
-  const authReq = req as AuthenticatedRequest;
+  const authReq = req as unknown as AuthenticatedRequest;
   if (!authReq.sessionUser) return false;
 
   const userRole = authReq.sessionUser.role as UserRole;
@@ -554,7 +580,8 @@ export const authErrorHandler = (
  * This should be used early in the middleware chain
  */
 export const enhanceRequestContext = (req: Request, _res: Response, next: NextFunction): void => {
-  const authReq = req as AuthenticatedRequest;
+  // Type assertion with proper interface extension
+  const authReq = req as unknown as AuthenticatedRequest;
 
   // Add request ID if not already present
   if (!authReq.requestId) {

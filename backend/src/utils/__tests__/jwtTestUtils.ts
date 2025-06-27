@@ -238,7 +238,7 @@ export const verifyTestJWT = (token: string): JWTPayload => {
  */
 function parseExpiresIn(duration: string): number {
   const match = duration.match(/^(\d+)([smhd])$/);
-  if (!match) throw new Error('Invalid duration format');
+  if (!match || !match[1] || !match[2]) throw new Error('Invalid duration format');
 
   const value = parseInt(match[1]);
   const unit = match[2];

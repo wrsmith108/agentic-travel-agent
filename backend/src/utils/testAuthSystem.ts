@@ -3,7 +3,7 @@
  * Run with: npx tsx src/utils/testAuthSystem.ts
  */
 
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 
 const API_BASE_URL = 'http://localhost:3001/api/v1';
@@ -289,7 +289,7 @@ async function main() {
   }
   
   // Check if new auth is enabled
-  const response = await axios.get(`${API_BASE_URL}`);
+  await axios.get(`${API_BASE_URL}`);
   console.log('\n⚠️  Note: Make sure USE_NEW_AUTH=true is set in your .env file\n');
   
   await delay(1000);

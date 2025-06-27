@@ -23,7 +23,7 @@ export interface RedisConfig {
 export const getRedisConfig = (): RedisConfig => ({
   host: env.REDIS_HOST || 'localhost',
   port: parseInt(env.REDIS_PORT || '6379', 10),
-  password: env.REDIS_PASSWORD,
+  ...(env.REDIS_PASSWORD && { password: env.REDIS_PASSWORD }),
   db: parseInt(env.REDIS_DB || '0', 10),
   maxRetriesPerRequest: parseInt(env.REDIS_MAX_RETRIES || '3', 10),
   retryDelayOnFailover: parseInt(env.REDIS_RETRY_DELAY || '100', 10),
@@ -45,7 +45,7 @@ export const createRedisClient = (config: RedisConfig): ReturnType<typeof create
       host: config.host,
       port: config.port,
     },
-    password: config.password,
+    ...(config.password && { password: config.password }),
     database: config.db,
   });
 
@@ -131,7 +131,7 @@ export const initializeRedis = async (): Promise<ReturnType<typeof createClient>
 /**
  * Get Redis client instance
  */
-export const getRedis = (): Redis.RedisClientType => {
+export const getRedis = (): ReturnType<typeof createClient> => {
   if (!redisClient) {
     throw new Error('Redis not initialized. Call initializeRedis() first.');
   }

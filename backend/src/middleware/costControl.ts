@@ -34,7 +34,7 @@ export const trackLLMCosts = () => {
       return;
     }
 
-    const userId = costReq.user.sub;
+    const userId = costReq.user.id;
     const requestId = costReq.requestId || uuidv4();
     const startTime = Date.now();
 
@@ -174,7 +174,7 @@ export const enforceRateLimits = () => {
       return;
     }
 
-    const userId = costReq.user.sub;
+    const userId = costReq.user.id;
     const now = Date.now();
     const windowMs = 60 * 1000; // 1 minute window
 
@@ -253,7 +253,7 @@ export const trackAPICosts = (service: 'amadeus' | 'sendgrid') => {
       return;
     }
 
-    const userId = costReq.user.sub;
+    const userId = costReq.user.id;
     const requestId = costReq.requestId || uuidv4();
     const startTime = Date.now();
 
@@ -327,7 +327,7 @@ export const getCostSummary = () => {
     }
 
     try {
-      const userId = costReq.user.sub;
+      const userId = costReq.user.id;
       const { startDate, endDate } = req.query;
 
       // Get user quota
@@ -384,7 +384,7 @@ export const getCostSummary = () => {
 export const auditLog = (action: string) => {
   return (req: Request, _res: Response, next: NextFunction): void => {
     const costReq = req as CostTrackedRequest;
-    const userId = costReq.user?.sub || 'anonymous';
+    const userId = costReq.user?.id || 'anonymous';
     const requestId = costReq.requestId || uuidv4();
 
     logInfo('Audit log', {

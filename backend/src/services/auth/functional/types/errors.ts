@@ -149,7 +149,7 @@ export const createSystemError = (
   code,
   requestId,
   timestamp: new Date().toISOString() as Timestamp,
-  stack,
+  ...(stack !== undefined && { stack }),
 });
 
 // Type guards

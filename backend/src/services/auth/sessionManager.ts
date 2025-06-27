@@ -5,7 +5,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Result, ok, err } from '@/utils/result';
 import { UserId } from '@/types/brandedTypes';
-import { asAccessToken, asRefreshToken } from '@/utils/jwt';
 
 // Session types
 export type SessionId = string & { readonly brand: unique symbol };

@@ -1,6 +1,6 @@
 import path from 'path';
 import { env } from '@/config/env';
-import { UserDataManagerOps, UserId, Email, asUserId, asEmail } from './types';
+import { UserDataManagerOps, UserId, Email } from './types';
 import { createFileOps } from './fileOperations';
 import { createLockOps } from './lockOperations';
 import {

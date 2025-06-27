@@ -42,7 +42,7 @@ async function demo() {
 
     // 3. Login
     console.log('3️⃣ Testing login...');
-    const loginResponse = await axios.post(`${API_URL}/login`, {
+    await axios.post(`${API_URL}/login`, {
       email: 'demo@example.com',
       password: 'DemoPass123!@#',
       rememberMe: true

@@ -3,9 +3,8 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { verifyAccessToken, asAccessToken, JWTPayload } from '@/utils/jwt';
+import { verifyAccessToken, asAccessToken } from '@/utils/jwt';
 import { verifySession } from '@/services/auth/authServiceNew';
-import { asSessionId } from '@/services/auth/sessionManager';
 import { isErr } from '@/utils/result';
 import { createRequestLogger } from '@/utils/logger';
 
@@ -145,7 +144,7 @@ export const authenticate = async (
  */
 export const optionalAuthenticate = async (
   req: Request,
-  res: Response,
+  _res: Response,
   next: NextFunction
 ): Promise<void> => {
   const token = extractToken(req);

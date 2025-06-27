@@ -2,8 +2,6 @@
  * Authentication types for Result pattern
  */
 
-import { UserId } from './brandedTypes';
-
 // Error types
 export type AuthError = 
   | { type: 'INVALID_CREDENTIALS'; message: string }
@@ -76,7 +74,7 @@ export const validationError = (message: string, details?: unknown): AuthError =
 export const systemError = (message: string, code?: string): AuthError => ({
   type: 'SYSTEM_ERROR',
   message,
-  code,
+  ...(code && { code }),
 });
 
 // Map error types to HTTP status codes

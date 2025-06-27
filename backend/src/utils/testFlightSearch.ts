@@ -9,7 +9,7 @@ import { v4 as uuidv4 } from 'uuid';
 const API_BASE_URL = 'http://localhost:3001/api/v1';
 let accessToken: string;
 
-async function authenticate() {
+async function authenticate(): Promise<boolean> {
   console.log('🔐 Authenticating...');
   
   const testEmail = `flighttest-${uuidv4().slice(0, 8)}@example.com`;
@@ -31,6 +31,7 @@ async function authenticate() {
       console.log('✅ Authentication successful\n');
       return true;
     }
+    return false;
   } catch (error) {
     console.error('❌ Authentication failed:', error);
     return false;

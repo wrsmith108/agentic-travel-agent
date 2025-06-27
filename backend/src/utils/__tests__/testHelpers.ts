@@ -21,7 +21,7 @@ export class TestDataFactory {
         currency: 'CAD',
         timezone: 'America/Toronto',
         preferredDepartureAirport: faker.helpers.arrayElement(['YYZ', 'YVR', 'YUL', 'YYC']),
-        communicationFrequency: faker.helpers.arrayElement(['daily', 'weekly', 'monthly'] as const),
+        communicationFrequency: faker.helpers.arrayElement(['immediate', 'daily', 'weekly'] as const),
         subscriptionTier: 'free',
       },
       ...overrides,
@@ -298,8 +298,7 @@ export class SecurityTestHelpers {
    * Test for SQL injection vulnerabilities
    */
   static async testSQLInjection(
-    testFn: (payload: string) => Promise<any>,
-    fieldName: string
+    testFn: (payload: string) => Promise<any>
   ): Promise<{ vulnerable: boolean; details: string[] }> {
     const vulnerabilities: string[] = [];
     const payloads = TestDataFactory.getSQLInjectionPayloads();
@@ -330,8 +329,7 @@ export class SecurityTestHelpers {
    * Test for XSS vulnerabilities
    */
   static async testXSS(
-    testFn: (payload: string) => Promise<any>,
-    fieldName: string
+    testFn: (payload: string) => Promise<any>
   ): Promise<{ vulnerable: boolean; details: string[] }> {
     const vulnerabilities: string[] = [];
     const payloads = TestDataFactory.getXSSPayloads();

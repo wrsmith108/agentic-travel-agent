@@ -8,7 +8,6 @@ import { Result, ok, err } from '@/utils/result';
 import { env } from '@/config/env';
 import {
   FlightSearchRequest,
-  FlightSearchResponse,
   SimplifiedFlight,
   FlightSearchError,
   createFlightError,
@@ -16,11 +15,28 @@ import {
   DictionaryData,
 } from '@/types/flight';
 
+// Extend Amadeus type to include shopping property
+interface AmadeusExtended extends Amadeus {
+  shopping: {
+    flightOffersSearch: {
+      get: (params: any) => Promise<any>;
+    };
+    flightOffer: (offerId: string) => {
+      get: () => Promise<any>;
+    };
+    flightOffers: {
+      pricing: {
+        post: (data: any) => Promise<any>;
+      };
+    };
+  };
+}
+
 // Initialize Amadeus client
 const amadeus = new Amadeus({
   clientId: env.AMADEUS_CLIENT_ID || '',
   clientSecret: env.AMADEUS_CLIENT_SECRET || '',
-});
+}) as AmadeusExtended;
 
 // Log initialization for debugging
 console.log('Amadeus client initialized with environment:', env.AMADEUS_ENVIRONMENT);
@@ -231,35 +247,56 @@ function parseFlightOffers(
   dictionaries?: DictionaryData
 ): SimplifiedFlight[] {
   return flightOffers.map(offer => {
+    // Ensure we have itineraries
+    if (!offer.itineraries || offer.itineraries.length === 0) {
+      throw new Error('Flight offer has no itineraries');
+    }
+    
     const firstItinerary = offer.itineraries[0];
     const lastItinerary = offer.itineraries[offer.itineraries.length - 1];
+    
+    // Ensure we have segments
+    if (!firstItinerary?.segments || firstItinerary.segments.length === 0) {
+      throw new Error('First itinerary has no segments');
+    }
+    if (!lastItinerary?.segments || lastItinerary.segments.length === 0) {
+      throw new Error('Last itinerary has no segments');
+    }
     
     const firstSegment = firstItinerary.segments[0];
     const lastSegment = lastItinerary.segments[lastItinerary.segments.length - 1];
     
+    // Ensure segments have required properties
+    if (!firstSegment?.departure?.iataCode || !firstSegment?.departure?.at) {
+      throw new Error('First segment missing departure information');
+    }
+    if (!lastSegment?.arrival?.iataCode || !lastSegment?.arrival?.at) {
+      throw new Error('Last segment missing arrival information');
+    }
+    
     // Calculate total stops
     const totalStops = offer.itineraries.reduce(
-      (sum, itinerary) => sum + (itinerary.segments.length - 1),
+      (sum, itinerary) => sum + Math.max(0, (itinerary.segments?.length || 1) - 1),
       0
     );
     
     // Get carrier name from dictionary or use code
-    const carrierCode = firstSegment.carrierCode;
+    const carrierCode = firstSegment.carrierCode || '';
     const carrierName = dictionaries?.carriers?.[carrierCode] || carrierCode;
     
     // Get cabin class from first traveler pricing
-    const cabin = offer.travelerPricings[0]?.fareDetailsBySegment[0]?.cabin || 'ECONOMY';
+    const cabin = offer.travelerPricings?.[0]?.fareDetailsBySegment?.[0]?.cabin || 'ECONOMY';
     
     // Simplify all segments
     const segments = offer.itineraries.flatMap(itinerary =>
-      itinerary.segments.map(segment => ({
-        origin: segment.departure.iataCode,
-        destination: segment.arrival.iataCode,
-        departure: segment.departure.at,
-        arrival: segment.arrival.at,
-        carrier: segment.carrierCode,
-        flightNumber: `${segment.carrierCode}${segment.number}`,
-        duration: segment.duration,
+      (itinerary.segments || []).map(segment => ({
+        origin: segment.departure?.iataCode || '',
+        destination: segment.arrival?.iataCode || '',
+        departure: segment.departure?.at || '',
+        arrival: segment.arrival?.at || '',
+        carrier: segment.carrierCode || '',
+        flightNumber: `${segment.carrierCode || ''}${segment.number || ''}`,
+        duration: segment.duration || '',
       }))
     );
 
@@ -269,16 +306,16 @@ function parseFlightOffers(
       destination: lastSegment.arrival.iataCode,
       departureTime: firstSegment.departure.at,
       arrivalTime: lastSegment.arrival.at,
-      duration: offer.itineraries.map(it => it.duration).join(' + '),
+      duration: offer.itineraries.map(it => it.duration || '').filter(d => d).join(' + '),
       stops: totalStops,
       carrier: carrierCode,
       carrierName,
       price: {
-        total: parseFloat(offer.price.grandTotal),
-        currency: offer.price.currency,
+        total: parseFloat(offer.price?.grandTotal || '0'),
+        currency: offer.price?.currency || 'USD',
       },
       cabin,
-      bookableSeats: offer.numberOfBookableSeats,
+      bookableSeats: offer.numberOfBookableSeats || 0,
       isReturn: offer.itineraries.length > 1,
       segments,
     };

@@ -2,20 +2,16 @@ import { Router, Request, Response, NextFunction } from 'express';
 import rateLimit from 'express-rate-limit';
 import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
-import { authService } from '@/services/auth/authService';
+import { authServiceWrapper } from '@/services/auth/authServiceWrapper';
 import { AppError } from '@/middleware/errorHandler';
 import { createRequestLogger } from '@/utils/logger';
-import { isOk, isErr } from '@/utils/result';
+import { isOk } from '@/utils/result';
 import { getStatusCodeFromError } from '@/types/auth';
 import {
   RegisterRequestSchema,
   LoginRequestSchema,
   PasswordResetRequestSchema,
   PasswordResetConfirmSchema,
-  TokenRefreshRequestSchema,
-  LogoutRequestSchema,
-  AuthSuccessResponse,
-  AuthErrorResponse,
   AUTH_CONSTANTS,
 } from '@/schemas/auth';
 
@@ -100,7 +96,7 @@ router.post(
       });
 
       // Call auth service that returns Result<AuthSuccess, AuthError>
-      const result = await authService.register(req.body);
+      const result = await authServiceWrapper.register(req.body);
 
       if (isOk(result)) {
         requestLogger.info('User registration successful', {
@@ -150,7 +146,7 @@ router.post(
         ip: req.ip,
       });
 
-      const result = await authService.login(req.body);
+      const result = await authServiceWrapper.login(req.body);
 
       if (isOk(result)) {
         requestLogger.info('User login successful', {
@@ -210,7 +206,7 @@ router.post(
         ip: req.ip,
       });
 
-      const result = await authService.logout(sessionId);
+      const result = await authServiceWrapper.logout(sessionId);
 
       if (isOk(result)) {
         requestLogger.info('User logout successful', {
@@ -257,7 +253,7 @@ router.post(
         ip: req.ip,
       });
 
-      const result = await authService.requestPasswordReset(req.body.email);
+      const result = await authServiceWrapper.requestPasswordReset(req.body.email);
 
       if (isOk(result)) {
         requestLogger.info('Password reset request successful', {
@@ -307,7 +303,7 @@ router.post(
         ip: req.ip,
       });
 
-      const result = await authService.resetPassword(req.body.token, req.body.password);
+      const result = await authServiceWrapper.resetPassword(req.body.token, req.body.password);
 
       if (isOk(result)) {
         requestLogger.info('Password reset successful');

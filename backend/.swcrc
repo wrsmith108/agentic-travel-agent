@@ -1,0 +1,26 @@
+{
+  "jsc": {
+    "parser": {
+      "syntax": "typescript",
+      "tsx": false,
+      "decorators": true
+    },
+    "target": "es2022",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@/routes/*": ["./src/routes/*"],
+      "@/services/*": ["./src/services/*"],
+      "@/middleware/*": ["./src/middleware/*"],
+      "@/jobs/*": ["./src/jobs/*"],
+      "@/utils/*": ["./src/utils/*"],
+      "@/types/*": ["./src/types/*"],
+      "@/config/*": ["./src/config/*"],
+      "@/schemas/*": ["./src/schemas/*"]
+    },
+    "baseUrl": "."
+  },
+  "module": {
+    "type": "commonjs"
+  },
+  "sourceMaps": true
+}

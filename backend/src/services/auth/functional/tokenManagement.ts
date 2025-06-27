@@ -11,14 +11,15 @@ import type {
   JWTToken,
   RefreshToken,
   VerificationToken,
+  ResetToken,
   Duration,
   Timestamp,
-} from '@/types/brandedTypes';
+} from './types';
 import {
   JWTToken as createJWTToken,
   RefreshToken as createRefreshToken,
   VerificationToken as createVerificationToken,
-} from '@/types/brandedTypes';
+} from './types';
 import type {
   Result,
   AuthError,
@@ -28,7 +29,7 @@ import type {
   TimeProvider,
   Logger,
 } from './types';
-import { success, failure } from './types';
+import { ok, err } from './types';
 import { AUTH_CONSTANTS } from '@/schemas/auth';
 
 /**
@@ -46,9 +47,9 @@ export const generateJWT = (
     }
 
     const token = jwt.sign(payload, secret, options);
-    return success(createJWTToken(token));
+    return ok(createJWTToken(token));
   } catch (error) {
-    return failure({
+    return err({
       type: 'SERVER_ERROR',
       message: 'Failed to generate JWT token',
       details: { error: error instanceof Error ? error.message : 'Unknown error' },
@@ -62,22 +63,22 @@ export const generateJWT = (
 export const verifyJWT = (token: JWTToken, secret: string): Result<JWTPayload, AuthError> => {
   try {
     const payload = jwt.verify(token, secret) as JWTPayload;
-    return success(payload);
+    return ok(payload);
   } catch (error) {
     if (error instanceof jwt.JsonWebTokenError) {
       if (error.name === 'TokenExpiredError') {
-        return failure({
+        return err({
           type: 'TOKEN_EXPIRED',
           message: 'JWT token has expired',
         });
       }
-      return failure({
+      return err({
         type: 'TOKEN_INVALID',
         message: 'Invalid JWT token',
         details: { error: error.message },
       });
     }
-    return failure({
+    return err({
       type: 'SERVER_ERROR',
       message: 'Failed to verify JWT token',
       details: { error: error instanceof Error ? error.message : 'Unknown error' },
@@ -132,7 +133,7 @@ export const createSessionTokens = (
 
   // Generate access token
   const accessTokenResult = generateJWT(jwtPayload, crypto.jwtSecret);
-  if (!accessTokenResult.success) {
+  if (!accessTokenResult.ok) {
     return accessTokenResult;
   }
 
@@ -141,7 +142,7 @@ export const createSessionTokens = (
     refreshToken?: RefreshToken;
     expiresAt: Timestamp;
   } = {
-    accessToken: accessTokenResult.data,
+    accessToken: accessTokenResult.value,
     expiresAt: timeProvider.timestamp(),
   };
 
@@ -154,14 +155,14 @@ export const createSessionTokens = (
       AUTH_CONSTANTS.TOKEN_EXPIRY.REFRESH_TOKEN
     );
 
-    if (!refreshTokenResult.success) {
+    if (!refreshTokenResult.ok) {
       return refreshTokenResult;
     }
 
-    result.refreshToken = createRefreshToken(refreshTokenResult.data);
+    result.refreshToken = createRefreshToken(refreshTokenResult.value);
   }
 
-  return success(result);
+  return ok(result);
 };
 
 /**
@@ -170,9 +171,9 @@ export const createSessionTokens = (
 export const generateVerificationToken = (): Result<VerificationToken, AuthError> => {
   try {
     const token = crypto.randomBytes(32).toString('hex');
-    return success(createVerificationToken(token));
+    return ok(createVerificationToken(token));
   } catch (error) {
-    return failure({
+    return err({
       type: 'SERVER_ERROR',
       message: 'Failed to generate verification token',
       details: { error: error instanceof Error ? error.message : 'Unknown error' },
@@ -197,11 +198,11 @@ export const createEmailVerificationToken = async (
   try {
     // Generate token
     const tokenResult = generateVerificationToken();
-    if (!tokenResult.success) {
+    if (!tokenResult.ok) {
       return tokenResult;
     }
 
-    const token = tokenResult.data;
+    const token = tokenResult.value;
     const now = timeProvider.now();
     const expiresAt = new Date(
       now.getTime() + AUTH_CONSTANTS.TOKEN_EXPIRY.VERIFICATION_TOKEN * 1000
@@ -226,10 +227,10 @@ export const createEmailVerificationToken = async (
       tokenExpiry: expiresAt.toISOString(),
     });
 
-    return success(token);
+    return ok(token);
   } catch (error) {
     logger.error('Failed to create email verification token', error, { userId, email });
-    return failure({
+    return err({
       type: 'SERVER_ERROR',
       message: 'Failed to create email verification token',
       details: { error: error instanceof Error ? error.message : 'Unknown error' },
@@ -253,29 +254,29 @@ export const validateVerificationToken = async (
     const tokenRecord = await tokenStorage.retrieve(token);
 
     if (!tokenRecord) {
-      return failure({
+      return err({
         type: 'TOKEN_INVALID',
         message: 'Invalid verification token',
       });
     }
 
     if (tokenRecord.used) {
-      return failure({
+      return err({
         type: 'TOKEN_INVALID',
         message: 'Verification token has already been used',
       });
     }
 
     if (tokenRecord.expiresAt < timeProvider.now()) {
-      return failure({
+      return err({
         type: 'TOKEN_EXPIRED',
         message: 'Verification token has expired',
       });
     }
 
-    return success({ userId: tokenRecord.userId, email: tokenRecord.email });
+    return ok({ userId: tokenRecord.userId, email: tokenRecord.email });
   } catch (error) {
-    return failure({
+    return err({
       type: 'SERVER_ERROR',
       message: 'Failed to validate verification token',
       details: { error: error instanceof Error ? error.message : 'Unknown error' },
@@ -298,16 +299,16 @@ export const refreshAccessToken = async (
 
   // Verify refresh token
   const verifyResult = verifyJWT(createJWTToken(refreshToken), crypto.jwtRefreshSecret);
-  if (!verifyResult.success) {
+  if (!verifyResult.ok) {
     return verifyResult;
   }
 
-  const payload = verifyResult.data;
+  const payload = verifyResult.value;
 
   // Validate session still exists
   const isValidSession = await sessionValidator(payload.sessionId);
   if (!isValidSession) {
-    return failure({
+    return err({
       type: 'SESSION_EXPIRED',
       message: 'Session no longer exists',
     });
@@ -326,12 +327,12 @@ export const refreshAccessToken = async (
   };
 
   const accessTokenResult = generateJWT(newPayload, crypto.jwtSecret);
-  if (!accessTokenResult.success) {
+  if (!accessTokenResult.ok) {
     return accessTokenResult;
   }
 
-  return success({
-    accessToken: accessTokenResult.data,
+  return ok({
+    accessToken: accessTokenResult.value,
     expiresAt: timeProvider.timestamp(),
   });
 };
@@ -343,14 +344,14 @@ export const decodeJWT = (token: JWTToken): Result<JWTPayload, AuthError> => {
   try {
     const decoded = jwt.decode(token) as JWTPayload | null;
     if (!decoded) {
-      return failure({
+      return err({
         type: 'TOKEN_INVALID',
         message: 'Failed to decode JWT token',
       });
     }
-    return success(decoded);
+    return ok(decoded);
   } catch (error) {
-    return failure({
+    return err({
       type: 'TOKEN_INVALID',
       message: 'Invalid JWT token format',
       details: { error: error instanceof Error ? error.message : 'Unknown error' },

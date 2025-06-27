@@ -3,7 +3,6 @@
  */
 
 import { z } from 'zod';
-import { Result } from '@/utils/result';
 
 // Branded types
 export type ConversationId = string & { readonly brand: unique symbol };

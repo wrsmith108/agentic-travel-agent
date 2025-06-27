@@ -3,16 +3,14 @@
  * Implements the same interface as the functional file storage system
  */
 
-import { Pool } from 'pg';
 import { v4 as uuidv4 } from 'uuid';
-import { Result, ok, err } from '@/utils/result';
 import {
   UserProfile,
   CreateUserProfile,
   UpdateUserProfile,
   validateUserProfile,
 } from '@/schemas/user';
-import { executeQuery, executeTransaction, getDatabase } from '@/config/database';
+import { executeQuery, executeTransaction } from '@/config/database';
 import logger from '@/utils/logger';
 
 // Re-export branded types for compatibility

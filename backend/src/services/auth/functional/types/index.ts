@@ -1,44 +1,98 @@
 /**
  * Functional Auth Service - Type Definitions
  *
- * Branded types and interfaces for type-safe auth operations
+ * Comprehensive type exports for the functional auth system
  */
 
 import type { z } from 'zod';
-import type { UserProfile } from '@/schemas/user';
+
+// Import types for use in interface definitions
 import type {
+  UserId as CoreUserId,
+  Email as CoreEmail,
+  HashedPassword as CoreHashedPassword,
+  SessionId as CoreSessionId,
+  Timestamp as CoreTimestamp,
+} from './core';
+
+import type {
+  SessionUser as AuthSessionUser,
+  SessionData as AuthSessionData,
+  DeviceInfo as AuthDeviceInfo,
+} from './auth';
+
+// ===== Re-export Result types and utilities =====
+export type { Result, Ok, Err, AsyncResult, OkType, ErrType } from './result';
+export { ok, err, isOk, isErr, map, mapErr, flatMap, flatMapErr, unwrap, unwrapOr } from './result';
+
+// ===== Re-export core branded types and constructors =====
+// Note: Constructor functions also provide the types
+export {
+  UserId,
+  Email,
+  HashedPassword,
+  PlainPassword,
+  SessionId,
+  AccessToken,
+  RefreshToken,
+  Timestamp,
+  Duration,
+} from './core';
+
+// Re-export specific types with aliases to avoid conflicts
+export type {
+  PasswordResetToken as PasswordResetTokenBranded,
+  EmailVerificationToken as EmailVerificationTokenBranded,
+} from './core';
+
+// ===== Re-export error types =====
+export type {
+  AuthError,
+  ValidationError,
+  StorageError,
+  SecurityError,
+  SystemError,
+  AppError,
+  BaseError,
+  ValidationFieldError,
+} from './errors';
+
+// ===== Re-export auth domain types =====
+export type {
+  UserRole,
   SessionUser,
+  DeviceInfo,
   SessionData,
-  JWTPayload,
-  AuthSuccessResponse,
-  AuthErrorResponse,
   AccountStatus,
-} from '@/schemas/auth';
+  AuthSuccess,
+  RegisterRequest,
+  LoginRequest,
+  PasswordResetRequest,
+  PasswordResetConfirm,
+  ChangePasswordRequest,
+  PasswordResetTokenData,
+  EmailVerificationTokenData,
+  JWTPayload,
+  RateLimitData,
+} from './auth';
 
-// ===== Branded Types =====
-// These provide compile-time type safety for string IDs
+export { AUTH_CONSTANTS } from './auth';
 
-export type UserId = string & { readonly brand: unique symbol };
-export type SessionId = string & { readonly brand: unique symbol };
-export type Email = string & { readonly brand: unique symbol };
-export type HashedPassword = string & { readonly brand: unique symbol };
-export type ResetToken = string & { readonly brand: unique symbol };
-export type VerificationToken = string & { readonly brand: unique symbol };
+// ===== Additional Branded Types (not in core.ts) =====
 export type JWTToken = string & { readonly brand: unique symbol };
+export type VerificationToken = string & { readonly brand: unique symbol };
+export type ResetToken = string & { readonly brand: unique symbol };
+export type RequestId = string & { readonly brand: unique symbol };
 
-// Type guards and constructors
-export const UserId = (id: string): UserId => id as UserId;
-export const SessionId = (id: string): SessionId => id as SessionId;
-export const Email = (email: string): Email => email as Email;
-export const HashedPassword = (hash: string): HashedPassword => hash as HashedPassword;
-export const ResetToken = (token: string): ResetToken => token as ResetToken;
-export const VerificationToken = (token: string): VerificationToken => token as VerificationToken;
+// Constructors for additional branded types
 export const JWTToken = (token: string): JWTToken => token as JWTToken;
+export const VerificationToken = (token: string): VerificationToken => token as VerificationToken;
+export const ResetToken = (token: string): ResetToken => token as ResetToken;
+export const RequestId = (id: string): RequestId => id as RequestId;
 
-// ===== Token Data Types =====
-
+// ===== Token Record Types (for storage) =====
 export interface PasswordResetToken {
-  userId: UserId;
+  userId: CoreUserId;
   token: ResetToken;
   expiresAt: Date;
   createdAt: Date;
@@ -46,62 +100,95 @@ export interface PasswordResetToken {
 }
 
 export interface EmailVerificationToken {
-  userId: UserId;
+  userId: CoreUserId;
   token: VerificationToken;
-  email: Email;
+  email: CoreEmail;
   expiresAt: Date;
   createdAt: Date;
   used: boolean;
 }
 
-// ===== Failed Login Tracking =====
+// Aliases for compatibility
+export type PasswordResetTokenRecord = PasswordResetToken;
+export type EmailVerificationTokenRecord = EmailVerificationToken;
 
+// ===== Failed Login Tracking =====
 export interface FailedLoginAttempt {
   count: number;
   lastAttempt: Date;
   lockedUntil?: Date;
 }
 
-// ===== Device Information =====
-
-export interface DeviceInfo {
-  userAgent?: string;
-  ipAddress?: string;
-  fingerprint?: string;
-}
-
 // ===== Storage Interfaces =====
-
 export interface SessionStorage {
-  [sessionId: string]: SessionData;
+  [sessionId: string]: AuthSessionData;
 }
 
 export interface PasswordStorage {
-  get(userId: UserId): Promise<HashedPassword | null>;
-  set(userId: UserId, hash: HashedPassword): Promise<void>;
-  delete(userId: UserId): Promise<boolean>;
+  get(userId: CoreUserId): Promise<CoreHashedPassword | null>;
+  set(userId: CoreUserId, hash: CoreHashedPassword): Promise<void>;
+  delete(userId: CoreUserId): Promise<boolean>;
   clear(): Promise<void>;
 }
 
 export interface TokenStorage<T> {
-  get(token: string): T | undefined;
-  set(token: string, data: T): void;
-  delete(token: string): boolean;
-  clear(): void;
-  getAll(): Map<string, T>;
+  get(token: string): Promise<T | null>;
+  set(token: string, data: T): Promise<void>;
+  delete(token: string): Promise<boolean>;
+  clear(): Promise<void>;
+  getAll(): Promise<Map<string, T>>;
+  store(token: string, data: T): Promise<void>; // Alias for set
+  retrieve(token: string): Promise<T | null>; // Alias for get
 }
 
 export interface FailedAttemptStorage {
-  get(email: Email): FailedLoginAttempt | undefined;
-  set(email: Email, attempt: FailedLoginAttempt): void;
-  delete(email: Email): boolean;
+  get(email: CoreEmail): FailedLoginAttempt | undefined;
+  set(email: CoreEmail, attempt: FailedLoginAttempt): void;
+  delete(email: CoreEmail): boolean;
   clear(): void;
 }
 
+// ===== Session Management =====
+export interface SessionCreationOptions {
+  user: AuthSessionUser;
+  duration?: number;
+  deviceInfo?: AuthDeviceInfo;
+}
+
+export interface SessionCreationResult {
+  sessionId: CoreSessionId;
+  accessToken: JWTToken;
+  refreshToken?: JWTToken;
+  expiresAt: string;
+}
+
+// ===== JWT Configuration =====
+export interface JWTConfig {
+  secret: string;
+  refreshSecret: string;
+  issuer: string;
+  audience: string;
+}
+
+// ===== External Dependencies =====
+export interface Logger {
+  info(message: string, meta?: any): void;
+  error(message: string, error?: any, meta?: any): void;
+  warn(message: string, meta?: any): void;
+  debug(message: string, meta?: any): void;
+}
+
+export interface IdGenerator {
+  generateId(): string;
+  generateRequestId(): string;
+}
+
+export interface TimeProvider {
+  now(): Date;
+  timestamp(): CoreTimestamp;
+}
+
 // ===== Operation Results =====
-
-export type AuthResult = AuthSuccessResponse | AuthErrorResponse;
-
 export interface PasswordResetResult {
   success: boolean;
   message: string;
@@ -119,38 +206,12 @@ export interface LogoutResult {
 }
 
 // ===== Rate Limiting =====
-
 export interface RateLimitResult {
   allowed: boolean;
   lockedUntil?: Date;
 }
 
-// ===== Session Creation Options =====
-
-export interface SessionCreationOptions {
-  user: SessionUser;
-  duration?: number;
-  deviceInfo?: DeviceInfo;
-}
-
-export interface SessionCreationResult {
-  sessionId: SessionId;
-  accessToken: JWTToken;
-  refreshToken?: JWTToken;
-  expiresAt: string;
-}
-
-// ===== JWT Configuration =====
-
-export interface JWTConfig {
-  secret: string;
-  refreshSecret: string;
-  issuer: string;
-  audience: string;
-}
-
 // ===== Auth Service Configuration =====
-
 export interface AuthServiceConfig {
   jwtSecret?: string;
   jwtRefreshSecret?: string;
@@ -171,29 +232,8 @@ export interface AuthServiceConfig {
 }
 
 // ===== Validation Results =====
-
 export interface ValidationResult<T> {
   success: boolean;
   data?: T;
   error?: z.ZodError;
 }
-
-// ===== User Data Manager Interface =====
-
-export interface UserDataManagerOps {
-  createUser(data: any): Promise<UserProfile>;
-  readUserData(userId: string): Promise<UserProfile | null>;
-  updateUserData(userId: string, updates: Partial<UserProfile>): Promise<UserProfile>;
-  findUserByEmail(email: string): Promise<UserProfile | null>;
-}
-
-// ===== Re-export auth schema types for convenience =====
-
-export type {
-  SessionUser,
-  SessionData,
-  JWTPayload,
-  AuthSuccessResponse,
-  AuthErrorResponse,
-  AccountStatus,
-} from '@/schemas/auth';

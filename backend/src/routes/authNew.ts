@@ -7,9 +7,9 @@ import rateLimit from 'express-rate-limit';
 import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
 import * as authService from '@/services/auth/authServiceNew';
-import { authenticate, requireRole, userRateLimit } from '@/middleware/authNew';
+import { authenticate, userRateLimit } from '@/middleware/authNew';
 import { createRequestLogger } from '@/utils/logger';
-import { isOk, isErr } from '@/utils/result';
+import { isOk } from '@/utils/result';
 import { getStatusCodeFromError } from '@/types/auth';
 import {
   RegisterRequestSchema,
@@ -431,7 +431,7 @@ router.post(
  */
 router.post(
   '/verify-email',
-  async (req: Request, res: Response): Promise<void> => {
+  async (_req: Request, res: Response): Promise<void> => {
     res.status(501).json({
       success: false,
       error: {
@@ -450,7 +450,7 @@ router.post(
   '/resend-verification',
   authenticate,
   userRateLimit(60 * 60 * 1000, 3), // 3 requests per hour
-  async (req: Request, res: Response): Promise<void> => {
+  async (_req: Request, res: Response): Promise<void> => {
     res.status(501).json({
       success: false,
       error: {

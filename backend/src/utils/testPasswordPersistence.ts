@@ -37,7 +37,7 @@ async function testPasswordPersistence() {
 
     // 2. Test immediate login (should work)
     console.log('\n2️⃣ Testing immediate login...');
-    const loginResponse = await axios.post(`${API_URL}/auth/login`, {
+    await axios.post(`${API_URL}/auth/login`, {
       email: testEmail,
       password: testPassword,
     });
