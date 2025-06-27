@@ -71,6 +71,7 @@ export const UserProfileSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().min(1, 'Last name is required'),
   email: z.string().email('Must be valid email address'),
+  passwordHash: z.string().optional(), // Added for persistent authentication
   preferences: UserPreferencesSchema,
   activeSearches: z.array(z.string().uuid()).default([]),
   searchHistory: z.array(FlightSearchSchema).default([]),
@@ -109,7 +110,9 @@ export type UserDataFile = z.infer<typeof UserDataFileSchema>;
 export type CreateUserProfile = Omit<
   UserProfile,
   'id' | 'createdAt' | 'updatedAt' | 'activeSearches' | 'searchHistory'
->;
+> & {
+  passwordHash?: string; // Allow passwordHash to be included during creation
+};
 
 /**
  * Helper type for updating user profiles

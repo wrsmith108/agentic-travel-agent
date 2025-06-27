@@ -62,16 +62,27 @@ export const createSession = (
     const now = new Date();
     const duration = options?.rememberMe ? REMEMBER_ME_DURATION : SESSION_DURATION;
     
+    const expiresAt = new Date(now.getTime() + duration);
+    
     const session: Session = {
       id: sessionId,
       userId,
       createdAt: now,
-      expiresAt: new Date(now.getTime() + duration),
+      expiresAt,
       lastAccessedAt: now,
-      ipAddress: options?.ipAddress,
-      userAgent: options?.userAgent,
-      refreshToken: options?.refreshToken,
     };
+    
+    if (options?.ipAddress) {
+      session.ipAddress = options.ipAddress;
+    }
+    
+    if (options?.userAgent) {
+      session.userAgent = options.userAgent;
+    }
+    
+    if (options?.refreshToken) {
+      session.refreshToken = options.refreshToken;
+    }
     
     // Store session
     sessions.set(sessionId, session);

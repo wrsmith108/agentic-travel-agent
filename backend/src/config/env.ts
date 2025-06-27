@@ -49,6 +49,24 @@ const envSchema = z.object({
   // Data Storage
   DATA_DIRECTORY: z.string().default('./data'),
 
+  // Database Configuration
+  DB_HOST: z.string().optional(),
+  DB_PORT: z.string().optional(),
+  DB_NAME: z.string().optional(),
+  DB_USER: z.string().optional(),
+  DB_PASSWORD: z.string().optional(),
+  DB_MAX_CONNECTIONS: z.string().optional(),
+  DB_IDLE_TIMEOUT: z.string().optional(),
+  DB_CONNECTION_TIMEOUT: z.string().optional(),
+
+  // Redis Configuration
+  REDIS_HOST: z.string().optional(),
+  REDIS_PORT: z.string().optional(),
+  REDIS_PASSWORD: z.string().optional(),
+  REDIS_DB: z.string().optional(),
+  REDIS_MAX_RETRIES: z.string().optional(),
+  REDIS_RETRY_DELAY: z.string().optional(),
+
   // Logging
   LOG_LEVEL: z.enum(['error', 'warn', 'info', 'debug']).default('info'),
   LOG_DIRECTORY: z.string().default('./logs'),

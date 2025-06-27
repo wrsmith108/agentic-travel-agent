@@ -1,0 +1,22 @@
+{
+  "profile": {
+    "id": "ada86ef8-00b4-4598-aca8-248edeaca27e",
+    "firstName": "Travel",
+    "lastName": "User",
+    "email": "gary@gmai.com",
+    "passwordHash": "$2a$10$gSV.6u8FWO9a56QnyjEPru0l5EMmsEJsbkieHKTZvUdZdL4EHxiaa",
+    "preferences": {
+      "currency": "USD",
+      "timezone": "UTC",
+      "preferredDepartureAirport": "JFK",
+      "communicationFrequency": "immediate",
+      "subscriptionTier": "free"
+    },
+    "activeSearches": [],
+    "searchHistory": [],
+    "createdAt": "2025-06-27T18:45:32.067Z",
+    "updatedAt": "2025-06-27T18:45:32.067Z"
+  },
+  "searches": {},
+  "version": "1.0.0"
+}

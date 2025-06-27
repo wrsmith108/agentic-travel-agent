@@ -1,0 +1,21 @@
+{
+  "profile": {
+    "id": "9cfdf921-e80a-4bdc-ac0f-181ee7a0351d",
+    "firstName": "Flight",
+    "lastName": "Tester",
+    "email": "flighttest-e5d2a5f9@example.com",
+    "preferences": {
+      "currency": "USD",
+      "timezone": "UTC",
+      "preferredDepartureAirport": "JFK",
+      "communicationFrequency": "immediate",
+      "subscriptionTier": "free"
+    },
+    "activeSearches": [],
+    "searchHistory": [],
+    "createdAt": "2025-06-26T02:04:20.092Z",
+    "updatedAt": "2025-06-26T02:04:20.092Z"
+  },
+  "searches": {},
+  "version": "1.0.0"
+}

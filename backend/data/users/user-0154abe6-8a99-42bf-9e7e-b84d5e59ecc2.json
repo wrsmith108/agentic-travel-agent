@@ -1,0 +1,21 @@
+{
+  "profile": {
+    "id": "0154abe6-8a99-42bf-9e7e-b84d5e59ecc2",
+    "firstName": "Travel",
+    "lastName": "User",
+    "email": "eden@example.com",
+    "preferences": {
+      "currency": "USD",
+      "timezone": "UTC",
+      "preferredDepartureAirport": "JFK",
+      "communicationFrequency": "immediate",
+      "subscriptionTier": "free"
+    },
+    "activeSearches": [],
+    "searchHistory": [],
+    "createdAt": "2025-06-26T02:09:57.126Z",
+    "updatedAt": "2025-06-26T02:09:57.126Z"
+  },
+  "searches": {},
+  "version": "1.0.0"
+}

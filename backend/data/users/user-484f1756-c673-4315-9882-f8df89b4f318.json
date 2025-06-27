@@ -1,0 +1,22 @@
+{
+  "profile": {
+    "id": "484f1756-c673-4315-9882-f8df89b4f318",
+    "firstName": "Travel",
+    "lastName": "User",
+    "email": "ryan@email.com",
+    "passwordHash": "$2a$10$U9FuMUzhFCKLtsy1m.2nxui6ZlHZFlngn3d.x7lcGaElILNYRUKpu",
+    "preferences": {
+      "currency": "USD",
+      "timezone": "UTC",
+      "preferredDepartureAirport": "JFK",
+      "communicationFrequency": "immediate",
+      "subscriptionTier": "free"
+    },
+    "activeSearches": [],
+    "searchHistory": [],
+    "createdAt": "2025-06-26T02:31:06.791Z",
+    "updatedAt": "2025-06-26T02:31:06.791Z"
+  },
+  "searches": {},
+  "version": "1.0.0"
+}

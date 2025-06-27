@@ -11,6 +11,8 @@ import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { globalRateLimiter } from './middleware/rateLimiting';
 import { sanitizeInputs } from './middleware/inputSanitization';
 import { auditLog } from './middleware/costControl';
+import { initializeStorage, logStorageCapabilities } from './services/storage/storageAdapter';
+import { initializeSessionStore, logSessionStoreCapabilities, getSessionStoreConfig } from './config/sessionStore';
 import type { Request, Response } from 'express';
 
 // Extend Express Request type
@@ -34,7 +36,7 @@ app.use((req: Request, _res: Response, next) => {
 // Security middleware
 app.use(
   helmet({
-    contentSecurityPolicy: {
+    contentSecurityPolicy: env.NODE_ENV === 'development' ? false : {
       directives: {
         defaultSrc: ["'self'"],
         styleSrc: ["'self'", "'unsafe-inline'"],
@@ -52,7 +54,7 @@ app.use(
     origin:
       env.NODE_ENV === 'production'
         ? process.env.FRONTEND_URL
-        : ['http://localhost:3000', 'http://localhost:5173'],
+        : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -66,6 +68,9 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Compression
 app.use(compression());
 
+// Serve static files from public directory
+app.use(express.static('public'));
+
 // Logging middleware
 app.use(
   morgan('combined', {
@@ -75,19 +80,8 @@ app.use(
   })
 );
 
-// Session middleware
-app.use(
-  session({
-    secret: env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: env.NODE_ENV === 'production',
-      httpOnly: true,
-      maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
-    },
-  })
-);
+// Session middleware (store will be set during startup)
+let sessionMiddleware: any;
 
 // Request logging middleware
 app.use(requestLoggingMiddleware);
@@ -153,10 +147,15 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/billing', billingRoutes);
 app.use('/api/v1/demo', demoRoutes);
 
+// Additional routes
+import conversationRoutes from './routes/conversation';
+import flightRoutes from './routes/flights';
+
+app.use('/api/v1/conversations', conversationRoutes);
+app.use('/api/v1/flights', flightRoutes);
+
 // Additional routes will be added here
 // app.use('/api/v1/users', userRoutes);
-// app.use('/api/v1/flights', flightRoutes);
-// app.use('/api/v1/ai', aiRoutes);
 
 // 404 handler
 app.use(notFoundHandler);
@@ -164,25 +163,71 @@ app.use(notFoundHandler);
 // Error handler (must be last)
 app.use(errorHandler);
 
-// Start server
-const PORT = env.PORT;
-const HOST = env.HOST;
+// Initialize storage before starting server
+async function startServer() {
+  try {
+    // Initialize storage adapter (database or file mode)
+    await initializeStorage();
+    logStorageCapabilities();
+    
+    // Initialize session store (Redis or memory mode)
+    await initializeSessionStore();
+    logSessionStoreCapabilities();
+    
+    // Configure session middleware with the initialized store
+    sessionMiddleware = session({
+      store: getSessionStoreConfig(),
+      secret: env.SESSION_SECRET,
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        secure: env.NODE_ENV === 'production',
+        httpOnly: true,
+        maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
+      },
+    });
+    
+    // Add session middleware to app
+    app.use(sessionMiddleware);
+    
+    // Start server
+    const PORT = env.PORT;
+    const HOST = env.HOST;
 
-const server = app.listen(PORT, HOST, () => {
-  logger.info(`🚀 Server running at http://${HOST}:${PORT}`);
-  logger.info(`📊 Environment: ${env.NODE_ENV}`);
-  logger.info(`🔧 Demo mode: ${env.FEATURE_DEMO_MODE ? 'ON' : 'OFF'}`);
-  logger.info(`📧 Email Notifications: ${env.FEATURE_EMAIL_NOTIFICATIONS ? 'ON' : 'OFF'}`);
+    const server = app.listen(PORT, HOST, () => {
+      logger.info(`🚀 Server running at http://${HOST}:${PORT}`);
+      logger.info(`📊 Environment: ${env.NODE_ENV}`);
+      logger.info(`🔧 Demo mode: ${env.FEATURE_DEMO_MODE ? 'ON' : 'OFF'}`);
+      logger.info(`📧 Email Notifications: ${env.FEATURE_EMAIL_NOTIFICATIONS ? 'ON' : 'OFF'}`);
+    });
+
+    return server;
+  } catch (error) {
+    logger.error('Failed to start server', { error: error instanceof Error ? error.message : 'Unknown error' });
+    process.exit(1);
+  }
+}
+
+// Start the server
+let serverInstance: any = null;
+const serverPromise = startServer().then(server => {
+  serverInstance = server;
+  return server;
 });
 
 // Graceful shutdown
 const gracefulShutdown = (): void => {
   logger.info('🛑 Received shutdown signal, closing server gracefully...');
 
-  server.close(() => {
-    logger.info('✅ Server closed successfully');
+  if (serverInstance) {
+    serverInstance.close(() => {
+      logger.info('✅ Server closed successfully');
+      process.exit(0);
+    });
+  } else {
+    logger.info('✅ Server not yet started, exiting gracefully');
     process.exit(0);
-  });
+  }
 
   // Force shutdown after 10 seconds
   setTimeout(() => {

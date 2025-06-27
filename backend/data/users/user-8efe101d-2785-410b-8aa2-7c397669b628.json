@@ -1,0 +1,21 @@
+{
+  "profile": {
+    "id": "8efe101d-2785-410b-8aa2-7c397669b628",
+    "firstName": "Test",
+    "lastName": "User",
+    "email": "test-acbb927c@example.com",
+    "preferences": {
+      "currency": "USD",
+      "timezone": "UTC",
+      "preferredDepartureAirport": "JFK",
+      "communicationFrequency": "immediate",
+      "subscriptionTier": "free"
+    },
+    "activeSearches": [],
+    "searchHistory": [],
+    "createdAt": "2025-06-26T01:02:04.336Z",
+    "updatedAt": "2025-06-26T01:02:04.437Z"
+  },
+  "searches": {},
+  "version": "1.0.0"
+}

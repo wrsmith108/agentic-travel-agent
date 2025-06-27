@@ -1,0 +1,21 @@
+{
+  "profile": {
+    "id": "f93f70c1-8d7e-424e-b6e3-48e7b528dacf",
+    "firstName": "Travel",
+    "lastName": "User",
+    "email": "ryan@gmail.com",
+    "preferences": {
+      "currency": "USD",
+      "timezone": "UTC",
+      "preferredDepartureAirport": "JFK",
+      "communicationFrequency": "immediate",
+      "subscriptionTier": "free"
+    },
+    "activeSearches": [],
+    "searchHistory": [],
+    "createdAt": "2025-06-26T01:54:47.568Z",
+    "updatedAt": "2025-06-26T01:54:47.568Z"
+  },
+  "searches": {},
+  "version": "1.0.0"
+}

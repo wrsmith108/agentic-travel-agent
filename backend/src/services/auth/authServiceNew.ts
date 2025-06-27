@@ -74,15 +74,16 @@ export const register = async (
     // Hash password
     const hashedPassword = await bcrypt.hash(data.password, SALT_ROUNDS);
 
-    // Create user profile
+    // Create user profile with password hash
     const userProfile: CreateUserProfile = {
       firstName: data.firstName,
       lastName: data.lastName,
       email: data.email,
+      passwordHash: hashedPassword,  // Store password hash with user data
       preferences: {
         currency: 'USD',
         timezone: 'UTC',
-        preferredDepartureAirport: '',
+        preferredDepartureAirport: 'JFK',  // Default to JFK, user can update later
         communicationFrequency: 'immediate',
         subscriptionTier: 'free',
       },
@@ -90,10 +91,6 @@ export const register = async (
 
     const newUser = await userDataOps.createUser(userProfile);
     const userId = asUserId(newUser.id);
-
-    // Store password hash (in real app, this would be in the user record)
-    // For now, we'll store it in a separate map
-    storePasswordHash(userId, hashedPassword);
 
     // Create session
     const sessionResult = createSession(userId, {
@@ -168,16 +165,25 @@ export const login = async (
 
     const userId = asUserId(user.id);
 
-    // Get stored password hash
-    const storedHash = getPasswordHash(userId);
+    // Get password hash from user data
+    const storedHash = user.passwordHash;
     if (!storedHash) {
-      return err(invalidCredentials());
-    }
-
-    // Verify password
-    const isPasswordValid = await bcrypt.compare(data.password, storedHash);
-    if (!isPasswordValid) {
-      return err(invalidCredentials());
+      // For backward compatibility, check in-memory store
+      const memoryHash = getPasswordHash(userId);
+      if (!memoryHash) {
+        return err(invalidCredentials());
+      }
+      // Use memory hash for this session
+      const isPasswordValid = await bcrypt.compare(data.password, memoryHash);
+      if (!isPasswordValid) {
+        return err(invalidCredentials());
+      }
+    } else {
+      // Verify password against stored hash
+      const isPasswordValid = await bcrypt.compare(data.password, storedHash);
+      if (!isPasswordValid) {
+        return err(invalidCredentials());
+      }
     }
 
     // Create session
@@ -390,8 +396,10 @@ export const resetPassword = async (
     // Hash new password
     const hashedPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
 
-    // Update password
-    storePasswordHash(userId, hashedPassword);
+    // Update password hash in user data
+    await userDataOps.updateUserData(userId, {
+      passwordHash: hashedPassword,
+    });
 
     // Clear reset token
     clearPasswordResetToken(userId);
