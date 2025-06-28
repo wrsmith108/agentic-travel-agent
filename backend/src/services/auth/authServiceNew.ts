@@ -4,7 +4,7 @@
 
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
-import { Result, ok, err, flatMap, map, isErr } from '@/utils/result';
+import { Result, ok, err, flatMap, map, isErr, isOk } from '@/utils/result';
 import { castUserId } from '@/utils/brandedTypeUtils';
 import { 
   generateTokenPair, 
@@ -103,7 +103,7 @@ export const register = async (
       return err(systemError('Failed to create session'));
     }
 
-    const session = sessionResult.value;
+    const session = isOk(sessionResult) ? sessionResult.value : null;
 
     // Generate tokens
     const tokenResult = generateTokenPair(
@@ -198,7 +198,7 @@ export const login = async (
       return err(systemError('Failed to create session'));
     }
 
-    const session = sessionResult.value;
+    const session = isOk(sessionResult) ? sessionResult.value : null;
 
     // Generate tokens
     const tokenResult = generateTokenPair(
@@ -284,7 +284,7 @@ export const refreshAccessToken = async (
       return err(tokenResult.error);
     }
 
-    const tokenPayload = tokenResult.value;
+    const tokenPayload = isOk(tokenResult) ? tokenResult.value : null;
 
     // Find session by refresh token
     const sessionResult = findSessionByRefreshToken(refreshToken);
@@ -292,7 +292,7 @@ export const refreshAccessToken = async (
       return err(invalidCredentials('Invalid refresh token'));
     }
 
-    const session = sessionResult.value;
+    const session = isOk(sessionResult) ? sessionResult.value : null;
 
     // Verify session belongs to user in token
     if (session.userId !== tokenPayload.sub) {

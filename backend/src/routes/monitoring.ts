@@ -163,8 +163,8 @@ router.post('/price-processor/run-now', requireAuth, async (req: Request, res: R
       res.status(400).json({
         success: false,
         error: {
-          code: (isErr(result) ? result.error.code : ""),
-          message: (isErr(result) ? result.error.message : ""),
+          code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
+          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
         },
       });
       return;

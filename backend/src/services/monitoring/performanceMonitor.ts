@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { Result, ok, err } from '../../utils/result';
+import { Result, ok, err, isErr } from '../../utils/result';
 import { AppError, ErrorCodes } from '../../middleware/errorHandler';
 import createLogger from '../../utils/logger';
 const logger = createLogger('UperformanceMonitor');
@@ -213,8 +213,8 @@ export class PerformanceMonitor {
         avgDuration: transaction.duration,
         minDuration: transaction.duration,
         maxDuration: transaction.duration,
-        errorCount: transaction.error ? 1 : 0,
-        errorRate: transaction.error ? 1 : 0,
+        errorCount: isErr(transaction) ? 1 : 0,
+        errorRate: isErr(transaction) ? 1 : 0,
         throughput: 1
       });
     }

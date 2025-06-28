@@ -29,7 +29,7 @@ import type {
   TimeProvider,
   Logger,
 } from './types';
-import { ok, err } from '@/utils/result';;
+import { ok, err, isOk } from '@/utils/result';;
 import { AUTH_CONSTANTS } from '@/schemas/auth';
 
 /**
@@ -202,7 +202,7 @@ export const createEmailVerificationToken = async (
       return tokenResult;
     }
 
-    const token = tokenResult.value;
+    const token = isOk(tokenResult) ? tokenResult.value : null;
     const now = timeProvider.now();
     const expiresAt = new Date(
       now.getTime() + AUTH_CONSTANTS.TOKEN_EXPIRY.VERIFICATION_TOKEN * 1000
@@ -303,7 +303,7 @@ export const refreshAccessToken = async (
     return verifyResult;
   }
 
-  const payload = verifyResult.value;
+  const payload = isOk(verifyResult) ? verifyResult.value : null;
 
   // Validate session still exists
   const isValidSession = await sessionValidator(payload.sessionId);

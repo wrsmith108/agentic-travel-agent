@@ -3,7 +3,7 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import { Result, ok, err } from '@/utils/result';
+import { Result, ok, err, isOk } from '@/utils/result';
 import { UserId } from '@/types/brandedTypes';
 
 // Session types
@@ -140,7 +140,7 @@ export const touchSession = (sessionId: SessionId): Result<Session, SessionError
     return sessionResult;
   }
   
-  const session = sessionResult.value;
+  const session = isOk(sessionResult) ? sessionResult.value : null;
   session.lastAccessedAt = new Date();
   
   sessions.set(sessionId, session);
@@ -223,7 +223,7 @@ export const updateSessionRefreshToken = (
     return sessionResult;
   }
   
-  const session = sessionResult.value;
+  const session = isOk(sessionResult) ? sessionResult.value : null;
   session.refreshToken = refreshToken;
   
   sessions.set(sessionId, session);
@@ -259,7 +259,7 @@ export const extendSession = (
     return sessionResult;
   }
   
-  const session = sessionResult.value;
+  const session = isOk(sessionResult) ? sessionResult.value : null;
   const extension = additionalTime || SESSION_DURATION;
   session.expiresAt = new Date(session.expiresAt.getTime() + extension);
   

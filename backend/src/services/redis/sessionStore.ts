@@ -4,7 +4,7 @@
  */
 
 import { RedisClient } from './redisClient';
-import { Result, ok, err, isErr } from '../../utils/result';
+import { Result, ok, err, isErr, isOk } from '../../utils/result';
 import { AppError, ErrorCodes } from '../../middleware/errorHandler';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -106,7 +106,7 @@ export class SessionStore {
         return err(getResult.error);
       }
 
-      if (!getResult.value) {
+      if (isErr(getResult)) {
         return ok(null);
       }
 
@@ -146,7 +146,7 @@ export class SessionStore {
         return err(existsResult.error);
       }
 
-      if (!existsResult.value) {
+      if (isErr(existsResult)) {
         return err(new AppError(404, 'Session not found', ErrorCodes.NOT_FOUND));
       }
 
@@ -206,7 +206,7 @@ export class SessionStore {
         return err(sessionIdsResult.error);
       }
 
-      if (!sessionIdsResult.value) {
+      if (isErr(sessionIdsResult)) {
         return ok(0);
       }
 
@@ -248,7 +248,7 @@ export class SessionStore {
         return err(sessionIdsResult.error);
       }
 
-      if (!sessionIdsResult.value) {
+      if (isErr(sessionIdsResult)) {
         return ok([]);
       }
 
@@ -281,11 +281,11 @@ export class SessionStore {
         return err(sessionResult.error);
       }
 
-      if (!sessionResult.value) {
+      if (isErr(sessionResult)) {
         return ok(null);
       }
 
-      const session = sessionResult.value;
+      const session = isOk(sessionResult) ? sessionResult.value : null;
 
       // Check if session is expired (additional check beyond Redis TTL)
       const now = Date.now();
@@ -324,7 +324,7 @@ export class SessionStore {
         return err(sessionsResult.error);
       }
 
-      const sessions = sessionsResult.value;
+      const sessions = isOk(sessionsResult) ? sessionsResult.value : null;
       
       // Sort by lastActivity (oldest first)
       sessions.sort((a, b) => a.lastActivity - b.lastActivity);
@@ -346,7 +346,7 @@ export class SessionStore {
             for (const sessionId of sessionIds) {
               const sessionDataResult = await this.getSession(sessionId);
               if (sessionDataResult.ok && 
-                  sessionDataResult.value && 
+                  isOk(sessionDataResult) && 
                   sessionDataResult.value.loginTime === session.loginTime) {
                 await this.deleteSession(sessionId);
                 break;
@@ -379,7 +379,7 @@ export class SessionStore {
         return err(keysResult.error);
       }
 
-      const sessionKeys = keysResult.value.filter(key => 
+      const sessionKeys = isOk(keysResult) ? keysResult.value : null.filter(key => 
         key.startsWith(this.config.keyPrefix) && 
         !key.includes(':users:')
       );
@@ -433,7 +433,7 @@ export class SessionStore {
         return err(existingResult.error);
       }
 
-      const sessionIds: string[] = existingResult.value ? JSON.parse(existingResult.value) : [];
+      const sessionIds: string[] = isOk(existingResult) && existingResult.value ? JSON.parse(existingResult.value) : [];
       
       if (!sessionIds.includes(sessionId)) {
         sessionIds.push(sessionId);
@@ -465,7 +465,7 @@ export class SessionStore {
         return err(existingResult.error);
       }
 
-      if (!existingResult.value) {
+      if (isErr(existingResult)) {
         return ok(undefined);
       }
 

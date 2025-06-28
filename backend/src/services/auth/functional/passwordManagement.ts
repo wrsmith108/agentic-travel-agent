@@ -15,7 +15,7 @@ import {
   createHashedPassword,
   createResetToken,
 } from './types';
-import { Result, ok, err } from '@/utils/result';
+import { Result, ok, err, isOk, isErr } from '@/utils/result';
 import type { PlainTextPassword } from './password';
 import { AUTH_CONSTANTS } from '@/schemas/auth';
 
@@ -94,7 +94,7 @@ export const createPasswordResetToken = async (
       return tokenResult;
     }
 
-    const token = tokenResult.value;
+    const token = isOk(tokenResult) ? tokenResult.value : null;
     const now = timeProvider.now();
     const expiresAt = new Date(now.getTime() + AUTH_CONSTANTS.TOKEN_EXPIRY.RESET_TOKEN * 1000);
 
@@ -262,7 +262,7 @@ export const changeUserPassword = async (
       return verifyResult;
     }
 
-    if (!verifyResult.value) {
+    if (isErr(verifyResult)) {
       return err({
         type: 'INVALID_CREDENTIALS',
         message: 'Current password is incorrect',

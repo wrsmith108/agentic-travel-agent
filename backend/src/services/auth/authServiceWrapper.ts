@@ -1,4 +1,4 @@
-import { Result, ok, err } from '@/utils/result';
+import { Result, ok, err, isErr } from '@/utils/result';
 import { authService } from './authService';
 import { AuthSuccessResponse, AuthErrorResponse, RegisterRequest, LoginRequest } from '@/schemas/auth';
 import { AuthSuccess, AuthError } from '@/types/auth';
@@ -29,17 +29,17 @@ const convertToAuthSuccess = (response: AuthSuccessResponse): AuthSuccess => {
  */
 const convertToAuthError = (response: AuthErrorResponse): AuthError => {
   // Map auth error types to simplified error types
-  switch (response.error.type) {
+  switch ((isErr(response) ? response.error.type : "")) {
     case 'INVALID_CREDENTIALS':
-      return { type: 'INVALID_CREDENTIALS', message: response.error.message };
+      return { type: 'INVALID_CREDENTIALS', message: (isErr(response) ? response.error.message : "") };
     case 'USER_NOT_FOUND':
-      return { type: 'USER_NOT_FOUND', message: response.error.message };
+      return { type: 'USER_NOT_FOUND', message: (isErr(response) ? response.error.message : "") };
     case 'USER_ALREADY_EXISTS':
-      return { type: 'USER_ALREADY_EXISTS', message: response.error.message };
+      return { type: 'USER_ALREADY_EXISTS', message: (isErr(response) ? response.error.message : "") };
     case 'VALIDATION_ERROR':
-      return { type: 'VALIDATION_ERROR', message: response.error.message, details: response.error.details };
+      return { type: 'VALIDATION_ERROR', message: (isErr(response) ? response.error.message : ""), details: response.error.details };
     default:
-      return { type: 'SYSTEM_ERROR', message: response.error.message, code: response.error.code };
+      return { type: 'SYSTEM_ERROR', message: (isErr(response) ? response.error.message : ""), code: (isErr(response) ? response.error.code : "") };
   }
 };
 
@@ -106,8 +106,8 @@ export const authServiceWrapper = {
   /**
    * Reset password with Result pattern
    */
-  async resetPassword(token: string, password: string): Promise<Result<AuthSuccess, AuthError>> {
-    const response = await authService.resetPassword({ token, newPassword: password });
+  async resetPassword(data: { token: string; newPassword: string }): Promise<Result<AuthSuccess, AuthError>> {
+    const response = await authService.resetPassword(data);
     
     if ('success' in response && response.success) {
       const authSuccess = convertToAuthSuccess(response as AuthSuccessResponse);
@@ -116,5 +116,21 @@ export const authServiceWrapper = {
       const authError = convertToAuthError(response as AuthErrorResponse);
       return err(authError);
     }
+  },
+
+  /**
+   * Validate credentials with Result pattern
+   */
+  async validateCredentials(email: string, password: string): Promise<{ success: boolean; message?: string; user?: any }> {
+    // This doesn't use Result pattern to match the expected interface
+    return authService.validateCredentials(email, password);
+  },
+
+  /**
+   * Get user by ID
+   */
+  async getUserById(userId: string): Promise<any> {
+    // Direct passthrough for now
+    return authService.getUserById(userId);
   },
 };

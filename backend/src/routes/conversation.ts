@@ -6,7 +6,7 @@ import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { authenticate } from '@/middleware/authNew';
 import { validateRequest } from '@/middleware/validation';
-import { isErr } from '@/utils/result';
+import { isErr, isOk } from '@/utils/result';
 import {
   createConversation,
   getConversation,
@@ -90,7 +90,7 @@ router.get('/', async (req: Request, res: Response): Promise<Response | void> =>
     }
 
     // Convert to JSON-serializable format
-    const conversations = result.value.map(conv => ({
+    const conversations = isOk(result) ? result.value : null.map(conv => ({
       ...conv,
       createdAt: conv.createdAt.toISOString(),
       updatedAt: conv.updatedAt.toISOString(),

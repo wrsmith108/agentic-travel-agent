@@ -110,8 +110,8 @@ router.post(
         });
       } else {
         requestLogger.warn('User registration failed', {
-          errorType: result.error.type,
-          message: (isErr(result) ? result.error.message : ""),
+          errorType: (isErr(result) ? result.error.type : ""),
+          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
           email: req.body.email,
         });
 
@@ -160,8 +160,8 @@ router.post(
         });
       } else {
         requestLogger.warn('User login failed', {
-          errorType: result.error.type,
-          message: (isErr(result) ? result.error.message : ""),
+          errorType: (isErr(result) ? result.error.type : ""),
+          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
           email: req.body.email,
         });
 
@@ -267,7 +267,7 @@ router.post(
         });
       } else {
         // For security, don't reveal if user exists or not
-        if (result.error.type === 'USER_NOT_FOUND') {
+        if ((isErr(result) ? result.error.type : "") === 'USER_NOT_FOUND') {
           res.status(200).json({
             success: true,
             message: 'If an account exists with this email, you will receive password reset instructions.',
@@ -314,8 +314,8 @@ router.post(
         });
       } else {
         requestLogger.warn('Password reset failed', {
-          errorType: result.error.type,
-          message: (isErr(result) ? result.error.message : ""),
+          errorType: (isErr(result) ? result.error.type : ""),
+          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
         });
 
         const statusCode = getStatusCodeFromError(result.error);

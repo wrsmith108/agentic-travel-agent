@@ -117,7 +117,7 @@ export class PriceMonitoringProcessor {
         return err(usersResult.error);
       }
 
-      const users = usersResult.value;
+      const users = isOk(usersResult) ? usersResult.value : null;
       logger.info('Found users with active searches', { 
         count: users.length,
         batchId,
@@ -181,7 +181,7 @@ export class PriceMonitoringProcessor {
       }
 
       // Extract user IDs from keys
-      const userIds = keysResult.value
+      const userIds = isOk(keysResult) ? keysResult.value : null
         .map(key => key.replace('saved-searches:', ''))
         .filter(id => id.length > 0);
 
@@ -220,7 +220,7 @@ export class PriceMonitoringProcessor {
         } else {
           const error = result.status === 'rejected' 
             ? result.reason?.message || 'Unknown error'
-            : (isErr(result.value) ? result.value.error.message : "");
+            : (isErr(result.value) ? (isErr(result.value) ? result.value.error.message : "") : "");
           results.errors.push(`User ${chunk[index]}: ${error}`);
         }
       });
@@ -256,7 +256,7 @@ export class PriceMonitoringProcessor {
         return err(searchesResult.error);
       }
 
-      const activeSearches = searchesResult.value.filter(search => 
+      const activeSearches = isOk(searchesResult) ? searchesResult.value : null.filter(search => 
         search.isActive && 
         search.priceAlerts?.enabled &&
         (!search.expiresAt || new Date(search.expiresAt) > new Date())
@@ -286,7 +286,7 @@ export class PriceMonitoringProcessor {
           logger.warn('Failed to process search', {
             userId,
             searchId: savedSearch.id,
-            error: (isErr(result) ? result.error.message : ""),
+            error: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
           });
         }
       }
@@ -364,7 +364,7 @@ export class PriceMonitoringProcessor {
       }
 
       // Find results for this specific search
-      const searchResult = priceCheckResult.value.find(r => r.savedSearchId === savedSearch.id);
+      const searchResult = isOk(priceCheckResult) ? priceCheckResult.value : null.find(r => r.savedSearchId === savedSearch.id);
       if (!searchResult || !searchResult.alert) {
         return ok({ alertGenerated: false });
       }

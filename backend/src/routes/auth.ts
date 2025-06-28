@@ -3,7 +3,7 @@ import { isErr } from '@/utils/result';
 import rateLimit from 'express-rate-limit';
 import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
-import { authService } from '@/services/auth/authService';
+import { authServiceWrapper as authService } from '@/services/auth/authServiceWrapper';
 import { AppError } from '@/middleware/errorHandler';
 import { createRequestLogger } from '@/utils/logger';
 import { getSessionMiddleware, requireAuth, attachSessionInfo, getSessionData, getSessionId } from '@/middleware/session';
@@ -148,27 +148,31 @@ router.post(
         userAgent: req.get('User-Agent'),
       });
 
-      const result = await authService.registerUser(req.body);
+      const result = await authService.register(req.body);
 
-      if (result.success) {
-        const successResult = result as AuthSuccessResponse;
+      if (!isErr(result)) {
         requestLogger.info('User registration successful', {
-          userId: successResult.data.user.id,
-          email: successResult.data.user.email,
+          userId: result.value.user.id,
+          email: result.value.user.email,
         });
 
-        res.status(201).json(result);
+        res.status(201).json({
+          success: true,
+          data: result.value
+        });
       } else {
-        const errorResult = result as AuthErrorResponse;
         requestLogger.warn('User registration failed', {
-          errorType: errorResult.error.type,
-          message: (isErr(errorResult) ? errorResult.error.message : ""),
+          errorType: result.error.type,
+          message: result.error.message,
           email: req.body.email,
         });
 
         // Map auth error types to HTTP status codes
-        const statusCode = getStatusCodeFromAuthError(errorResult.error.type);
-        res.status(statusCode).json(result);
+        const statusCode = getStatusCodeFromAuthError(result.error.type);
+        res.status(statusCode).json({
+          success: false,
+          error: result.error
+        });
       }
     } catch (error) {
       requestLogger.error('Registration endpoint error', error);
@@ -438,35 +442,35 @@ router.post(
         userAgent: req.get('User-Agent'),
       });
 
-      const result = await authService.requestPasswordReset(req.body);
+      const result = await authService.requestPasswordReset(req.body.email);
 
-      if (result.success) {
+      if (!isErr(result)) {
         requestLogger.info('Password reset request successful', {
           email: req.body.email,
-          tokenGenerated: !!result.token,
+          tokenGenerated: !!result.value.token,
         });
 
         res.status(200).json({
           success: true,
-          message: result.message,
+          message: result.value.message,
           // In production, don't return the token - send it via email
           ...(process.env.NODE_ENV !== 'production' &&
-            result.token && {
-              debug: { resetToken: result.token },
+            result.value.token && {
+              debug: { resetToken: result.value.token },
             }),
           timestamp: new Date().toISOString(),
         });
       } else {
         requestLogger.warn('Password reset request failed', {
           email: req.body.email,
-          message: result.message,
+          message: result.error.message,
         });
 
         res.status(400).json({
           success: false,
           error: {
             code: 'PASSWORD_RESET_FAILED',
-            message: result.message,
+            message: result.error.message,
             timestamp: new Date().toISOString(),
           },
         });
@@ -503,24 +507,24 @@ router.post(
 
       const result = await authService.resetPassword(req.body);
 
-      if (result.success) {
-        const successResult = result as AuthSuccessResponse;
+      if (!isErr(result)) {
+        
         requestLogger.info('Password reset successful', {
-          userId: successResult.data.user.id,
-          email: successResult.data.user.email,
+          userId: result.value.user.id,
+          email: result.value.user.email,
         });
 
-        res.status(200).json(result);
+        res.status(200).json({ success: true, data: result.value });
       } else {
-        const errorResult = result as AuthErrorResponse;
+        
         requestLogger.warn('Password reset failed', {
-          errorType: errorResult.error.type,
-          message: (isErr(errorResult) ? errorResult.error.message : ""),
+          errorType: result.error.type,
+          message: result.error.message,
           token: req.body.token.substring(0, 8) + '...',
         });
 
-        const statusCode = getStatusCodeFromAuthError(errorResult.error.type);
-        res.status(statusCode).json(result);
+        const statusCode = getStatusCodeFromAuthError(result.error.type);
+        res.status(statusCode).json({ success: false, error: result.error });
       }
     } catch (error) {
       requestLogger.error('Password reset confirmation endpoint error', error);

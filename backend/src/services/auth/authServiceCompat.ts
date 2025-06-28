@@ -103,7 +103,7 @@ class AuthServiceCompat {
     } else {
       return {
         success: false,
-        message: (isErr(result) ? result.error.message : ""),
+        message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
       };
     }
   }
@@ -115,7 +115,7 @@ class AuthServiceCompat {
     const result = await functionalAuth.validateSession({ sessionId: sessionId as any });
 
     if (isOk(result)) {
-      return result.value;
+      return isOk(result) ? result.value : null;
     } else {
       logWarn('Session validation failed', { sessionId, error: result.error });
       return null;
@@ -137,7 +137,7 @@ class AuthServiceCompat {
       });
 
       if (isOk(sessionResult) && sessionResult.value) {
-        const session = sessionResult.value as any;
+        const session = isOk(sessionResult) ? sessionResult.value : null as any;
         return {
           sub: session.userId,
           email: session.user?.email || '',

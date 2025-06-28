@@ -3,7 +3,7 @@
  * Manages user preferences for notifications, search defaults, and display settings
  */
 
-import { Result, ok, err } from '@/utils/result';
+import { Result, ok, err, isOk, isErr } from '@/utils/result';
 import { AppError, ErrorCodes } from '@/middleware/errorHandler';
 import { getRedisClient } from '@/services/redis/redisClient';
 import createLogger from '@/utils/logger';
@@ -35,7 +35,7 @@ export class UserPreferencesService {
       const key = `${this.keyPrefix}${userId}`;
       const result = await this.redisClient.get(key);
 
-      if (isErr(result) || !result.value) {
+      if (isErr(result) || isErr(result)) {
         // Return default preferences if none exist
         const defaultPrefs = createDefaultPreferences(userId);
         logger.info('Returning default preferences for user', { userId });
@@ -122,7 +122,7 @@ export class UserPreferencesService {
         return err(existingResult.error);
       }
 
-      const existing = existingResult.value;
+      const existing = isOk(existingResult) ? existingResult.value : null;
       const validated = validateUserPreferencesUpdate(updates);
 
       // Deep merge updates
@@ -272,11 +272,11 @@ export class UserPreferencesService {
     notificationType: 'priceAlerts' | 'searchExpiration' | 'marketing'
   ): Promise<boolean> {
     const result = await this.getPreferences(userId);
-    if (isErr(result) || !result.value) {
+    if (isErr(result) || isErr(result)) {
       return false;
     }
 
-    const prefs = result.value;
+    const prefs = isOk(result) ? result.value : null;
     
     switch (notificationType) {
       case 'priceAlerts':
@@ -295,10 +295,10 @@ export class UserPreferencesService {
    */
   async getNotificationFrequency(userId: UserId): Promise<string> {
     const result = await this.getPreferences(userId);
-    if (isErr(result) || !result.value) {
+    if (isErr(result) || isErr(result)) {
       return 'INSTANT'; // Default
     }
-    return result.value.notifications.frequency;
+    return isOk(result) ? result.value : null.notifications.frequency;
   }
 }
 

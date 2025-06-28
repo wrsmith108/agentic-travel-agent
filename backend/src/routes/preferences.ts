@@ -49,8 +49,8 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       return res.status(result.error.statusCode || 500).json({
         success: false,
         error: {
-          code: (isErr(result) ? result.error.code : ""),
-          message: (isErr(result) ? result.error.message : ""),
+          code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
+          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
         },
       });
     }
@@ -111,8 +111,8 @@ router.patch('/', async (req: Request, res: Response, next: NextFunction) => {
       return res.status(result.error.statusCode || 500).json({
         success: false,
         error: {
-          code: (isErr(result) ? result.error.code : ""),
-          message: (isErr(result) ? result.error.message : ""),
+          code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
+          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
         },
       });
     }
@@ -156,8 +156,8 @@ router.post('/reset', async (req: Request, res: Response, next: NextFunction) =>
       return res.status(result.error.statusCode || 500).json({
         success: false,
         error: {
-          code: (isErr(result) ? result.error.code : ""),
-          message: (isErr(result) ? result.error.message : ""),
+          code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
+          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
         },
       });
     }
@@ -213,8 +213,8 @@ router.get('/:section', async (req: Request, res: Response, next: NextFunction) 
       return res.status(result.error.statusCode || 500).json({
         success: false,
         error: {
-          code: (isErr(result) ? result.error.code : ""),
-          message: (isErr(result) ? result.error.message : ""),
+          code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
+          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
         },
       });
     }
@@ -285,8 +285,8 @@ router.patch('/:section', async (req: Request, res: Response, next: NextFunction
       return res.status(result.error.statusCode || 500).json({
         success: false,
         error: {
-          code: (isErr(result) ? result.error.code : ""),
-          message: (isErr(result) ? result.error.message : ""),
+          code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
+          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
         },
       });
     }

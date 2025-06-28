@@ -77,8 +77,8 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
       return res.status(result.error.statusCode || 500).json({
         success: false,
         error: {
-          code: (isErr(result) ? result.error.code : ""),
-          message: (isErr(result) ? result.error.message : ""),
+          code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
+          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
           details: result.error.details,
         },
       });
@@ -134,8 +134,8 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
       return res.status(result.error.statusCode || 404).json({
         success: false,
         error: {
-          code: (isErr(result) ? result.error.code : ""),
-          message: (isErr(result) ? result.error.message : ""),
+          code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
+          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
         },
       });
     }
@@ -187,8 +187,8 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       return res.status(500).json({
         success: false,
         error: {
-          code: (isErr(result) ? result.error.code : ""),
-          message: (isErr(result) ? result.error.message : ""),
+          code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
+          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
         },
       });
     }
@@ -261,8 +261,8 @@ router.post('/:id/cancel', async (req: Request, res: Response, next: NextFunctio
       return res.status(result.error.statusCode || 500).json({
         success: false,
         error: {
-          code: (isErr(result) ? result.error.code : ""),
-          message: (isErr(result) ? result.error.message : ""),
+          code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
+          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
           details: result.error.details,
         },
       });
@@ -313,8 +313,8 @@ router.get('/:id/status', async (req: Request, res: Response, next: NextFunction
       return res.status(result.error.statusCode || 404).json({
         success: false,
         error: {
-          code: (isErr(result) ? result.error.code : ""),
-          message: (isErr(result) ? result.error.message : ""),
+          code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
+          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
         },
       });
     }
@@ -371,8 +371,8 @@ router.post('/:id/resend-confirmation', async (req: Request, res: Response, next
       return res.status(result.error.statusCode || 404).json({
         success: false,
         error: {
-          code: (isErr(result) ? result.error.code : ""),
-          message: (isErr(result) ? result.error.message : ""),
+          code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
+          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
         },
       });
     }
@@ -423,8 +423,8 @@ router.get('/:id/invoice', async (req: Request, res: Response, next: NextFunctio
       return res.status(result.error.statusCode || 404).json({
         success: false,
         error: {
-          code: (isErr(result) ? result.error.code : ""),
-          message: (isErr(result) ? result.error.message : ""),
+          code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
+          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
         },
       });
     }

@@ -106,8 +106,8 @@ router.post(
         });
       } else {
         requestLogger.warn('User registration failed', {
-          errorType: result.error.type,
-          message: (isErr(result) ? result.error.message : ""),
+          errorType: (isErr(result) ? result.error.type : ""),
+          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
           email: req.body.email,
         });
 
@@ -166,8 +166,8 @@ router.post(
         });
       } else {
         requestLogger.warn('User login failed', {
-          errorType: result.error.type,
-          message: (isErr(result) ? result.error.message : ""),
+          errorType: (isErr(result) ? result.error.type : ""),
+          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
           email: req.body.email,
         });
 
@@ -408,8 +408,8 @@ router.post(
         });
       } else {
         requestLogger.warn('Password reset failed', {
-          errorType: result.error.type,
-          message: (isErr(result) ? result.error.message : ""),
+          errorType: (isErr(result) ? result.error.type : ""),
+          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
         });
 
         const statusCode = getStatusCodeFromError(result.error);

@@ -334,6 +334,33 @@ export interface EmailVerificationTokenData {
 export type { Result } from '@/utils/result';
 
 // ============================================================================
+// Re-export types from types/index.ts for backward compatibility
+// ============================================================================
+
+export type {
+  JWTToken,
+  SessionStorage,
+  SessionCreationOptions,
+  SessionCreationResult,
+  JWTConfig,
+  SessionUser,
+  JWTPayload,
+  FailedLoginAttempt,
+  PasswordStorage,
+  TokenStorage,
+  FailedAttemptStorage,
+  Duration,
+  TimeProvider,
+  Logger,
+  IdGenerator,
+  SessionData,
+  PasswordResetToken,
+  EmailVerificationToken,
+  PasswordResetTokenRecord,
+  EmailVerificationTokenRecord,
+} from './types/index';
+
+// ============================================================================
 // Auth Error Types
 // ============================================================================
 

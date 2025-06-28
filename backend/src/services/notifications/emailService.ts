@@ -189,7 +189,7 @@ export class EmailService {
         } else {
           const error = result.status === 'rejected' 
             ? result.reason?.message || 'Unknown error'
-            : (isErr(result.value) ? result.value.error.message : "");
+            : (isErr(result.value) ? (isErr(result.value) ? result.value.error.message : "") : "");
           failed.push({ email: batch[index], error });
         }
       });
@@ -224,7 +224,7 @@ export class EmailService {
           logger.error('Failed to send queued email', {
             to: email.to,
             subject: email.subject,
-            error: (isErr(result) ? result.error.message : ""),
+            error: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
           });
         }
 
@@ -346,7 +346,7 @@ export class EmailService {
    */
   private async incrementRateCount(key: string, ttl: number): Promise<void> {
     const result = await this.redisClient.get(key);
-    const current = isOk(result) && result.value ? parseInt(result.value, 10) : 0;
+    const current = isOk(result) ? parseInt(result.value, 10) : 0;
     await this.redisClient.set(key, (current + 1).toString(), ttl);
   }
 

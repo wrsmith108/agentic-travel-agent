@@ -82,7 +82,7 @@ export class FlightSearchService {
         return err(searchResult.error);
       }
 
-      const flights = searchResult.value;
+      const flights = isOk(searchResult) ? searchResult.value : null;
 
       // Apply user preferences if provided
       let filteredFlights = flights;
@@ -269,9 +269,9 @@ export class FlightSearchService {
 
         if (isOk(searchResult) && searchResult.value.length > 0) {
           // Find the best price
-          const prices = searchResult.value.map(f => parseFloat(f.price.grandTotal));
+          const prices = isOk(searchResult) ? searchResult.value : null.map(f => parseFloat(f.price.grandTotal));
           const currentBestPrice = Math.min(...prices);
-          const bestFlight = searchResult.value.find(f => parseFloat(f.price.grandTotal) === currentBestPrice);
+          const bestFlight = isOk(searchResult) ? searchResult.value : null.find(f => parseFloat(f.price.grandTotal) === currentBestPrice);
 
           // Get previous best price
           const priceHistoryKey = `price-history:${savedSearch.id}`;
@@ -334,7 +334,7 @@ export class FlightSearchService {
       const key = `price-alerts:${userId}`;
       const result = await this.redisClient.get(key);
       
-      if (!isOk(result) || !result.value) {
+      if (!isOk(result) || isErr(result)) {
         return ok([]);
       }
 
@@ -367,7 +367,7 @@ export class FlightSearchService {
       const key = `price-alerts:${userId}`;
       const result = await this.redisClient.get(key);
       
-      if (!isOk(result) || !result.value) {
+      if (!isOk(result) || isErr(result)) {
         return err(new AppError(404, 'Alert not found', ErrorCodes.NOT_FOUND));
       }
 
@@ -575,7 +575,7 @@ export class FlightSearchService {
       const key = `route-price-history:${origin}-${destination}`;
       const result = await this.redisClient.get(key);
       
-      if (!isOk(result) || !result.value) {
+      if (!isOk(result) || isErr(result)) {
         return [];
       }
 

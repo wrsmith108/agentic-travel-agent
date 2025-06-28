@@ -4,7 +4,7 @@
 
 import jwt from 'jsonwebtoken';
 import { env } from '@/config/env';
-import { Result, ok, err, tryCatch, isErr } from './result';
+import { Result, ok, err, tryCatch, isErr, isOk } from './result';
 import { UserId, AccessToken, RefreshToken } from '@/types/brandedTypes';
 
 // JWT payload types
@@ -222,12 +222,12 @@ export const decodeToken = (token: string): Result<JWTPayload | RefreshTokenPayl
  */
 export const isTokenExpired = (token: string): boolean => {
   const decoded = decodeToken(token);
-  if (!decoded.ok || !decoded.value.exp) {
+  if (!decoded.ok || isErr(decoded).exp) {
     return true;
   }
   
   const now = Math.floor(Date.now() / 1000);
-  return decoded.value.exp < now;
+  return isOk(decoded) ? decoded.value : null.exp < now;
 };
 
 /**
@@ -239,7 +239,7 @@ export const getTokenExpiration = (token: string): Result<Date, JWTError> => {
     return err(decoded.error);
   }
   
-  if (!decoded.value.exp) {
+  if (isErr(decoded).exp) {
     return err({
       type: 'INVALID_TOKEN',
       message: 'Token does not have expiration',

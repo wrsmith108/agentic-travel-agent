@@ -6,6 +6,7 @@
  */
 
 import jwt from 'jsonwebtoken';
+import { isOk } from '@/utils/result';
 import { logError, logInfo } from '@/utils/logger';
 import type {
   AuthTokenPair,
@@ -114,7 +115,7 @@ async function checkRateLimit(email: Email): Promise<boolean> {
     return true; // Allow if we can't check
   }
 
-  if (rateLimit.value && rateLimit.value.lockedUntil) {
+  if (isOk(rateLimit) && rateLimit.value.lockedUntil) {
     const lockedUntil = new Date(rateLimit.value.lockedUntil);
     if (lockedUntil > new Date()) {
       return false; // Still locked

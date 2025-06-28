@@ -141,8 +141,8 @@ router.post('/destinations', sanitizeInputs(), async (req: Request, res: Respons
       res.status(400).json({
         success: false,
         error: {
-          code: (isErr(result) ? result.error.code : ""),
-          message: (isErr(result) ? result.error.message : ""),
+          code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
+          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
         },
       });
       return;
@@ -208,8 +208,8 @@ router.post('/itinerary', sanitizeInputs(), async (req: Request, res: Response, 
       res.status(400).json({
         success: false,
         error: {
-          code: (isErr(result) ? result.error.code : ""),
-          message: (isErr(result) ? result.error.message : ""),
+          code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
+          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
         },
       });
       return;
@@ -274,8 +274,8 @@ router.post('/multi-city', sanitizeInputs(), async (req: Request, res: Response,
       res.status(400).json({
         success: false,
         error: {
-          code: (isErr(result) ? result.error.code : ""),
-          message: (isErr(result) ? result.error.message : ""),
+          code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
+          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
         },
       });
       return;
@@ -337,8 +337,8 @@ router.post('/advice', sanitizeInputs(), async (req: Request, res: Response, nex
       res.status(400).json({
         success: false,
         error: {
-          code: (isErr(result) ? result.error.code : ""),
-          message: (isErr(result) ? result.error.message : ""),
+          code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
+          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
         },
       });
       return;
@@ -402,8 +402,8 @@ router.post('/tips', sanitizeInputs(), async (req: Request, res: Response, next:
       res.status(400).json({
         success: false,
         error: {
-          code: (isErr(result) ? result.error.code : ""),
-          message: (isErr(result) ? result.error.message : ""),
+          code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
+          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
         },
       });
       return;

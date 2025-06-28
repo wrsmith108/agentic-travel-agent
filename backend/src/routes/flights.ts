@@ -70,8 +70,8 @@ router.post('/search', async (req: Request, res: Response, next: NextFunction): 
       res.status(400).json({
         success: false,
         error: {
-          code: (isErr(result) ? result.error.code : ""),
-          message: (isErr(result) ? result.error.message : ""),
+          code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
+          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
         },
       });
       return;
@@ -137,8 +137,8 @@ router.post('/search/natural', async (req: Request, res: Response, next: NextFun
       res.status(400).json({
         success: false,
         error: {
-          code: (isErr(result) ? result.error.code : ""),
-          message: (isErr(result) ? result.error.message : ""),
+          code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
+          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
         },
       });
       return;
@@ -146,7 +146,7 @@ router.post('/search/natural', async (req: Request, res: Response, next: NextFun
 
     requestLogger.info('Natural language search successful', {
       sessionId: result.value.sessionId,
-      hasResults: !!result.value.searchResults,
+      hasResults: !isErr(result).searchResults,
     });
 
     res.status(200).json({
@@ -204,8 +204,8 @@ router.get('/airports', async (req: Request, res: Response, next: NextFunction):
       res.status(400).json({
         success: false,
         error: {
-          code: (isErr(result) ? result.error.code : ""),
-          message: (isErr(result) ? result.error.message : ""),
+          code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
+          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
         },
       });
       return;
@@ -255,8 +255,8 @@ router.post('/price/confirm', requireAuth, async (req: Request, res: Response, n
       res.status(400).json({
         success: false,
         error: {
-          code: (isErr(result) ? result.error.code : ""),
-          message: (isErr(result) ? result.error.message : ""),
+          code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
+          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
         },
       });
       return;
@@ -298,8 +298,8 @@ router.get('/saved', requireAuth, async (req: Request, res: Response, next: Next
       res.status(400).json({
         success: false,
         error: {
-          code: (isErr(result) ? result.error.code : ""),
-          message: (isErr(result) ? result.error.message : ""),
+          code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
+          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
         },
       });
       return;
@@ -352,8 +352,8 @@ router.post('/saved', requireAuth, async (req: Request, res: Response, next: Nex
       res.status(400).json({
         success: false,
         error: {
-          code: (isErr(result) ? result.error.code : ""),
-          message: (isErr(result) ? result.error.message : ""),
+          code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
+          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
         },
       });
       return;
@@ -420,11 +420,11 @@ router.put('/saved/:id', requireAuth, async (req: Request, res: Response, next: 
         searchId,
       });
 
-      res.status((isErr(result) ? result.error.code : "") === 'NOT_FOUND' ? 404 : 400).json({
+      res.status((isErr(result) ? (isErr(result) ? result.error.code : "") : "") === 'NOT_FOUND' ? 404 : 400).json({
         success: false,
         error: {
-          code: (isErr(result) ? result.error.code : ""),
-          message: (isErr(result) ? result.error.message : ""),
+          code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
+          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
         },
       });
       return;
@@ -478,8 +478,8 @@ router.delete('/saved/:id', requireAuth, async (req: Request, res: Response, nex
       res.status(400).json({
         success: false,
         error: {
-          code: (isErr(result) ? result.error.code : ""),
-          message: (isErr(result) ? result.error.message : ""),
+          code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
+          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
         },
       });
       return;
@@ -514,8 +514,8 @@ router.post('/saved/check-prices', requireAuth, async (req: Request, res: Respon
       res.status(400).json({
         success: false,
         error: {
-          code: (isErr(result) ? result.error.code : ""),
-          message: (isErr(result) ? result.error.message : ""),
+          code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
+          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
         },
       });
       return;
@@ -562,8 +562,8 @@ router.get('/alerts', requireAuth, async (req: Request, res: Response, next: Nex
       res.status(400).json({
         success: false,
         error: {
-          code: (isErr(result) ? result.error.code : ""),
-          message: (isErr(result) ? result.error.message : ""),
+          code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
+          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
         },
       });
       return;
@@ -602,11 +602,11 @@ router.put('/alerts/:id/read', requireAuth, async (req: Request, res: Response, 
         alertId,
       });
 
-      res.status((isErr(result) ? result.error.code : "") === 'NOT_FOUND' ? 404 : 400).json({
+      res.status((isErr(result) ? (isErr(result) ? result.error.code : "") : "") === 'NOT_FOUND' ? 404 : 400).json({
         success: false,
         error: {
-          code: (isErr(result) ? result.error.code : ""),
-          message: (isErr(result) ? result.error.message : ""),
+          code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
+          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
         },
       });
       return;
@@ -662,8 +662,8 @@ router.post('/book', requireAuth, async (req: Request, res: Response, next: Next
       res.status(400).json({
         success: false,
         error: {
-          code: (isErr(result) ? result.error.code : ""),
-          message: (isErr(result) ? result.error.message : ""),
+          code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
+          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
         },
       });
       return;

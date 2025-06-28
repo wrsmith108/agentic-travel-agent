@@ -76,7 +76,7 @@ export class FlightBookingService {
       if (!isOk(offerResult)) {
         return err(offerResult.error);
       }
-      const flightOffer = offerResult.value;
+      const flightOffer = isOk(offerResult) ? offerResult.value : null;
 
       // Step 3: Confirm current price and availability
       const priceConfirmation = await this.confirmPriceAndAvailability(
@@ -184,7 +184,7 @@ export class FlightBookingService {
       const key = `booking:${bookingId}`;
       const result = await this.redisClient.get(key);
 
-      if (!isOk(result) || !result.value) {
+      if (!isOk(result) || isErr(result)) {
         return err(new AppError(404, 'Booking not found', ErrorCodes.NOT_FOUND));
       }
 
@@ -298,7 +298,7 @@ export class FlightBookingService {
         return err(bookingResult.error);
       }
 
-      const booking = bookingResult.value;
+      const booking = isOk(bookingResult) ? bookingResult.value : null;
 
       // Check if booking can be cancelled
       if (booking.status === 'CANCELLED' || booking.status === 'REFUNDED') {
@@ -378,7 +378,7 @@ export class FlightBookingService {
     const key = `flight-offer:${offerId}`;
     const result = await this.redisClient.get(key);
 
-    if (!isOk(result) || !result.value) {
+    if (!isOk(result) || isErr(result)) {
       return err(new AppError(404, 'Flight offer not found or expired', ErrorCodes.NOT_FOUND));
     }
 
@@ -408,7 +408,7 @@ export class FlightBookingService {
         };
       }
 
-      const confirmedOffer = result.value[0];
+      const confirmedOffer = isOk(result) ? result.value : null[0];
       const originalPrice = this.extractPriceBreakdown(flightOffer);
       const currentPrice = this.extractPriceBreakdown(confirmedOffer);
 
@@ -570,9 +570,7 @@ export class FlightBookingService {
 
     // Add to user's booking list
     const existingResult = await this.redisClient.get(userBookingsKey);
-    const bookingIds = isOk(existingResult) && existingResult.value
-      ? JSON.parse(existingResult.value)
-      : [];
+    const bookingIds = isOk(existingResult) ? JSON.parse(existingResult.value) : [];
     
     bookingIds.push(bookingId);
     await this.redisClient.set(userBookingsKey, JSON.stringify(bookingIds), this.bookingTTL);

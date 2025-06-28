@@ -5,7 +5,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { verifyAccessToken, asAccessToken } from '@/utils/jwt';
 import { verifySession } from '@/services/auth/authServiceNew';
-import { isErr } from '@/utils/result';
+import { isErr, isOk } from '@/utils/result';
 import { createRequestLogger } from '@/utils/logger';
 
 // Extend Express Request type
@@ -90,7 +90,7 @@ export const authenticate = async (
       return;
     }
 
-    const payload = tokenResult.value;
+    const payload = isOk(tokenResult) ? tokenResult.value : null;
 
     // Verify session is still active
     const sessionResult = await verifySession(payload.sessionId);
@@ -157,8 +157,8 @@ export const optionalAuthenticate = async (
   // Try to verify token
   const tokenResult = verifyAccessToken(asAccessToken(token));
   
-  if (tokenResult.ok) {
-    const payload = tokenResult.value;
+  if (isOk(tokenResult)) {
+    const payload = isOk(tokenResult) ? tokenResult.value : null;
     
     // Try to verify session
     const sessionResult = await verifySession(payload.sessionId);

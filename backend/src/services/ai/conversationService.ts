@@ -4,7 +4,7 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
-import { Result, ok, err, map, flatMap } from '@/utils/result';
+import { Result, ok, err, map, flatMap, isOk } from '@/utils/result';
 import { v4 as uuidv4 } from 'uuid';
 import { UserId } from '@/types/brandedTypes';
 
@@ -175,7 +175,7 @@ export const updateConversationContext = (
     return convResult;
   }
   
-  const conversation = convResult.value;
+  const conversation = isOk(convResult) ? convResult.value : null;
   
   // Deep merge context
   conversation.context = {
@@ -208,7 +208,7 @@ export const sendMessage = async (
       return err((convResult as any).error);
     }
     
-    const conversation = convResult.value;
+    const conversation = isOk(convResult) ? convResult.value : null;
     
     // Create user message
     const userMessage: Message = {
@@ -442,7 +442,7 @@ export const deleteConversation = (
     return err((convResult as any).error);
   }
   
-  const conversation = convResult.value;
+  const conversation = isOk(convResult) ? convResult.value : null;
   conversation.active = false;
   conversation.updatedAt = new Date();
   
@@ -462,7 +462,7 @@ export const clearConversation = (
     return convResult;
   }
   
-  const conversation = convResult.value;
+  const conversation = isOk(convResult) ? convResult.value : null;
   conversation.messages = [];
   conversation.updatedAt = new Date();
   conversation.title = 'New Conversation';
@@ -483,7 +483,7 @@ export const exportConversation = (
     return err((convResult as any).error);
   }
   
-  const conversation = convResult.value;
+  const conversation = isOk(convResult) ? convResult.value : null;
   
   let markdown = `# ${conversation.title}\n\n`;
   markdown += `Created: ${conversation.createdAt.toLocaleString()}\n\n`;

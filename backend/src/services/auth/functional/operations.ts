@@ -16,7 +16,7 @@ import type {
   AuthSession,
   AuthTokenPair,
 } from './types';
-import { ok, err } from '@/utils/result';
+import { ok, err, isOk, isErr } from '@/utils/result';
 import { AUTH_CONSTANTS, createUserId, createSessionId, createEmail, createTimestamp, isTimestampExpired, addSecondsToTimestamp,  } from './types';
 import type {
   PasswordStorageOps,
@@ -176,7 +176,7 @@ export async function login(
     // Get user ID by email (in real app, this would be a user lookup)
     // For now, we'll use a simple approach
     const userLookup = await deps.storage.password.retrieve(email as unknown as UserId);
-    if (!userLookup.ok || !userLookup.value) {
+    if (!userLookup.ok || isErr(userLookup)) {
       // Record failed attempt
       await deps.storage.accountStatus.incrementFailedAttempts(email as unknown as UserId);
       return err({ type: 'INVALID_CREDENTIALS', message: 'Invalid email or password' });
@@ -244,7 +244,7 @@ export async function login(
         email,
         firstName: '',
         lastName: '',
-        emailVerified: (accountStatus.ok && accountStatus.value?.emailVerified) || false,
+        emailVerified: (accountStatus.ok && isOk(accountStatus) ? accountStatus.value.emailVerified : false),
         role: 'user',
         createdAt: now,
       },
@@ -281,11 +281,11 @@ export async function logout(
   try {
     // Get session to find user
     const sessionResult = await deps.storage.session.get(input.sessionId);
-    if (!sessionResult.ok || !sessionResult.value) {
+    if (!sessionResult.ok || isErr(sessionResult)) {
       return err({ type: 'SESSION_EXPIRED', message: 'Session not found or already expired' });
     }
 
-    const session = sessionResult.value;
+    const session = isOk(sessionResult) ? sessionResult.value : null;
 
     if (input.logoutAll) {
       // Delete all sessions for the user
@@ -329,11 +329,11 @@ export async function validateSession(
 ): Promise<Result<AuthSession, AuthError>> {
   try {
     const sessionResult = await deps.storage.session.get(input.sessionId);
-    if (!sessionResult.ok || !sessionResult.value) {
+    if (!sessionResult.ok || isErr(sessionResult)) {
       return err({ type: 'SESSION_EXPIRED', message: 'Session not found' });
     }
 
-    const session = sessionResult.value;
+    const session = isOk(sessionResult) ? sessionResult.value : null;
 
     // Check if session is expired
     if (isTimestampExpired(session.expiresAt)) {

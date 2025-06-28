@@ -4,6 +4,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
+import { isOk } from '@/utils/result';
 import { SessionStore, SessionData } from '../services/redis/sessionStore';
 import { getRedisClient } from '../services/redis/redisClient';
 import { AppError, ErrorCodes } from './errorHandler';
@@ -113,7 +114,7 @@ export class SessionMiddleware {
       throw new AppError(500, 'Failed to create session', ErrorCodes.DATABASE_ERROR);
     }
 
-    const sessionId = sessionResult.value;
+    const sessionId = isOk(sessionResult) ? sessionResult.value : null;
     this.setCookie(res, sessionId);
     
     return sessionId;
