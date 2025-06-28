@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { authService } from '@/services/auth/authService';
 import { AppError } from '@/middleware/errorHandler';
 import { createRequestLogger } from '@/utils/logger';
+import { getSessionMiddleware, requireAuth, attachSessionInfo } from '@/middleware/session';
 import {
   RegisterRequestSchema,
   LoginRequestSchema,
@@ -18,6 +19,7 @@ import {
 } from '@/schemas/auth';
 
 const router = Router();
+const sessionMiddleware = getSessionMiddleware();
 
 // Rate limiting configurations
 const authLimiter = rateLimit({
@@ -82,68 +84,9 @@ const registrationLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// JWT Authentication middleware
-const authenticateJWT = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  const requestLogger = createRequestLogger(req.id || uuidv4());
-
-  try {
-    const authHeader = req.header('Authorization');
-    const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.substring(7) : null;
-
-    if (!token) {
-      requestLogger.warn('Authentication attempt without token', {
-        ip: req.ip,
-        userAgent: req.get('User-Agent'),
-        endpoint: req.originalUrl,
-      });
-
-      res.status(401).json({
-        success: false,
-        error: {
-          code: 'AUTHENTICATION_REQUIRED',
-          message: 'Access token is required',
-          timestamp: new Date().toISOString(),
-        },
-      });
-      return;
-    }
-
-    const payload = await authService.validateJWTToken(token);
-    if (!payload) {
-      requestLogger.warn('Invalid JWT token provided', {
-        ip: req.ip,
-        userAgent: req.get('User-Agent'),
-        endpoint: req.originalUrl,
-      });
-
-      res.status(401).json({
-        success: false,
-        error: {
-          code: 'TOKEN_INVALID',
-          message: 'Invalid or expired access token',
-          timestamp: new Date().toISOString(),
-        },
-      });
-      return;
-    }
-
-    // Add user info to request
-    (req as any).user = payload;
-    (req as any).sessionId = payload.sessionId;
-
-    next();
-  } catch (error) {
-    requestLogger.error('JWT authentication failed', error);
-    res.status(500).json({
-      success: false,
-      error: {
-        code: 'AUTHENTICATION_ERROR',
-        message: 'Authentication system error',
-        timestamp: new Date().toISOString(),
-      },
-    });
-  }
-};
+// Apply session middleware to all routes
+router.use(sessionMiddleware.middleware());
+router.use(attachSessionInfo);
 
 // Request validation middleware factory
 const validateRequest = <T extends z.ZodSchema>(schema: T) => {
@@ -245,12 +188,6 @@ router.post(
     const requestLogger = createRequestLogger(req.id || uuidv4());
 
     try {
-      // Add device info to request body
-      const loginData = {
-        ...req.body,
-        deviceInfo: getDeviceInfo(req),
-      };
-
       requestLogger.info('Login attempt started', {
         email: req.body.email,
         rememberMe: req.body.rememberMe,
@@ -258,28 +195,61 @@ router.post(
         userAgent: req.get('User-Agent'),
       });
 
-      const result = await authService.loginUser(loginData);
-
-      if (result.success) {
-        const successResult = result as AuthSuccessResponse;
-        requestLogger.info('User login successful', {
-          userId: successResult.data.user.id,
-          email: successResult.data.user.email,
-          sessionId: successResult.data.sessionId,
-        });
-
-        res.status(200).json(result);
-      } else {
-        const errorResult = result as AuthErrorResponse;
-        requestLogger.warn('User login failed', {
-          errorType: errorResult.error.type,
-          message: errorResult.error.message,
+      // Validate user credentials
+      const loginResult = await authService.validateCredentials(req.body.email, req.body.password);
+      
+      if (!loginResult.success) {
+        requestLogger.warn('User login failed - invalid credentials', {
           email: req.body.email,
+          message: loginResult.message,
         });
 
-        const statusCode = getStatusCodeFromAuthError(errorResult.error.type);
-        res.status(statusCode).json(result);
+        res.status(401).json({
+          success: false,
+          error: {
+            code: 'INVALID_CREDENTIALS',
+            message: 'Invalid email or password',
+            timestamp: new Date().toISOString(),
+          },
+        });
+        return;
       }
+
+      const user = loginResult.user;
+      
+      // Create session
+      const sessionId = await sessionMiddleware.createSession(
+        res,
+        user.id,
+        user.email,
+        {
+          ipAddress: req.ip,
+          userAgent: req.get('User-Agent'),
+          rememberMe: req.body.rememberMe,
+          loginTime: new Date().toISOString()
+        }
+      );
+
+      requestLogger.info('User login successful', {
+        userId: user.id,
+        email: user.email,
+        sessionId,
+      });
+
+      res.status(200).json({
+        success: true,
+        data: {
+          user: {
+            id: user.id,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+          },
+          sessionId,
+          message: 'Login successful',
+        },
+        timestamp: new Date().toISOString(),
+      });
     } catch (error) {
       requestLogger.error('Login endpoint error', error);
       next(new AppError(500, 'Login failed due to server error', 'AUTH_LOGIN_ERROR'));
@@ -293,14 +263,14 @@ router.post(
  */
 router.post(
   '/logout',
-  authenticateJWT,
+  requireAuth,
   validateRequest(LogoutRequestSchema.optional()),
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const requestLogger = createRequestLogger(req.id || uuidv4());
 
     try {
-      const sessionId = (req as any).sessionId || req.body?.sessionId;
-      const userId = (req as any).user?.sub;
+      const sessionId = req.sessionId;
+      const userId = req.session?.userId;
 
       requestLogger.info('Logout attempt started', {
         userId,
@@ -308,35 +278,19 @@ router.post(
         ip: req.ip,
       });
 
-      const result = await authService.logoutUser(sessionId);
+      // Destroy the session
+      await sessionMiddleware.destroySession(req, res);
 
-      if (result.success) {
-        requestLogger.info('User logout successful', {
-          userId,
-          sessionId,
-        });
+      requestLogger.info('User logout successful', {
+        userId,
+        sessionId,
+      });
 
-        res.status(200).json({
-          success: true,
-          message: result.message,
-          timestamp: new Date().toISOString(),
-        });
-      } else {
-        requestLogger.warn('User logout failed', {
-          userId,
-          sessionId,
-          message: result.message,
-        });
-
-        res.status(400).json({
-          success: false,
-          error: {
-            code: 'LOGOUT_FAILED',
-            message: result.message,
-            timestamp: new Date().toISOString(),
-          },
-        });
-      }
+      res.status(200).json({
+        success: true,
+        message: 'Logout successful',
+        timestamp: new Date().toISOString(),
+      });
     } catch (error) {
       requestLogger.error('Logout endpoint error', error);
       next(new AppError(500, 'Logout failed due to server error', 'AUTH_LOGOUT_ERROR'));
@@ -350,38 +304,19 @@ router.post(
  */
 router.get(
   '/me',
-  authenticateJWT,
+  requireAuth,
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const requestLogger = createRequestLogger(req.id || uuidv4());
 
     try {
-      const userId = (req as any).user?.sub;
-      const sessionId = (req as any).sessionId;
+      const userId = req.session?.userId;
+      const sessionId = req.sessionId;
 
       requestLogger.info('Current user request', {
         userId,
         sessionId,
         ip: req.ip,
       });
-
-      // Validate session is still active
-      const sessionUser = await authService.validateSession(sessionId);
-      if (!sessionUser) {
-        requestLogger.warn('Session validation failed for current user request', {
-          userId,
-          sessionId,
-        });
-
-        res.status(401).json({
-          success: false,
-          error: {
-            code: 'SESSION_EXPIRED',
-            message: 'Session has expired. Please log in again.',
-            timestamp: new Date().toISOString(),
-          },
-        });
-        return;
-      }
 
       // Get full user profile
       const userProfile = await authService.getUserById(userId);
@@ -404,13 +339,18 @@ router.get(
 
       requestLogger.info('Current user request successful', {
         userId,
-        email: sessionUser.email,
+        email: req.session?.email,
       });
 
       res.status(200).json({
         success: true,
         data: {
-          user: sessionUser,
+          user: {
+            id: userProfile.id,
+            email: userProfile.email,
+            firstName: userProfile.firstName,
+            lastName: userProfile.lastName,
+          },
           profile: {
             id: userProfile.id,
             firstName: userProfile.firstName,
@@ -423,6 +363,8 @@ router.get(
           session: {
             sessionId,
             isActive: true,
+            loginTime: req.session?.loginTime,
+            lastActivity: req.session?.lastActivity,
           },
         },
         timestamp: new Date().toISOString(),
