@@ -1,4 +1,5 @@
 import { Result, ok, err } from '../../utils/result';
+import { createTimestamp } from '@/services/auth/functional/types';
 import { AppError, ErrorCodes } from '../../middleware/errorHandler';
 import createLogger from '../../utils/logger';
 const logger = createLogger('UmetricsService');
@@ -256,7 +257,7 @@ export class MetricsService {
       gauges,
       histograms,
       system: this.collectSystemMetrics(),
-      timestamp: new Date().toISOString()
+      timestamp: createTimestamp()
     };
   }
 

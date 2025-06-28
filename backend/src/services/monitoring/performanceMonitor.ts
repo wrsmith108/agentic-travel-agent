@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
+import { createTimestamp } from '@/services/auth/functional/types';
 import { Result, ok, err, isErr } from '../../utils/result';
 import { AppError, ErrorCodes } from '../../middleware/errorHandler';
 import createLogger from '../../utils/logger';
@@ -424,7 +425,7 @@ export class PerformanceMonitor {
         memory: this.getMemoryStats(),
         cpu: this.getCPUStats()
       },
-      timestamp: new Date().toISOString()
+      timestamp: createTimestamp()
     };
   }
 

@@ -24,7 +24,7 @@ export interface SessionUser {
   lastName: string;
   email: string;
   createdAt: string;
-  emailVerified: boolean;
+  isEmailVerified: boolean;
   role: 'user' | 'admin' | 'moderator';
   lastLoginAt?: string;
 }

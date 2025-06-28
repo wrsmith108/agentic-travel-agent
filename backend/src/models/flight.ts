@@ -4,6 +4,7 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
+import { createTimestamp } from '@/services/auth/functional/types';
 import { 
   SavedSearch, 
   PriceAlert, 
@@ -135,7 +136,7 @@ export interface FlightPriceHistory {
  * Helper function to create a saved search
  */
 export function createSavedSearch(data: CreateSavedSearchData): SavedSearch {
-  const now = new Date().toISOString();
+  const now = createTimestamp();
   return {
     id: uuidv4(),
     userId: data.userId,
@@ -159,7 +160,7 @@ export function updateSavedSearch(existing: SavedSearch, updates: UpdateSavedSea
     ...existing,
     ...updates,
     searchQuery: updates.searchQuery || existing.searchQuery,
-    updatedAt: new Date().toISOString(),
+    updatedAt: createTimestamp(),
   };
 }
 
@@ -183,9 +184,9 @@ export function createPriceAlert(data: CreatePriceAlertData): PriceAlert {
     currentPrice: data.currentPrice,
     priceDifference,
     percentChange,
-    alertedAt: now.toISOString(),
+    alertedAt: now as string,
     isRead: false,
-    expiresAt: expiresAt.toISOString(),
+    expiresAt: expiresAt as string,
   };
 }
 
@@ -193,7 +194,7 @@ export function createPriceAlert(data: CreatePriceAlertData): PriceAlert {
  * Helper function to create a flight booking
  */
 export function createFlightBooking(data: CreateFlightBookingData): FlightBooking {
-  const now = new Date().toISOString();
+  const now = createTimestamp();
   return {
     id: uuidv4(),
     userId: data.userId,

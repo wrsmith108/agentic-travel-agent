@@ -6,6 +6,7 @@
  */
 
 import http from 'http';
+import { createTimestamp } from '@/services/auth/functional/types';
 import { performance } from 'perf_hooks';
 
 interface HealthCheckResult {
@@ -59,7 +60,7 @@ class HealthChecker {
 
     return {
       status,
-      timestamp: new Date().toISOString(),
+      timestamp: createTimestamp(),
       uptime: process.uptime(),
       checks,
       metrics: {

@@ -1,4 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
+import { createTimestamp } from '@/services/auth/functional/types';
 
 // Extend Request type to include file upload properties
 declare global {
@@ -217,7 +218,7 @@ export const sanitizeInputs = (
             details: error.details,
           },
           meta: {
-            timestamp: new Date().toISOString(),
+            timestamp: createTimestamp(),
             ...(req.id && { requestId: req.id }),
           },
         });
@@ -230,7 +231,7 @@ export const sanitizeInputs = (
             message: 'Input validation failed',
           },
           meta: {
-            timestamp: new Date().toISOString(),
+            timestamp: createTimestamp(),
             ...(req.id && { requestId: req.id }),
           },
         });

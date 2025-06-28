@@ -224,7 +224,7 @@ export const createEmailVerificationToken = async (
     logger.info('Email verification token generated', {
       userId,
       email,
-      tokenExpiry: expiresAt.toISOString(),
+      tokenExpiry: expiresAt as string,
     });
 
     return ok(token);

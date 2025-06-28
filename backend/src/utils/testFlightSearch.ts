@@ -50,7 +50,7 @@ async function testFlightSearch() {
     const searchRequest = {
       origin: 'JFK',
       destination: 'LAX',
-      departureDate: departureDate.toISOString().split('T')[0],
+      departureDate: departureDate().toISOString().split('T')[0],
       adults: 1,
       travelClass: 'ECONOMY',
       nonStop: false,
@@ -96,8 +96,8 @@ async function testFlightSearch() {
     const quickSearchRequest = {
       from: 'NYC',
       to: 'LON',
-      when: departureDate.toISOString(),
-      returnWhen: returnDate.toISOString(),
+      when: departureDate().toISOString(),
+      returnWhen: returnDate().toISOString(),
       travelers: 2,
     };
     

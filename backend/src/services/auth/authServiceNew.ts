@@ -130,13 +130,13 @@ export const register = async (
         lastName: newUser.lastName,
         email: newUser.email,
         createdAt: newUser.createdAt,
-        emailVerified: false,
+        isEmailVerified: false,
         role: 'user',
         lastLogin: new Date().toISOString(),
       },
       accessToken,
       refreshToken,
-      expiresAt: session.expiresAt.toISOString(),
+      expiresAt: session.expiresAt as string,
     });
   } catch (error) {
     return err(systemError(
@@ -230,13 +230,13 @@ export const login = async (
         lastName: user.lastName,
         email: user.email,
         createdAt: user.createdAt,
-        emailVerified: false,
+        isEmailVerified: false,
         role: 'user',
         lastLogin: new Date().toISOString(),
       },
       accessToken,
       refreshToken,
-      expiresAt: session.expiresAt.toISOString(),
+      expiresAt: session.expiresAt as string,
     });
   } catch (error) {
     return err(systemError(
@@ -322,7 +322,7 @@ export const refreshAccessToken = async (
 
     return ok({
       accessToken: newTokenResult.value,
-      expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(), // 15 minutes
+      expiresAt: new Date(Date.now() + 15 * 60 * 1000) as string, // 15 minutes
     });
   } catch (error) {
     return err(systemError(

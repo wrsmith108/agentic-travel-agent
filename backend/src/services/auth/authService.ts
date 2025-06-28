@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs';
+import { createTimestamp } from '@/services/auth/functional/types';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
@@ -161,7 +162,7 @@ class AuthService {
         email: userProfile.email,
         firstName: userProfile.firstName,
         lastName: userProfile.lastName,
-        emailVerified: !env.REQUIRE_EMAIL_VERIFICATION, // Auto-verify if not required
+        isEmailVerified: !env.REQUIRE_EMAIL_VERIFICATION, // Auto-verify if not required
         role: 'user',
         createdAt: userProfile.createdAt,
       };
@@ -288,8 +289,8 @@ class AuthService {
       if (!rateLimitResult.allowed) {
         return createAuthError(
           'RATE_LIMIT_EXCEEDED',
-          `Too many failed login attempts. Account locked until ${rateLimitResult.lockedUntil?.toISOString()}`,
-          { lockedUntil: rateLimitResult.lockedUntil?.toISOString() },
+          `Too many failed login attempts. Account locked until ${rateLimitResult.lockedUntil}`,
+          { lockedUntil: rateLimitResult.lockedUntil },
           'AUTH_004',
           requestId
         );
@@ -378,7 +379,7 @@ class AuthService {
         email: userProfile.email,
         firstName: userProfile.firstName,
         lastName: userProfile.lastName,
-        emailVerified: accountStatus.isEmailVerified,
+        isEmailVerified: accountStatus.isEmailVerified,
         role: 'user',
         lastLoginAt: new Date().toISOString(),
         createdAt: userProfile.createdAt,
@@ -484,7 +485,7 @@ class AuthService {
 
       logInfo('Password reset token generated', {
         userId: userProfile.id,
-        tokenExpiry: expiresAt.toISOString(),
+        tokenExpiry: expiresAt as string,
         requestId,
       });
 
@@ -571,7 +572,7 @@ class AuthService {
         email: userProfile.email,
         firstName: userProfile.firstName,
         lastName: userProfile.lastName,
-        emailVerified: true, // Assume verified if they can reset password
+        isEmailVerified: true, // Assume verified if they can reset password
         role: 'user',
         createdAt: userProfile.createdAt,
       };
@@ -699,7 +700,7 @@ class AuthService {
       }
 
       // Update last accessed time
-      sessionData.lastAccessedAt = new Date().toISOString();
+      sessionData.lastAccessedAt = createTimestamp();
 
       return sessionData.user;
     } catch (error) {
@@ -800,7 +801,7 @@ class AuthService {
         : false,
       isAccountSuspended: false,
       failedLoginAttempts: failedAttempts?.count || 0,
-      lastFailedLoginAt: failedAttempts?.lastAttempt.toISOString(),
+      lastFailedLoginAt: failedAttempts?.lastAttempt?.toISOString(),
       lockedUntil: failedAttempts?.lockedUntil?.toISOString(),
     };
   }
@@ -829,9 +830,9 @@ class AuthService {
       sessionId,
       userId: user.id,
       user,
-      createdAt: now.toISOString(),
-      expiresAt: expiresAt.toISOString(),
-      lastAccessedAt: now.toISOString(),
+      createdAt: now as string,
+      expiresAt: expiresAt as string,
+      lastAccessedAt: now as string,
       ipAddress: deviceInfo?.ipAddress,
       userAgent: deviceInfo?.userAgent,
       deviceFingerprint: deviceInfo?.fingerprint,
@@ -872,7 +873,7 @@ class AuthService {
     } = {
       sessionId,
       accessToken,
-      expiresAt: expiresAt.toISOString(),
+      expiresAt: expiresAt as string,
     };
 
     if (refreshToken) {
@@ -962,7 +963,7 @@ class AuthService {
   private async updateUserLastLogin(userId: string): Promise<void> {
     try {
       await this.userDataManager.updateUserData(userId, {
-        updatedAt: new Date().toISOString(),
+        updatedAt: createTimestamp(),
       });
     } catch (error) {
       logError('Failed to update user last login', error, { userId });

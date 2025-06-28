@@ -4,6 +4,7 @@
  */
 
 import { Result, ok, err } from '../../utils/result';
+import { createTimestamp } from '@/services/auth/functional/types';
 import { isOk, isErr } from '../../utils/result';
 import { AppError, ErrorCodes } from '../../middleware/errorHandler';
 import createLogger from '../../utils/logger';
@@ -331,7 +332,7 @@ export class EmailService {
       subject: options.subject,
       priority: options.priority || 'normal',
       provider: this.config.provider,
-      timestamp: new Date().toISOString(),
+      timestamp: createTimestamp(),
     };
 
     await this.redisClient.set(

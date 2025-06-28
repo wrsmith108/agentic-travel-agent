@@ -254,7 +254,7 @@ export const createDeviceFingerprint = (fingerprint: string): DeviceFingerprint 
 };
 
 export const createTimestamp = (date?: Date): Timestamp => {
-  const timestamp = (date || new Date()).toISOString();
+  const timestamp = (date || new Date()) as string;
   return timestamp as Timestamp;
 };
 
@@ -288,7 +288,7 @@ export interface AuthUser {
   id: UserId;
   email: Email;
   hashedPassword: HashedPassword;
-  emailVerified: boolean;
+  isEmailVerified: boolean;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
@@ -391,7 +391,7 @@ export interface AuthSuccess {
     email: Email;
     firstName: string;
     lastName: string;
-    emailVerified: boolean;
+    isEmailVerified: boolean;
     role: 'user' | 'admin' | 'moderator';
     createdAt: Timestamp;
   };

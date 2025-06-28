@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import { createTimestamp } from '@/services/auth/functional/types';
 import { JWTPayload } from '@/schemas/auth';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -276,9 +277,9 @@ export const createMockSessionUser = (overrides?: Partial<any>) => ({
   email: 'test@example.com',
   firstName: 'Test',
   lastName: 'User',
-  emailVerified: true,
+  isEmailVerified: true,
   role: 'user',
-  createdAt: new Date().toISOString(),
+  createdAt: createTimestamp(),
   ...overrides,
 });
 
@@ -297,8 +298,8 @@ export const createMockUserProfile = (overrides?: Partial<any>) => ({
     communicationFrequency: 'daily',
     subscriptionTier: 'free',
   },
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
+  createdAt: createTimestamp(),
+  updatedAt: createTimestamp(),
   ...overrides,
 });
 

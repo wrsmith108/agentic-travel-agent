@@ -4,6 +4,7 @@
  */
 
 import { Result, ok, err, isOk, isErr } from '@/utils/result';
+import { createTimestamp } from '@/services/auth/functional/types';
 import { AppError, ErrorCodes } from '@/middleware/errorHandler';
 import { getRedisClient } from '@/services/redis/redisClient';
 import createLogger from '@/utils/logger';
@@ -77,7 +78,7 @@ export class UserPreferencesService {
       }
 
       // Update timestamp
-      preferences.updatedAt = new Date().toISOString();
+      preferences.updatedAt = createTimestamp();
 
       // Validate before saving
       const validated = validateUserPreferences(preferences);
@@ -140,7 +141,7 @@ export class UserPreferencesService {
           ...existing.display,
           ...(validated.display || {}),
         },
-        updatedAt: new Date().toISOString(),
+        updatedAt: createTimestamp(),
       };
 
       // Handle nested objects properly

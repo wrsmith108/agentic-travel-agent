@@ -373,7 +373,7 @@ export class JWTTokenService {
       const blacklistedAt = new Date();
 
       const blacklistData = JSON.stringify({
-        blacklistedAt: blacklistedAt.toISOString(),
+        blacklistedAt: blacklistedAt as string,
         reason: reason || 'Manual blacklist',
         tokenType: decoded.type || 'access',
       });

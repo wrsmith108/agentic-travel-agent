@@ -13,7 +13,7 @@ export type SessionUser = {
   readonly email: Email;
   readonly firstName: string;
   readonly lastName: string;
-  readonly emailVerified: boolean;
+  readonly isEmailVerified: boolean;
   readonly role: UserRole;
   readonly lastLoginAt?: Timestamp;
   readonly createdAt: Timestamp;

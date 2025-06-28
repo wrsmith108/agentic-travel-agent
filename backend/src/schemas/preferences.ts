@@ -4,6 +4,7 @@
  */
 
 import { z } from 'zod';
+import { createTimestamp } from '@/services/auth/functional/types';
 
 /**
  * Notification frequency options
@@ -124,7 +125,7 @@ export type UserPreferencesUpdate = z.infer<typeof UserPreferencesUpdateSchema>;
 
 // Default preferences factory
 export const createDefaultPreferences = (userId: string): UserPreferences => {
-  const now = new Date().toISOString();
+  const now = createTimestamp();
   return {
     userId,
     notifications: NotificationPreferencesSchema.parse({}),

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { createTimestamp } from '@/services/auth/functional/types';
 
 /**
  * Password validation schema with comprehensive security requirements
@@ -117,7 +118,7 @@ export const SessionUserSchema = z.object({
   email: z.string().email(),
   firstName: z.string(),
   lastName: z.string(),
-  emailVerified: z.boolean().default(false),
+  isEmailVerified: z.boolean().default(false),
   role: z.enum(['user', 'admin', 'moderator']).default('user'),
   lastLoginAt: z.string().datetime().optional(),
   createdAt: z.string().datetime(),
@@ -364,7 +365,7 @@ export const createAuthError = (
       message,
       details,
       code,
-      timestamp: new Date().toISOString(),
+      timestamp: createTimestamp(),
       requestId,
     },
   };

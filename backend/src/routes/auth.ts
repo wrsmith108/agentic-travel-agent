@@ -1,4 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
+import { createTimestamp } from '@/services/auth/functional/types';
 import { isErr } from '@/utils/result';
 import rateLimit from 'express-rate-limit';
 import { z } from 'zod';
@@ -31,7 +32,7 @@ const authLimiter = rateLimit({
     error: {
       code: 'RATE_LIMIT_EXCEEDED',
       message: 'Too many authentication attempts. Please try again in 15 minutes.',
-      timestamp: new Date().toISOString(),
+      timestamp: createTimestamp(),
     },
   },
   standardHeaders: true,
@@ -49,7 +50,7 @@ const authLimiter = rateLimit({
       error: {
         code: 'RATE_LIMIT_EXCEEDED',
         message: 'Too many authentication attempts. Please try again in 15 minutes.',
-        timestamp: new Date().toISOString(),
+        timestamp: createTimestamp(),
       },
     });
   },
@@ -63,7 +64,7 @@ const passwordResetLimiter = rateLimit({
     error: {
       code: 'RATE_LIMIT_EXCEEDED',
       message: 'Too many password reset attempts. Please try again in 1 hour.',
-      timestamp: new Date().toISOString(),
+      timestamp: createTimestamp(),
     },
   },
   standardHeaders: true,
@@ -78,7 +79,7 @@ const registrationLimiter = rateLimit({
     error: {
       code: 'RATE_LIMIT_EXCEEDED',
       message: 'Too many registration attempts. Please try again in 1 hour.',
-      timestamp: new Date().toISOString(),
+      timestamp: createTimestamp(),
     },
   },
   standardHeaders: true,
@@ -111,7 +112,7 @@ const validateRequest = <T extends z.ZodSchema>(schema: T) => {
             code: 'VALIDATION_ERROR',
             message: 'Request validation failed',
             details: error.errors,
-            timestamp: new Date().toISOString(),
+            timestamp: createTimestamp(),
           },
         });
       } else {
@@ -214,7 +215,7 @@ router.post(
           error: {
             code: 'INVALID_CREDENTIALS',
             message: 'Invalid email or password',
-            timestamp: new Date().toISOString(),
+            timestamp: createTimestamp(),
           },
         });
         return;
@@ -253,7 +254,7 @@ router.post(
           sessionId,
           message: 'Login successful',
         },
-        timestamp: new Date().toISOString(),
+        timestamp: createTimestamp(),
       });
     } catch (error) {
       requestLogger.error('Login endpoint error', error);
@@ -294,7 +295,7 @@ router.post(
       res.status(200).json({
         success: true,
         message: 'Logout successful',
-        timestamp: new Date().toISOString(),
+        timestamp: createTimestamp(),
       });
     } catch (error) {
       requestLogger.error('Logout endpoint error', error);
@@ -336,7 +337,7 @@ router.get(
           error: {
             code: 'USER_NOT_FOUND',
             message: 'User profile not found',
-            timestamp: new Date().toISOString(),
+            timestamp: createTimestamp(),
           },
         });
         return;
@@ -372,7 +373,7 @@ router.get(
             lastActivity: getSessionData(req)?.lastActivity,
           },
         },
-        timestamp: new Date().toISOString(),
+        timestamp: createTimestamp(),
       });
     } catch (error) {
       requestLogger.error('Current user endpoint error', error);
@@ -414,7 +415,7 @@ router.post(
         error: {
           code: 'NOT_IMPLEMENTED',
           message: 'Token refresh is not yet implemented. Please log in again.',
-          timestamp: new Date().toISOString(),
+          timestamp: createTimestamp(),
         },
       });
     } catch (error) {
@@ -458,7 +459,7 @@ router.post(
             result.value.token && {
               debug: { resetToken: result.value.token },
             }),
-          timestamp: new Date().toISOString(),
+          timestamp: createTimestamp(),
         });
       } else {
         requestLogger.warn('Password reset request failed', {
@@ -471,7 +472,7 @@ router.post(
           error: {
             code: 'PASSWORD_RESET_FAILED',
             message: result.error.message,
-            timestamp: new Date().toISOString(),
+            timestamp: createTimestamp(),
           },
         });
       }

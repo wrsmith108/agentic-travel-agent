@@ -1,4 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
+import { createTimestamp } from '@/services/auth/functional/types';
 import { z } from 'zod';
 import createLogger from '../utils/logger';
 const logger = createLogger('UerrorHandler');
@@ -71,7 +72,7 @@ export const notFoundHandler = (req: Request, res: Response): void => {
       message: `Resource not found: ${req.method} ${req.originalUrl}`,
     },
     meta: {
-      timestamp: new Date().toISOString(),
+      timestamp: createTimestamp(),
       ...(req.id && { requestId: req.id }),
     },
   };
@@ -135,7 +136,7 @@ export const errorHandler = (
       details: process.env.NODE_ENV === 'development' ? details : undefined,
     },
     meta: {
-      timestamp: new Date().toISOString(),
+      timestamp: createTimestamp(),
       ...(req.id && { requestId: req.id }),
     },
   };

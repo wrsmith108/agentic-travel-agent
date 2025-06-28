@@ -4,6 +4,7 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
+import { createTimestamp } from '@/services/auth/functional/types';
 import { v4 as uuidv4 } from 'uuid';
 import { Result, ok, err } from '../../utils/result';
 import { isOk, isErr } from '../../utils/result';
@@ -110,7 +111,7 @@ export class ConversationalSearchService {
       context.messages.push({
         role: 'user',
         content: validated.query,
-        timestamp: new Date().toISOString(),
+        timestamp: createTimestamp(),
       });
 
       // Parse intent and extract search parameters
@@ -158,7 +159,7 @@ export class ConversationalSearchService {
       context.messages.push({
         role: 'assistant',
         content: response,
-        timestamp: new Date().toISOString(),
+        timestamp: createTimestamp(),
       });
 
       // Save updated context
@@ -520,7 +521,7 @@ Consider:
     const result = await this.redisClient.get(key);
     if (isOk(result) && result.value) {
       const context: ConversationContext = JSON.parse(result.value);
-      context.lastUpdated = new Date().toISOString();
+      context.lastUpdated = createTimestamp();
       return context;
     }
 

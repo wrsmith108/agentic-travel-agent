@@ -10,6 +10,12 @@ import type {
   ResetToken,
   AuthError,
   PasswordResetTokenData,
+  TokenStorage,
+  TimeProvider,
+  Logger,
+  PasswordResetTokenRecord,
+  PasswordStorage,
+  IdGenerator,
 } from './types';
 import {
   createHashedPassword,
@@ -23,7 +29,7 @@ import { AUTH_CONSTANTS } from '@/schemas/auth';
  * Hash a plain password using bcrypt
  */
 export const hashPassword = async (
-  password: PlainPassword,
+  password: PlainTextPassword,
   saltRounds: number = 12
 ): Promise<Result<HashedPassword, AuthError>> => {
   try {
@@ -42,7 +48,7 @@ export const hashPassword = async (
  * Verify a plain password against a hashed password
  */
 export const verifyPassword = async (
-  password: PlainPassword,
+  password: PlainTextPassword,
   hash: HashedPassword
 ): Promise<Result<boolean, AuthError>> => {
   try {
@@ -112,7 +118,7 @@ export const createPasswordResetToken = async (
 
     logger.info('Password reset token generated', {
       userId,
-      tokenExpiry: expiresAt.toISOString(),
+      tokenExpiry: expiresAt as string,
       requestId,
     });
 
@@ -185,7 +191,7 @@ export const resetPasswordWithToken = async (
     logger: Logger;
   },
   token: ResetToken,
-  newPassword: PlainPassword,
+  newPassword: PlainTextPassword,
   requestId: RequestId
 ): Promise<Result<UserId, AuthError>> => {
   const { passwordStorage, tokenStorage, logger } = deps;
@@ -238,8 +244,8 @@ export const changeUserPassword = async (
     logger: Logger;
   },
   userId: UserId,
-  currentPassword: PlainPassword,
-  newPassword: PlainPassword,
+  currentPassword: PlainTextPassword,
+  newPassword: PlainTextPassword,
   requestId: RequestId
 ): Promise<Result<void, AuthError>> => {
   const { passwordStorage, logger } = deps;
@@ -296,7 +302,7 @@ export const changeUserPassword = async (
 /**
  * Validate password strength
  */
-export const validatePasswordStrength = (password: string): Result<PlainPassword, AuthError> => {
+export const validatePasswordStrength = (password: string): Result<PlainTextPassword, AuthError> => {
   if (password.length < 8) {
     return err({
       type: 'VALIDATION_ERROR',
@@ -339,5 +345,5 @@ export const validatePasswordStrength = (password: string): Result<PlainPassword
     });
   }
 
-  return ok(createPlainPassword(password));
+  return ok(password as PlainTextPassword);
 };

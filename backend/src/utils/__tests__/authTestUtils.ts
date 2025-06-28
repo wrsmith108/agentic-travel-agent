@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
+import { createTimestamp } from '@/services/auth/functional/types';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { JWTPayload, SessionUser, SessionData } from '@/schemas/auth';
@@ -14,7 +15,7 @@ import { UserProfile } from '@/schemas/user';
  */
 export const createMockUserProfile = (overrides?: Partial<UserProfile>): UserProfile => {
   const userId = overrides?.id || uuidv4();
-  const now = new Date().toISOString();
+  const now = createTimestamp();
 
   return {
     id: userId,
@@ -45,9 +46,9 @@ export const createMockSessionUser = (overrides?: Partial<SessionUser>): Session
     email: 'test@example.com',
     firstName: 'Test',
     lastName: 'User',
-    emailVerified: true,
+    isEmailVerified: true,
     role: 'user',
-    createdAt: new Date().toISOString(),
+    createdAt: createTimestamp(),
     ...overrides,
   };
 };
@@ -97,9 +98,9 @@ export const createMockSessionData = (
     sessionId,
     userId: user.id,
     user,
-    createdAt: now.toISOString(),
-    expiresAt: expiresAt.toISOString(),
-    lastAccessedAt: now.toISOString(),
+    createdAt: now as string,
+    expiresAt: expiresAt as string,
+    lastAccessedAt: now as string,
     isActive: true,
     loginMethod: 'email',
     ...overrides,
@@ -143,7 +144,7 @@ export const createAuthHeaders = (token: string) => ({
 export const createRateLimitHeaders = () => ({
   'X-RateLimit-Limit': '5',
   'X-RateLimit-Remaining': '0',
-  'X-RateLimit-Reset': new Date(Date.now() + 900000).toISOString(), // 15 minutes from now
+  'X-RateLimit-Reset': new Date(Date.now() + 900000) as string, // 15 minutes from now
 });
 
 /**
@@ -189,9 +190,9 @@ export const createExpiredSessionData = (user: SessionUser): SessionData => {
     sessionId,
     userId: user.id,
     user,
-    createdAt: past.toISOString(),
-    expiresAt: past.toISOString(), // Already expired
-    lastAccessedAt: past.toISOString(),
+    createdAt: past as string,
+    expiresAt: past as string, // Already expired
+    lastAccessedAt: past as string,
     isActive: true,
     loginMethod: 'email',
   };
@@ -211,7 +212,7 @@ export const createMockAuthSuccessResponse = (
     user,
     sessionId,
     accessToken,
-    expiresAt: new Date(Date.now() + 3600000).toISOString(),
+    expiresAt: new Date(Date.now() + 3600000) as string,
     permissions: ['user:read', 'user:update'],
   },
 });
@@ -225,7 +226,7 @@ export const createMockAuthErrorResponse = (errorType: string, message: string, 
     type: errorType,
     message,
     code: code || errorType,
-    timestamp: new Date().toISOString(),
+    timestamp: createTimestamp(),
   },
 });
 

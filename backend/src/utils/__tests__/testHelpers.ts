@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker';
+import { createTimestamp } from '@/services/auth/functional/types';
 import { CreateUserProfile } from '@/schemas/user';
 import { RegisterRequest, LoginRequest } from '@/schemas/auth';
 import bcrypt from 'bcryptjs';
@@ -275,12 +276,12 @@ export class AuthTestHelpers {
         email,
         firstName: faker.person.firstName(),
         lastName: faker.person.lastName(),
-        emailVerified: true,
+        isEmailVerified: true,
         role: 'user',
-        createdAt: new Date().toISOString(),
+        createdAt: createTimestamp(),
       },
-      createdAt: new Date().toISOString(),
-      expiresAt: new Date(Date.now() + 3600000).toISOString(),
+      createdAt: createTimestamp(),
+      expiresAt: new Date(Date.now() + 3600000) as string,
       lastAccessedAt: new Date().toISOString(),
       ipAddress: faker.internet.ip(),
       userAgent: faker.internet.userAgent(),

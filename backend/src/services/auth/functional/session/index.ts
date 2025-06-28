@@ -5,6 +5,7 @@
  */
 
 import jwt from 'jsonwebtoken';
+import { createTimestamp } from '@/services/auth/functional/types';
 import { v4 as uuidv4 } from 'uuid';
 import { env } from '@/config/env';
 import { logInfo, logWarn, logError } from '@/utils/logger';
@@ -53,9 +54,9 @@ export const createSession = async (
     sessionId,
     userId: user.id,
     user,
-    createdAt: now.toISOString(),
-    expiresAt: expiresAt.toISOString(),
-    lastAccessedAt: now.toISOString(),
+    createdAt: now as string,
+    expiresAt: expiresAt as string,
+    lastAccessedAt: now as string,
     ipAddress: deviceInfo?.ipAddress,
     userAgent: deviceInfo?.userAgent,
     deviceFingerprint: deviceInfo?.fingerprint,
@@ -100,7 +101,7 @@ export const createSession = async (
     sessionId,
     accessToken,
     refreshToken,
-    expiresAt: expiresAt.toISOString(),
+    expiresAt: expiresAt as string,
   };
 };
 
@@ -122,7 +123,7 @@ export const validateSession = (sessionId: string): SessionUser | null => {
   }
 
   // Update last accessed time
-  sessionData.lastAccessedAt = new Date().toISOString();
+  sessionData.lastAccessedAt = createTimestamp();
 
   return sessionData.user;
 };
@@ -201,7 +202,7 @@ export const getSessionInfo = (sessionId: string): SessionData | null => {
 export const updateSessionActivity = (sessionId: string): void => {
   const session = sessions[sessionId];
   if (session) {
-    session.lastAccessedAt = new Date().toISOString();
+    session.lastAccessedAt = createTimestamp();
   }
 };
 

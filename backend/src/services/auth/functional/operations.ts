@@ -71,12 +71,12 @@ export async function register(
     // Create account status
     const accountStatus = {
       userId,
-      emailVerified: false,
+      isEmailVerified: false,
       failedLoginAttempts: 0,
       lastFailedAttempt: null,
-      accountLocked: false,
+      isAccountLocked: false,
       lockedUntil: null,
-      accountSuspended: false,
+      isAccountSuspended: false,
       suspendedUntil: null,
       createdAt: now,
       updatedAt: now,
@@ -111,7 +111,7 @@ export async function register(
       id: userId,
       email,
       hashedPassword,
-      emailVerified: false,
+      isEmailVerified: false,
       createdAt: now,
       updatedAt: now,
     };
@@ -122,7 +122,7 @@ export async function register(
         email,
         firstName: input.firstName || '',
         lastName: input.lastName || '',
-        emailVerified: false,
+        isEmailVerified: false,
         role: 'user',
         createdAt: now,
       },
@@ -193,18 +193,18 @@ export async function login(
     // Check account status
     const accountStatus = await deps.storage.accountStatus.get(email as unknown as UserId);
     if (accountStatus.ok && accountStatus.value) {
-      if (accountStatus.value.accountLocked) {
+      if (accountStatus.value.isAccountLocked) {
         return err({
           type: 'ACCOUNT_LOCKED',
           message: 'Account is locked due to too many failed attempts',
-          lockedUntil: accountStatus.value.lockedUntil?.toISOString() as Timestamp,
+          lockedUntil: accountStatus.value.lockedUntil as Timestamp,
         });
       }
-      if (accountStatus.value.accountSuspended) {
+      if (accountStatus.value.isAccountSuspended) {
         return err({
           type: 'ACCOUNT_SUSPENDED',
           message: 'Account has been suspended',
-          suspendedUntil: accountStatus.value.suspendedUntil?.toISOString() as Timestamp,
+          suspendedUntil: accountStatus.value.suspendedUntil as Timestamp,
         });
       }
     }
@@ -244,7 +244,7 @@ export async function login(
         email,
         firstName: '',
         lastName: '',
-        emailVerified: (accountStatus.ok && isOk(accountStatus) ? accountStatus.value.emailVerified : false),
+        isEmailVerified: (accountStatus.ok && isOk(accountStatus) ? accountStatus.value.isEmailVerified : false),
         role: 'user',
         createdAt: now,
       },
@@ -365,7 +365,7 @@ export interface AuthSuccess {
     email: Email;
     firstName: string;
     lastName: string;
-    emailVerified: boolean;
+    isEmailVerified: boolean;
     role: 'user' | 'admin' | 'moderator';
     createdAt: Timestamp;
   };

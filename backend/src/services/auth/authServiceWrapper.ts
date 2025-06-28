@@ -14,7 +14,7 @@ const convertToAuthSuccess = (response: AuthSuccessResponse): AuthSuccess => {
       lastName: response.data.user.lastName!,
       email: response.data.user.email!,
       createdAt: response.data.user.createdAt!,
-      emailVerified: response.data.user.emailVerified!,
+      isEmailVerified: response.data.user.isEmailVerified!,
       role: response.data.user.role!,
       lastLoginAt: response.data.user.lastLoginAt,
     },

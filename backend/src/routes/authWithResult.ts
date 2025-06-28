@@ -1,4 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
+import { createTimestamp } from '@/services/auth/functional/types';
 import rateLimit from 'express-rate-limit';
 import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
@@ -26,7 +27,7 @@ const authLimiter = rateLimit({
     error: {
       code: 'RATE_LIMIT_EXCEEDED',
       message: 'Too many authentication attempts. Please try again in 15 minutes.',
-      timestamp: new Date().toISOString(),
+      timestamp: createTimestamp(),
     },
   },
   standardHeaders: true,

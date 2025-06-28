@@ -4,6 +4,7 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
+import { createTimestamp } from '@/services/auth/functional/types';
 import { Result, ok, err } from '../../utils/result';
 import { isOk, isErr } from '../../utils/result';
 import { AppError, ErrorCodes } from '../../middleware/errorHandler';
@@ -305,7 +306,7 @@ export class FlightSearchService {
           await this.updatePriceHistory(savedSearch.id, currentBestPrice);
 
           // Update last checked time
-          savedSearch.lastCheckedAt = new Date().toISOString();
+          savedSearch.lastCheckedAt = createTimestamp();
           await this.updateSavedSearch(userId, savedSearch.id, { lastCheckedAt: savedSearch.lastCheckedAt });
 
           results.push({

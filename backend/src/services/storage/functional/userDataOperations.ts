@@ -1,16 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
-import {
-  FileOps,
-  LockOps,
-  UserId,
-  Email,
-  FilePath,
-  UserNotFoundError,
-  UserAlreadyExistsError,
-  asUserId,
-  asFilePath,
-} from './types';
+import { FileOps, LockOps, UserId, Email, FilePath, UserNotFoundError, UserAlreadyExistsError, asUserId, asFilePath } from './types';
+import { createTimestamp } from '@/services/auth/functional/types';
 import {
   UserProfile,
   UserDataFile,
@@ -39,8 +30,8 @@ export const createUser =
       id: uuidv4(),
       activeSearches: [],
       searchHistory: [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: createTimestamp(),
+      updatedAt: createTimestamp(),
     };
 
     // Validate before writing
@@ -137,7 +128,7 @@ export const updateUserData =
         ...updates,
         id: currentData.profile.id, // Prevent ID changes
         createdAt: currentData.profile.createdAt, // Preserve creation date
-        updatedAt: new Date().toISOString(),
+        updatedAt: createTimestamp(),
       };
 
       // Validate updated profile
@@ -219,7 +210,7 @@ export const updateUserFlightSearch =
         .map((s) => s.id);
 
       userData.profile.activeSearches = activeSearchIds;
-      userData.profile.updatedAt = new Date().toISOString();
+      userData.profile.updatedAt = createTimestamp();
 
       await fileOps.writeAtomic(filePath, userData);
 

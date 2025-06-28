@@ -1,4 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
+import { createTimestamp } from '@/services/auth/functional/types';
 import { env } from '../config/env';
 import createLogger from './logger';
 const logger = createLogger('Umonitoring');
@@ -61,7 +62,7 @@ export const getHealthStatus = async (): Promise<HealthStatus> => {
     status: 'healthy',
     version: '1.0.0',
     uptime,
-    timestamp: new Date().toISOString(),
+    timestamp: createTimestamp(),
     environment: env.NODE_ENV,
     checks: {
       database: true, // File-based storage for MVP

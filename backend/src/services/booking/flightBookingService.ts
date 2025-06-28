@@ -5,6 +5,7 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
+import { createTimestamp } from '@/services/auth/functional/types';
 import { Result, ok, err } from '../../utils/result';
 import { isOk, isErr } from '../../utils/result';
 import { AppError, ErrorCodes } from '../../middleware/errorHandler';
@@ -132,7 +133,7 @@ export class FlightBookingService {
         contactInfo: validatedRequest.contactInfo,
         priceBreakdown: priceConfirmation.currentPrice!,
         paymentStatus: 'AUTHORIZED',
-        createdAt: new Date().toISOString(),
+        createdAt: createTimestamp(),
         ticketingDeadline: this.calculateTicketingDeadline(flightOffer),
       };
 
@@ -720,7 +721,7 @@ export class FlightBookingService {
     }
 
     const deadline = new Date(now.getTime() + deadlineHours * 60 * 60 * 1000);
-    return deadline.toISOString();
+    return deadline as string;
   }
 }
 

@@ -309,7 +309,7 @@ export class AuditLogger {
       
       this.logs.forEach(log => {
         const row = [
-          new Date(log.timestamp).toISOString(),
+          new Date(log.timestamp) as string,
           log.category,
           log.action,
           log.userId || '',
