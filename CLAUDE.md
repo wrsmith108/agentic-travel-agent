@@ -218,13 +218,26 @@ Task("Backend Team", "Implement APIs according to Memory specifications");
 ```
 
 ## Code Style Preferences
+
+### Core Development Philosophy
+**TEST-DRIVEN DEVELOPMENT IS NON-NEGOTIABLE**. Write tests first, then code.
+See comprehensive guidelines: `/docs/DEVELOPMENT-GUIDELINES.md`
+
+### Key Principles
+- Write failing tests before any production code
+- Use TypeScript strict mode (no `any` types)
+- Embrace functional programming (immutability, pure functions)
+- Test behavior, not implementation
+- Use Zod for schema-first development
+
+### Quick Reference
 - Use ES modules (import/export) syntax
-- Destructure imports when possible
-- Use TypeScript for all new code
-- Follow existing naming conventions
+- Prefer `type` over `interface`
+- Never mutate data - return new objects
+- Small, composable functions
+- Use Result types for error handling
 - Add JSDoc comments for public APIs
 - Use async/await instead of Promise chains
-- Prefer const/let over var
 
 ## Workflow Guidelines
 - Always run typecheck after making code changes
