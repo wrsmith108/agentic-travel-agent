@@ -1,0 +1,365 @@
+name: Emergency Operations
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Emergency action to perform'
+        required: true
+        default: 'rollback'
+        type: choice
+        options:
+        - rollback
+        - hotfix-deploy
+        - scale-up
+        - scale-down
+        - restart-services
+        - health-check
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+        - production
+      rollback_point:
+        description: 'Rollback point (auto for latest, or timestamp)'
+        required: false
+        default: 'auto'
+      hotfix_branch:
+        description: 'Hotfix branch name (for hotfix-deploy)'
+        required: false
+      reason:
+        description: 'Reason for emergency action'
+        required: true
+
+env:
+  NODE_VERSION: '18'
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  emergency-rollback:
+    name: Emergency Rollback
+    runs-on: ubuntu-latest
+    if: github.event.inputs.action == 'rollback'
+    environment: ${{ github.event.inputs.environment }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup emergency environment
+      run: |
+        chmod +x scripts/deploy.sh scripts/rollback.sh
+        echo "ENVIRONMENT=${{ github.event.inputs.environment }}" >> $GITHUB_ENV
+        echo "ROLLBACK_POINT=${{ github.event.inputs.rollback_point }}" >> $GITHUB_ENV
+
+    - name: Confirm production rollback
+      if: github.event.inputs.environment == 'production'
+      run: |
+        echo "::warning::PRODUCTION ROLLBACK INITIATED"
+        echo "Reason: ${{ github.event.inputs.reason }}"
+        echo "Rollback point: ${{ github.event.inputs.rollback_point }}"
+
+    - name: Execute emergency rollback
+      run: ./scripts/rollback.sh ${{ env.ENVIRONMENT }} ${{ env.ROLLBACK_POINT }}
+      env:
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+
+    - name: Verify rollback health
+      run: |
+        sleep 30
+        curl -f http://localhost:3001/health || exit 1
+        echo "::notice::Rollback health check passed"
+
+    - name: Create incident issue
+      if: github.event.inputs.environment == 'production'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const { data: issue } = await github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: `🚨 Production Rollback - ${new Date().toISOString()}`,
+            body: `## Emergency Production Rollback
+            
+            **Triggered by:** @${{ github.actor }}
+            **Reason:** ${{ github.event.inputs.reason }}
+            **Rollback Point:** ${{ github.event.inputs.rollback_point }}
+            **Time:** ${new Date().toISOString()}
+            
+            ## Post-Rollback Actions Required
+            - [ ] Verify all services are healthy
+            - [ ] Confirm user-facing functionality
+            - [ ] Review and fix underlying issue
+            - [ ] Plan forward deployment
+            - [ ] Update stakeholders
+            
+            ## Logs
+            - [GitHub Action Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            `,
+            labels: ['incident', 'production', 'rollback'],
+            assignees: ['${{ github.actor }}']
+          });
+          console.log(`Created incident issue #${issue.number}`);
+
+    - name: Emergency notification
+      if: always()
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        channel: '#incidents'
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        fields: repo,message,commit,author,action,eventName,ref,workflow
+        text: |
+          🚨 EMERGENCY ROLLBACK ${{ github.event.inputs.environment }}
+          Reason: ${{ github.event.inputs.reason }}
+          Status: ${{ job.status }}
+
+  hotfix-deploy:
+    name: Emergency Hotfix Deploy
+    runs-on: ubuntu-latest
+    if: github.event.inputs.action == 'hotfix-deploy'
+    environment: ${{ github.event.inputs.environment }}
+    
+    steps:
+    - name: Checkout hotfix branch
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.inputs.hotfix_branch }}
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: backend/package-lock.json
+
+    - name: Run critical tests only
+      working-directory: ./backend
+      run: |
+        npm ci
+        npm run test:critical || echo "::warning::Critical tests failed but proceeding with hotfix"
+      env:
+        NODE_ENV: test
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Build hotfix image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./backend
+        push: true
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:hotfix-${{ github.sha }}
+        platforms: linux/amd64
+
+    - name: Deploy hotfix
+      run: |
+        chmod +x scripts/deploy.sh
+        ./scripts/deploy.sh ${{ github.event.inputs.environment }} hotfix-${{ github.sha }}
+      env:
+        JWT_SECRET: ${{ secrets[format('{0}_JWT_SECRET', github.event.inputs.environment)] }}
+        JWT_REFRESH_SECRET: ${{ secrets[format('{0}_JWT_REFRESH_SECRET', github.event.inputs.environment)] }}
+        SESSION_SECRET: ${{ secrets[format('{0}_SESSION_SECRET', github.event.inputs.environment)] }}
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+
+    - name: Create hotfix documentation
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const { data: issue } = await github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: `🔧 Hotfix Deployment - ${new Date().toISOString()}`,
+            body: `## Emergency Hotfix Deployment
+            
+            **Environment:** ${{ github.event.inputs.environment }}
+            **Branch:** ${{ github.event.inputs.hotfix_branch }}
+            **Deployed by:** @${{ github.actor }}
+            **Reason:** ${{ github.event.inputs.reason }}
+            **Time:** ${new Date().toISOString()}
+            
+            ## Changes Included
+            - Review the commits in branch: ${{ github.event.inputs.hotfix_branch }}
+            
+            ## Post-Deployment Actions
+            - [ ] Verify hotfix functionality
+            - [ ] Monitor error rates and performance
+            - [ ] Plan proper fix for next release
+            - [ ] Update documentation
+            
+            ## Logs
+            - [GitHub Action Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            `,
+            labels: ['hotfix', github.event.inputs.environment],
+            assignees: ['${{ github.actor }}']
+          });
+
+  scale-services:
+    name: Scale Services
+    runs-on: ubuntu-latest
+    if: contains(fromJSON('["scale-up", "scale-down"]'), github.event.inputs.action)
+    environment: ${{ github.event.inputs.environment }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Scale services
+      run: |
+        action="${{ github.event.inputs.action }}"
+        if [[ "$action" == "scale-up" ]]; then
+          docker-compose -f docker-compose.yml up -d --scale backend=3 --scale frontend=2
+        else
+          docker-compose -f docker-compose.yml up -d --scale backend=1 --scale frontend=1
+        fi
+        echo "::notice::Services scaled: $action"
+
+    - name: Verify scaling
+      run: |
+        sleep 20
+        docker-compose -f docker-compose.yml ps
+        curl -f http://localhost:3001/health || exit 1
+
+  restart-services:
+    name: Restart Services
+    runs-on: ubuntu-latest
+    if: github.event.inputs.action == 'restart-services'
+    environment: ${{ github.event.inputs.environment }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Restart all services
+      run: |
+        docker-compose -f docker-compose.yml restart
+        echo "::notice::All services restarted"
+
+    - name: Wait for services
+      run: |
+        sleep 60
+        docker-compose -f docker-compose.yml ps
+
+    - name: Health check after restart
+      run: |
+        curl -f http://localhost:3001/health || exit 1
+        curl -f http://localhost:3001/api/v1/demo/routes || exit 1
+        echo "::notice::Services healthy after restart"
+
+  health-check:
+    name: Emergency Health Check
+    runs-on: ubuntu-latest
+    if: github.event.inputs.action == 'health-check'
+    environment: ${{ github.event.inputs.environment }}
+    
+    steps:
+    - name: Comprehensive health check
+      run: |
+        echo "::group::Service Status"
+        docker-compose -f docker-compose.yml ps
+        echo "::endgroup::"
+        
+        echo "::group::Health Endpoints"
+        curl -v http://localhost:3001/health
+        curl -v http://localhost:3001/api/v1/demo/routes
+        echo "::endgroup::"
+        
+        echo "::group::Resource Usage"
+        docker stats --no-stream
+        echo "::endgroup::"
+        
+        echo "::group::Logs (last 50 lines)"
+        docker-compose -f docker-compose.yml logs --tail=50
+        echo "::endgroup::"
+
+    - name: Generate health report
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const { data: issue } = await github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: `📊 Health Check Report - ${{ github.event.inputs.environment }}`,
+            body: `## Emergency Health Check Report
+            
+            **Environment:** ${{ github.event.inputs.environment }}
+            **Requested by:** @${{ github.actor }}
+            **Reason:** ${{ github.event.inputs.reason }}
+            **Time:** ${new Date().toISOString()}
+            
+            ## Status
+            See action logs for detailed health information
+            
+            ## Action Required
+            - [ ] Review health check results
+            - [ ] Address any identified issues
+            - [ ] Follow up with stakeholders
+            
+            ## Logs
+            - [GitHub Action Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            `,
+            labels: ['health-check', github.event.inputs.environment]
+          });
+
+  audit-log:
+    name: Audit Emergency Action
+    runs-on: ubuntu-latest
+    needs: [emergency-rollback, hotfix-deploy, scale-services, restart-services, health-check]
+    if: always()
+    
+    steps:
+    - name: Log emergency action
+      run: |
+        echo "::notice::Emergency action completed: ${{ github.event.inputs.action }}"
+        echo "Environment: ${{ github.event.inputs.environment }}"
+        echo "Triggered by: ${{ github.actor }}"
+        echo "Reason: ${{ github.event.inputs.reason }}"
+        echo "Status: ${{ job.status }}"
+
+    - name: Send audit notification
+      uses: 8398a7/action-slack@v3
+      with:
+        status: custom
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        custom_payload: |
+          {
+            "text": "Emergency Action Audit Log",
+            "attachments": [
+              {
+                "color": "${{ contains(needs.*.result, 'failure') && 'danger' || 'good' }}",
+                "fields": [
+                  {
+                    "title": "Action",
+                    "value": "${{ github.event.inputs.action }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Environment", 
+                    "value": "${{ github.event.inputs.environment }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Triggered By",
+                    "value": "${{ github.actor }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Reason",
+                    "value": "${{ github.event.inputs.reason }}",
+                    "short": false
+                  }
+                ]
+              }
+            ]
+          }
