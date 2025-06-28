@@ -1,7 +1,7 @@
 import { Result, ok, err } from '../../utils/result';
 import { AppError, ErrorCodes } from '../../middleware/errorHandler';
-import logger from '../../utils/logger';
-
+import createLogger from '../../utils/logger';
+const logger = createLogger('UmetricsService');
 const logInfo = (message: string, context?: any) => logger.info(message, context);
 const logError = (message: string, error?: any, context?: any) => logger.error(message, { error, ...context });
 

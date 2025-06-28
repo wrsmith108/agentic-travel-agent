@@ -20,8 +20,8 @@ import {
   validateUserProfile,
   validateUserDataFile,
 } from '@/schemas/user';
-import logger from '@/utils/logger';
-
+import createLogger from '@/utils/logger';
+const logger = createLogger('UuserDataOperations');
 /**
  * Get the file path for a user's data
  */

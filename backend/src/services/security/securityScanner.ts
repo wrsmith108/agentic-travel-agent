@@ -1,7 +1,7 @@
 import { Result, ok, err, isOk, isErr } from '../../utils/result';
 import { AppError, ErrorCodes } from '../../middleware/errorHandler';
-import logger from '../../utils/logger';
-import * as validator from 'validator';
+import createLogger from '../../utils/logger';
+const logger = createLogger('UsecurityScanner');import * as validator from 'validator';
 import DOMPurify from 'dompurify';
 import { JSDOM } from 'jsdom';
 

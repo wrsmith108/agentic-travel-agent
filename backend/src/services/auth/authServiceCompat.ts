@@ -6,7 +6,8 @@
  */
 
 import { authService as functionalAuth } from './functional';
-import { isOk, isErr, type Result } from './functional/types';
+import { isOk, isErr } from '@/utils/result';
+import { type Result } from './functional/types';
 import { UserDataManager } from '@/services/storage/userDataManager';
 import {
   AuthSuccessResponse,
@@ -37,24 +38,24 @@ class AuthServiceCompat {
     const result = await functionalAuth.register(data as any);
 
     if (isOk(result)) {
-      const { user, sessionId, tokens } = result.value;
+      const { user, session, tokens } = result.value;
       return createAuthSuccess(
         'Registration successful',
         user,
-        sessionId,
+        session.sessionId,
         tokens.accessToken,
         tokens.expiresAt,
         tokens.refreshToken,
         ['user:read', 'user:update']
       );
     } else {
-      const error = result.error;
+      const error = isErr(result) ? result.error : null;
       return createAuthError(
         error.type as any,
         error.message,
-        error.details,
-        error.code,
-        error.requestId
+        undefined,
+        undefined,
+        undefined
       );
     }
   }
@@ -66,24 +67,24 @@ class AuthServiceCompat {
     const result = await functionalAuth.login(data as any);
 
     if (isOk(result)) {
-      const { user, sessionId, tokens } = result.value;
+      const { user, session, tokens } = result.value;
       return createAuthSuccess(
         'Login successful',
         user,
-        sessionId,
+        session.sessionId,
         tokens.accessToken,
         tokens.expiresAt,
         tokens.refreshToken,
         ['user:read', 'user:update', 'user:delete']
       );
     } else {
-      const error = result.error;
+      const error = isErr(result) ? result.error : null;
       return createAuthError(
         error.type as any,
         error.message,
-        error.details,
-        error.code,
-        error.requestId
+        undefined,
+        undefined,
+        undefined
       );
     }
   }
@@ -102,7 +103,7 @@ class AuthServiceCompat {
     } else {
       return {
         success: false,
-        message: result.error.message,
+        message: (isErr(result) ? result.error.message : ""),
       };
     }
   }
@@ -136,10 +137,11 @@ class AuthServiceCompat {
       });
 
       if (isOk(sessionResult) && sessionResult.value) {
+        const session = sessionResult.value as any;
         return {
-          sub: sessionResult.value.id,
-          email: sessionResult.value.email,
-          role: sessionResult.value.role,
+          sub: session.userId,
+          email: session.user?.email || '',
+          role: session.user?.role || 'user',
           sessionId: payload.sessionId,
           iat: payload.iat,
           exp: payload.exp,

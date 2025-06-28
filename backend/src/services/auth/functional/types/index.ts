@@ -237,3 +237,11 @@ export interface ValidationResult<T> {
   data?: T;
   error?: z.ZodError;
 }
+// Re-export operation types
+export type {
+  RegisterInput,
+  LoginInput,
+  LogoutInput,
+  ValidateSessionInput,
+  AuthSuccess,
+} from '../operations';

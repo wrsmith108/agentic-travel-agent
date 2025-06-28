@@ -1,7 +1,7 @@
 import * as lockfile from 'proper-lockfile';
 import { LockOps, FilePath } from './types';
-import logger from '@/utils/logger';
-
+import createLogger from '@/utils/logger';
+const logger = createLogger('UlockOperations');
 /**
  * Create lock operations with proper-lockfile
  */

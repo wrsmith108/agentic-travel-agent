@@ -1,11 +1,12 @@
 import { Router, Request, Response, NextFunction } from 'express';
+import { isErr } from '@/utils/result';
 import rateLimit from 'express-rate-limit';
 import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
 import { authService } from '@/services/auth/authService';
 import { AppError } from '@/middleware/errorHandler';
 import { createRequestLogger } from '@/utils/logger';
-import { getSessionMiddleware, requireAuth, attachSessionInfo } from '@/middleware/session';
+import { getSessionMiddleware, requireAuth, attachSessionInfo, getSessionData, getSessionId } from '@/middleware/session';
 import {
   RegisterRequestSchema,
   LoginRequestSchema,
@@ -161,7 +162,7 @@ router.post(
         const errorResult = result as AuthErrorResponse;
         requestLogger.warn('User registration failed', {
           errorType: errorResult.error.type,
-          message: errorResult.error.message,
+          message: (isErr(errorResult) ? errorResult.error.message : ""),
           email: req.body.email,
         });
 
@@ -269,8 +270,8 @@ router.post(
     const requestLogger = createRequestLogger(req.id || uuidv4());
 
     try {
-      const sessionId = req.sessionId;
-      const userId = req.session?.userId;
+      const sessionId = getSessionId(req);
+      const userId = getSessionData(req)?.userId;
 
       requestLogger.info('Logout attempt started', {
         userId,
@@ -309,8 +310,8 @@ router.get(
     const requestLogger = createRequestLogger(req.id || uuidv4());
 
     try {
-      const userId = req.session?.userId;
-      const sessionId = req.sessionId;
+      const userId = getSessionData(req)?.userId;
+      const sessionId = getSessionId(req);
 
       requestLogger.info('Current user request', {
         userId,
@@ -339,7 +340,7 @@ router.get(
 
       requestLogger.info('Current user request successful', {
         userId,
-        email: req.session?.email,
+        email: getSessionData(req)?.email,
       });
 
       res.status(200).json({
@@ -363,8 +364,8 @@ router.get(
           session: {
             sessionId,
             isActive: true,
-            loginTime: req.session?.loginTime,
-            lastActivity: req.session?.lastActivity,
+            loginTime: getSessionData(req)?.loginTime,
+            lastActivity: getSessionData(req)?.lastActivity,
           },
         },
         timestamp: new Date().toISOString(),
@@ -514,7 +515,7 @@ router.post(
         const errorResult = result as AuthErrorResponse;
         requestLogger.warn('Password reset failed', {
           errorType: errorResult.error.type,
-          message: errorResult.error.message,
+          message: (isErr(errorResult) ? errorResult.error.message : ""),
           token: req.body.token.substring(0, 8) + '...',
         });
 

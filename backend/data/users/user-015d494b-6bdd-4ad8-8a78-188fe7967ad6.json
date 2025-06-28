@@ -1,0 +1,22 @@
+{
+  "profile": {
+    "id": "015d494b-6bdd-4ad8-8a78-188fe7967ad6",
+    "firstName": "Triston",
+    "lastName": "Douglas",
+    "email": "mertie_larson@gmail.com",
+    "passwordHash": "$2a$10$AA0TkvOBlDUKBFcfGlQkSODfF21C0AX0PFsGIqc9B6hVt1wXfOGfy",
+    "preferences": {
+      "currency": "USD",
+      "timezone": "UTC",
+      "preferredDepartureAirport": "JFK",
+      "communicationFrequency": "immediate",
+      "subscriptionTier": "free"
+    },
+    "activeSearches": [],
+    "searchHistory": [],
+    "createdAt": "2025-06-28T04:53:09.065Z",
+    "updatedAt": "2025-06-28T04:53:09.065Z"
+  },
+  "searches": {},
+  "version": "1.0.0"
+}

@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
-import logger from '../utils/logger';
-
+import createLogger from '../utils/logger';
+const logger = createLogger('UerrorHandler');
 // Custom error class
 export class AppError extends Error {
   public statusCode: number;
@@ -51,6 +51,15 @@ export const ErrorCodes = {
   SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
   AUTH_ERROR: 'AUTH_ERROR',
   INTERNAL_ERROR: 'INTERNAL_ERROR',
+  DATABASE_ERROR: 'DATABASE_ERROR',
+  UNAUTHORIZED: 'UNAUTHORIZED',
+  NOT_FOUND: 'NOT_FOUND',
+  CONFLICT: 'CONFLICT',
+  SERVICE_ERROR: 'SERVICE_ERROR',
+  RATE_LIMIT: 'RATE_LIMIT',
+  EXPIRED_TOKEN: 'EXPIRED_TOKEN',
+  TOKEN_REFRESH_FAILED: 'TOKEN_REFRESH_FAILED',
+  FORBIDDEN: 'FORBIDDEN',
 } as const;
 
 // 404 handler

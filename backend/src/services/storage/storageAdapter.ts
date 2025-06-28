@@ -6,8 +6,8 @@
 import { initializeDatabase, DatabaseConfig, getDatabaseConfig } from '@/config/database';
 import { getUserDataManagerOps } from './functional';
 import { getDatabaseUserOps } from './database/userService';
-import logger from '@/utils/logger';
-
+import createLogger from '@/utils/logger';
+const logger = createLogger('UstorageAdapter');
 export type StorageMode = 'database' | 'file';
 
 export interface StorageAdapter {

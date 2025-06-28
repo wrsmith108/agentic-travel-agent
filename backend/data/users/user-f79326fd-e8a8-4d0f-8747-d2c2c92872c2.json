@@ -1,0 +1,22 @@
+{
+  "profile": {
+    "id": "f79326fd-e8a8-4d0f-8747-d2c2c92872c2",
+    "firstName": "Wilhelm",
+    "lastName": "Grant",
+    "email": "freddy31@hotmail.com",
+    "passwordHash": "$2a$10$VdtZwL61w/Xmt8FX2epyWejUGrzpx5O4pU/ERLNVou6462tC3Qpa2",
+    "preferences": {
+      "currency": "USD",
+      "timezone": "UTC",
+      "preferredDepartureAirport": "JFK",
+      "communicationFrequency": "immediate",
+      "subscriptionTier": "free"
+    },
+    "activeSearches": [],
+    "searchHistory": [],
+    "createdAt": "2025-06-28T06:43:18.459Z",
+    "updatedAt": "2025-06-28T06:43:18.459Z"
+  },
+  "searches": {},
+  "version": "1.0.0"
+}

@@ -13,6 +13,8 @@ import type {
   SessionId,
   Email,
   Timestamp,
+} from './types';
+import {
   createTimestamp,
   AUTH_CONSTANTS,
 } from './types';
@@ -262,10 +264,6 @@ export const authService = {
 
 // Export types for external use
 export type {
-  RegisterInput,
-  LoginInput,
-  LogoutInput,
-  ValidateSessionInput,
   Result,
   AuthError,
   UserId,
@@ -280,11 +278,14 @@ export type {
   AuthTokenPair,
 } from './types';
 
+export type {
+  RegisterInput,
+  LoginInput,
+  LogoutInput,
+  ValidateSessionInput,
+} from './operations';
+
 export {
-  ok,
-  err,
-  isOk,
-  isErr,
   createUserId,
   createSessionId,
   createEmail,

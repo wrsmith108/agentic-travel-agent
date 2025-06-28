@@ -4,8 +4,8 @@
 
 import jwt from 'jsonwebtoken';
 import { env } from '@/config/env';
-import { Result, ok, err, tryCatch } from './result';
-import { UserId } from '@/types/brandedTypes';
+import { Result, ok, err, tryCatch, isErr } from './result';
+import { UserId, AccessToken, RefreshToken } from '@/types/brandedTypes';
 
 // JWT payload types
 export interface JWTPayload {
@@ -25,8 +25,8 @@ export interface RefreshTokenPayload {
 }
 
 // Token types
-export type AccessToken = string & { readonly brand: unique symbol };
-export type RefreshToken = string & { readonly brand: unique symbol };
+// Removed - using @/types/brandedTypes: export type AccessToken = string & { readonly brand: unique symbol };
+// Removed - using @/types/brandedTypes: export type RefreshToken = string & { readonly brand: unique symbol };
 
 // Constructors
 export const asAccessToken = (token: string): AccessToken => token as AccessToken;
@@ -181,15 +181,15 @@ export const generateTokenPair = (
     role,
   });
   
-  if (!accessResult.ok) {
-    return accessResult;
+  if (isErr(accessResult)) {
+    return err(accessResult.error);
   }
   
   // Generate refresh token
   const refreshResult = generateRefreshToken(userId, sessionId, rememberMe);
   
-  if (!refreshResult.ok) {
-    return refreshResult;
+  if (isErr(refreshResult)) {
+    return err(refreshResult.error);
   }
   
   return ok({
@@ -235,8 +235,8 @@ export const isTokenExpired = (token: string): boolean => {
  */
 export const getTokenExpiration = (token: string): Result<Date, JWTError> => {
   const decoded = decodeToken(token);
-  if (!decoded.ok) {
-    return decoded;
+  if (isErr(decoded)) {
+    return err(decoded.error);
   }
   
   if (!decoded.value.exp) {
@@ -248,3 +248,5 @@ export const getTokenExpiration = (token: string): Result<Date, JWTError> => {
   
   return ok(new Date(decoded.value.exp * 1000));
 };
+// Re-export branded types from canonical source
+export { AccessToken, RefreshToken } from '@/types/brandedTypes';

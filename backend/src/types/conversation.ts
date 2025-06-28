@@ -5,8 +5,8 @@
 import { z } from 'zod';
 
 // Branded types
-export type ConversationId = string & { readonly brand: unique symbol };
-export type MessageId = string & { readonly brand: unique symbol };
+// Removed - using @/types/brandedTypes: export type ConversationId = string & { readonly brand: unique symbol };
+// Removed - using @/types/brandedTypes: export type MessageId = string & { readonly brand: unique symbol };
 
 // Message schema
 export const MessageSchema = z.object({
@@ -145,3 +145,5 @@ export const createConversationError = (
     details,
   },
 });
+// Re-export branded types from canonical source
+export { ConversationId, MessageId } from '@/types/brandedTypes';

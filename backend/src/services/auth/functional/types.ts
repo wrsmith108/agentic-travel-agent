@@ -5,6 +5,7 @@
 
 import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
+import { UserId, SessionId, Email, HashedPassword, AuthToken, RefreshToken, ResetToken, VerificationToken, IPAddress, UserAgent, DeviceFingerprint, Timestamp } from '@/types/brandedTypes';
 
 // ============================================================================
 // Brand Symbols - Unique symbols for nominal typing
@@ -27,24 +28,21 @@ declare const TimestampBrand: unique symbol;
 // Branded Type Definitions
 // ============================================================================
 
-export type UserId = string & { readonly [UserIdBrand]: typeof UserIdBrand };
-export type SessionId = string & { readonly [SessionIdBrand]: typeof SessionIdBrand };
-export type HashedPassword = string & {
-  readonly [HashedPasswordBrand]: typeof HashedPasswordBrand;
-};
-export type AuthToken = string & { readonly [AuthTokenBrand]: typeof AuthTokenBrand };
-export type RefreshToken = string & { readonly [RefreshTokenBrand]: typeof RefreshTokenBrand };
-export type ResetToken = string & { readonly [ResetTokenBrand]: typeof ResetTokenBrand };
-export type VerificationToken = string & {
-  readonly [VerificationTokenBrand]: typeof VerificationTokenBrand;
-};
-export type Email = string & { readonly [EmailBrand]: typeof EmailBrand };
-export type IPAddress = string & { readonly [IPAddressBrand]: typeof IPAddressBrand };
-export type UserAgent = string & { readonly [UserAgentBrand]: typeof UserAgentBrand };
-export type DeviceFingerprint = string & {
-  readonly [DeviceFingerprintBrand]: typeof DeviceFingerprintBrand;
-};
-export type Timestamp = string & { readonly [TimestampBrand]: typeof TimestampBrand };
+// Re-export branded types from central location
+export {
+  UserId,
+  SessionId,
+  HashedPassword,
+  AuthToken,
+  RefreshToken,
+  ResetToken,
+  VerificationToken,
+  Email,
+  IPAddress,
+  UserAgent,
+  DeviceFingerprint,
+  Timestamp
+} from '@/types/brandedTypes';
 
 // ============================================================================
 // Validation Schemas
@@ -330,36 +328,10 @@ export interface EmailVerificationTokenData {
 }
 
 // ============================================================================
-// Result Type for Functional Error Handling
+// Re-export Result types from utils for convenience
 // ============================================================================
 
-export type Ok<T> = { readonly ok: true; readonly value: T };
-export type Err<E> = { readonly ok: false; readonly error: E };
-export type Result<T, E> = Ok<T> | Err<E>;
-
-export const ok = <T>(value: T): Ok<T> => ({ ok: true, value });
-export const err = <E>(error: E): Err<E> => ({ ok: false, error });
-
-export const isOk = <T, E>(result: Result<T, E>): result is Ok<T> => result.ok;
-export const isErr = <T, E>(result: Result<T, E>): result is Err<E> => !result.ok;
-
-// Result utility functions
-export const map = <T, U, E>(result: Result<T, E>, fn: (value: T) => U): Result<U, E> =>
-  isOk(result) ? ok(fn(result.value)) : result;
-
-export const flatMap = <T, U, E>(
-  result: Result<T, E>,
-  fn: (value: T) => Result<U, E>
-): Result<U, E> => (isOk(result) ? fn(result.value) : result);
-
-export const mapErr = <T, E, F>(result: Result<T, E>, fn: (error: E) => F): Result<T, F> =>
-  isErr(result) ? err(fn(result.error)) : result;
-
-export const unwrapOr = <T, E>(result: Result<T, E>, defaultValue: T): T =>
-  isOk(result) ? result.value : defaultValue;
-
-export const unwrapOrElse = <T, E>(result: Result<T, E>, fn: (error: E) => T): T =>
-  isOk(result) ? result.value : fn(result.error);
+export type { Result } from '@/utils/result';
 
 // ============================================================================
 // Auth Error Types
@@ -428,3 +400,4 @@ export const AUTH_CONSTANTS = {
     MAX_PASSWORD_LENGTH: 128,
   },
 } as const;
+

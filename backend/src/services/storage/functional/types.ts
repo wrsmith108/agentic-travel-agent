@@ -5,11 +5,10 @@ import {
   UpdateUserProfile,
   FlightSearch,
 } from '@/schemas/user';
+import { UserId, FilePath, Email } from '@/types/brandedTypes';
 
 // Branded types for type safety
-export type UserId = string & { readonly brand: unique symbol };
-export type FilePath = string & { readonly brand: unique symbol };
-export type Email = string & { readonly brand: unique symbol };
+// Now imported from @/types/brandedTypes
 
 // Type guards and constructors
 export const asUserId = (id: string): UserId => id as UserId;
@@ -70,3 +69,6 @@ export class UserAlreadyExistsError extends Error {
     this.name = 'UserAlreadyExistsError';
   }
 }
+
+// Re-export branded types from canonical source
+export { UserId, Email, FilePath } from '@/types/brandedTypes';

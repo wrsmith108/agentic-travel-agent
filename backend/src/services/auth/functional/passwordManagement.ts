@@ -5,28 +5,18 @@
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import type {
-  PlainPassword,
   HashedPassword,
   UserId,
   ResetToken,
-  RequestId,
+  AuthError,
+  PasswordResetTokenData,
 } from './types';
 import {
-  PlainPassword as createPlainPassword,
-  HashedPassword as createHashedPassword,
-  ResetToken as createResetToken,
+  createHashedPassword,
+  createResetToken,
 } from './types';
-import type {
-  Result,
-  AuthError,
-  PasswordStorage,
-  TokenStorage,
-  PasswordResetTokenRecord,
-  Logger,
-  IdGenerator,
-  TimeProvider,
-} from './types';
-import { ok, err } from './types';
+import { Result, ok, err } from '@/utils/result';
+import type { PlainTextPassword } from './password';
 import { AUTH_CONSTANTS } from '@/schemas/auth';
 
 /**

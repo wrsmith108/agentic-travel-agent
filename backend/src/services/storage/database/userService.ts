@@ -11,8 +11,8 @@ import {
   validateUserProfile,
 } from '@/schemas/user';
 import { executeQuery, executeTransaction } from '@/config/database';
-import logger from '@/utils/logger';
-
+import createLogger from '@/utils/logger';
+const logger = createLogger('UuserService');
 // Re-export branded types for compatibility
 export type UserId = string & { readonly brand: unique symbol };
 export type Email = string & { readonly brand: unique symbol };

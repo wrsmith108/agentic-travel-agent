@@ -5,6 +5,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { Result, ok, err } from '../../utils/result';
+import { isOk, isErr } from '../../utils/result';
 import { AppError, ErrorCodes } from '../../middleware/errorHandler';
 import { enhancedAmadeusService } from './enhancedAmadeusService';
 import { getRedisClient } from '../redis/redisClient';
@@ -77,11 +78,11 @@ export class FlightSearchService {
       // Search flights using Amadeus service
       const searchResult = await enhancedAmadeusService.searchFlights(validatedQuery, advancedOptions);
       
-      if (!searchResult.success) {
+      if (!isOk(searchResult)) {
         return err(searchResult.error);
       }
 
-      const flights = searchResult.data;
+      const flights = searchResult.value;
 
       // Apply user preferences if provided
       let filteredFlights = flights;
@@ -204,8 +205,8 @@ export class FlightSearchService {
         const key = `saved-search:${userId}:${searchId}`;
         const searchResult = await this.redisClient.get(key);
         
-        if (searchResult.success && searchResult.data) {
-          const search: SavedSearch = JSON.parse(searchResult.data);
+        if (isOk(searchResult) && searchResult.value) {
+          const search: SavedSearch = JSON.parse(searchResult.value);
           if (search.isActive && (!search.expiresAt || new Date(search.expiresAt) > new Date())) {
             searches.push(search);
           }
@@ -266,11 +267,11 @@ export class FlightSearchService {
           savedSearch.advancedOptions
         );
 
-        if (searchResult.success && searchResult.data.length > 0) {
+        if (isOk(searchResult) && searchResult.value.length > 0) {
           // Find the best price
-          const prices = searchResult.data.map(f => parseFloat(f.price.grandTotal));
+          const prices = searchResult.value.map(f => parseFloat(f.price.grandTotal));
           const currentBestPrice = Math.min(...prices);
-          const bestFlight = searchResult.data.find(f => parseFloat(f.price.grandTotal) === currentBestPrice);
+          const bestFlight = searchResult.value.find(f => parseFloat(f.price.grandTotal) === currentBestPrice);
 
           // Get previous best price
           const priceHistoryKey = `price-history:${savedSearch.id}`;
@@ -333,11 +334,11 @@ export class FlightSearchService {
       const key = `price-alerts:${userId}`;
       const result = await this.redisClient.get(key);
       
-      if (!result.success || !result.data) {
+      if (!isOk(result) || !result.value) {
         return ok([]);
       }
 
-      let alerts: PriceAlert[] = JSON.parse(result.data);
+      let alerts: PriceAlert[] = JSON.parse(result.value);
       
       // Filter expired alerts
       const now = new Date();
@@ -366,11 +367,11 @@ export class FlightSearchService {
       const key = `price-alerts:${userId}`;
       const result = await this.redisClient.get(key);
       
-      if (!result.success || !result.data) {
+      if (!isOk(result) || !result.value) {
         return err(new AppError(404, 'Alert not found', ErrorCodes.NOT_FOUND));
       }
 
-      const alerts: PriceAlert[] = JSON.parse(result.data);
+      const alerts: PriceAlert[] = JSON.parse(result.value);
       const alert = alerts.find(a => a.id === alertId);
       
       if (!alert) {
@@ -546,8 +547,8 @@ export class FlightSearchService {
       const result = await this.redisClient.get(key);
       
       let histories: FlightSearchHistory[] = [];
-      if (result.success && result.data) {
-        histories = JSON.parse(result.data);
+      if (isOk(result) && result.value) {
+        histories = JSON.parse(result.value);
       }
 
       // Keep only last 100 searches
@@ -574,11 +575,11 @@ export class FlightSearchService {
       const key = `route-price-history:${origin}-${destination}`;
       const result = await this.redisClient.get(key);
       
-      if (!result.success || !result.data) {
+      if (!isOk(result) || !result.value) {
         return [];
       }
 
-      const allHistory: FlightPriceHistory[] = JSON.parse(result.data);
+      const allHistory: FlightPriceHistory[] = JSON.parse(result.value);
       
       // Filter by date range (within 30 days)
       const targetDate = new Date(date);
@@ -604,8 +605,8 @@ export class FlightSearchService {
       const result = await this.redisClient.get(key);
       
       let alerts: PriceAlert[] = [];
-      if (result.success && result.data) {
-        alerts = JSON.parse(result.data);
+      if (isOk(result) && result.value) {
+        alerts = JSON.parse(result.value);
       }
 
       alerts.push(alert);
@@ -630,8 +631,8 @@ export class FlightSearchService {
       const result = await this.redisClient.get(key);
       
       let history: number[] = [];
-      if (result.success && result.data) {
-        history = JSON.parse(result.data);
+      if (isOk(result) && result.value) {
+        history = JSON.parse(result.value);
       }
 
       history.push(price);

@@ -201,6 +201,7 @@ export const SavedSearchSchema = z.object({
     enabled: z.boolean(),
     targetPrice: z.number().positive().optional(),
     percentDrop: z.number().min(1).max(100).optional(),
+    checkFrequency: z.number().min(1).max(168).optional(), // hours
   }).optional(),
   frequency: z.enum(['DAILY', 'WEEKLY', 'MONTHLY']).optional(),
   expiresAt: z.string().datetime().optional(),

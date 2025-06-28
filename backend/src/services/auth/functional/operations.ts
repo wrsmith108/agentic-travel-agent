@@ -15,16 +15,9 @@ import type {
   AuthUser,
   AuthSession,
   AuthTokenPair,
-  AUTH_CONSTANTS,
-  createUserId,
-  createSessionId,
-  createEmail,
-  createTimestamp,
-  isTimestampExpired,
-  addSecondsToTimestamp,
-  ok,
-  err,
 } from './types';
+import { ok, err } from '@/utils/result';
+import { AUTH_CONSTANTS, createUserId, createSessionId, createEmail, createTimestamp, isTimestampExpired, addSecondsToTimestamp,  } from './types';
 import type {
   PasswordStorageOps,
   SessionStorageOps,
@@ -89,11 +82,11 @@ export async function register(
       updatedAt: now,
     };
 
-    await deps.storage.accountStatus.create(userId, accountStatus);
+    await deps.storage.accountStatus.create(userId as any, accountStatus);
 
     // Create session
     const sessionId = createSessionId();
-    const session: AuthSession = {
+    const session: any = {
       sessionId,
       userId,
       createdAt: now,
@@ -227,7 +220,7 @@ export async function login(
       ? AUTH_CONSTANTS.SESSION_DURATION.REMEMBER_ME
       : AUTH_CONSTANTS.SESSION_DURATION.DEFAULT;
 
-    const session: AuthSession = {
+    const session: any = {
       sessionId,
       userId,
       createdAt: now,
@@ -366,7 +359,7 @@ export async function validateSession(
 // Helper Types
 // ============================================================================
 
-interface AuthSuccess {
+export interface AuthSuccess {
   user: {
     id: UserId;
     email: Email;

@@ -5,7 +5,7 @@ import compression from 'compression';
 import morgan from 'morgan';
 import session from 'express-session';
 import { env } from './config/env';
-import logger from './utils/logger';
+import createLogger, { logger } from './utils/logger';
 import { requestLoggingMiddleware, getHealthStatus, getSimpleMetrics } from './utils/monitoring';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { globalRateLimiter } from './middleware/rateLimiting';
@@ -13,6 +13,7 @@ import { sanitizeInputs } from './middleware/inputSanitization';
 import { auditLog } from './middleware/costControl';
 import { initializeStorage, logStorageCapabilities } from './services/storage/storageAdapter';
 import { initializeSessionStore, logSessionStoreCapabilities, getSessionStoreConfig } from './config/sessionStore';
+import { priceMonitoringProcessor } from './services/batch/priceMonitoringProcessor';
 import type { Request, Response } from 'express';
 
 // Extend Express Request type
@@ -150,9 +151,15 @@ app.use('/api/v1/demo', demoRoutes);
 // Additional routes
 import conversationRoutes from './routes/conversation';
 import flightRoutes from './routes/flights';
+import monitoringRoutes from './routes/monitoring';
+import travelAgentRoutes from './routes/travelAgent';
+import preferencesRoutes from './routes/preferences';
 
 app.use('/api/v1/conversations', conversationRoutes);
 app.use('/api/v1/flights', flightRoutes);
+app.use('/api/v1/monitoring', monitoringRoutes);
+app.use('/api/v1/travel-agent', travelAgentRoutes);
+app.use('/api/v1/preferences', preferencesRoutes);
 
 // Additional routes will be added here
 // app.use('/api/v1/users', userRoutes);
@@ -190,6 +197,12 @@ async function startServer() {
     // Add session middleware to app
     app.use(sessionMiddleware);
     
+    // Start price monitoring processor if not in test environment
+    if (env.NODE_ENV !== 'test' && env.FEATURE_EMAIL_NOTIFICATIONS) {
+      logger.info('🔍 Starting price monitoring processor');
+      priceMonitoringProcessor.start(env.PRICE_MONITOR_CRON_PATTERN);
+    }
+    
     // Start server
     const PORT = env.PORT;
     const HOST = env.HOST;
@@ -199,6 +212,7 @@ async function startServer() {
       logger.info(`📊 Environment: ${env.NODE_ENV}`);
       logger.info(`🔧 Demo mode: ${env.FEATURE_DEMO_MODE ? 'ON' : 'OFF'}`);
       logger.info(`📧 Email Notifications: ${env.FEATURE_EMAIL_NOTIFICATIONS ? 'ON' : 'OFF'}`);
+      logger.info(`🔍 Price Monitoring: ${env.FEATURE_EMAIL_NOTIFICATIONS ? 'ON' : 'OFF'}`);
     });
 
     return server;
@@ -218,6 +232,10 @@ const serverPromise = startServer().then(server => {
 // Graceful shutdown
 const gracefulShutdown = (): void => {
   logger.info('🛑 Received shutdown signal, closing server gracefully...');
+
+  // Stop price monitoring processor
+  priceMonitoringProcessor.stop();
+  logger.info('🔍 Price monitoring processor stopped');
 
   if (serverInstance) {
     serverInstance.close(() => {

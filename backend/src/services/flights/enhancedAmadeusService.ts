@@ -4,7 +4,7 @@
  */
 
 import Amadeus from 'amadeus';
-import { Result, ok, err } from '../../utils/result';
+import { Result, ok, err, isOk, isErr } from '../../utils/result';
 import { env } from '../../config/env';
 import { AppError, ErrorCodes } from '../../middleware/errorHandler';
 import {
@@ -76,7 +76,7 @@ export class EnhancedAmadeusService {
     try {
       // Check rate limit
       const rateLimitCheck = await this.checkRateLimit('search');
-      if (!rateLimitCheck.success) {
+      if (!isOk(rateLimitCheck)) {
         return err(rateLimitCheck.error);
       }
 
@@ -152,8 +152,8 @@ export class EnhancedAmadeusService {
       // Combine and deduplicate results
       const allOffers: FlightOffer[] = [];
       for (const result of results) {
-        if (result.success && result.data) {
-          allOffers.push(...result.data);
+        if (result.ok && result.value) {
+          allOffers.push(...result.value);
         }
       }
 
@@ -214,7 +214,7 @@ export class EnhancedAmadeusService {
     try {
       // Check rate limit
       const rateLimitCheck = await this.checkRateLimit('price');
-      if (!rateLimitCheck.success) {
+      if (!isOk(rateLimitCheck)) {
         return err(rateLimitCheck.error);
       }
 
@@ -279,7 +279,7 @@ export class EnhancedAmadeusService {
     try {
       // Check rate limit
       const rateLimitCheck = await this.checkRateLimit('booking');
-      if (!rateLimitCheck.success) {
+      if (!isOk(rateLimitCheck)) {
         return err(rateLimitCheck.error);
       }
 
@@ -538,8 +538,8 @@ export class EnhancedAmadeusService {
   private async getFromCache(key: string): Promise<any | null> {
     try {
       const result = await this.redisClient.get(key);
-      if (result.success && result.data) {
-        return JSON.parse(result.data);
+      if (result.ok && result.value) {
+        return JSON.parse(result.value);
       }
       return null;
     } catch {

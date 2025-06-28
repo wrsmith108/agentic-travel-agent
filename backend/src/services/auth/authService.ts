@@ -218,6 +218,56 @@ class AuthService {
   }
 
   /**
+   * Validate user credentials (email and password) without creating session
+   */
+  async validateCredentials(email: string, password: string): Promise<{ success: boolean; user?: UserProfile; message?: string }> {
+    try {
+      // Find user by email
+      const userProfile = await this.userDataManager.findUserByEmail(email);
+      if (!userProfile) {
+        await this.recordFailedLoginAttempt(email);
+        return { success: false, message: 'Invalid email or password' };
+      }
+
+      // Check account status
+      const accountStatus = await this.getUserAccountStatus(userProfile.id);
+      if (accountStatus.isAccountLocked) {
+        return { success: false, message: 'Account is locked' };
+      }
+
+      if (accountStatus.isAccountSuspended) {
+        return { success: false, message: 'Account is suspended' };
+      }
+
+      // Verify password
+      const storedPasswordHash = await this.getUserPasswordHash(userProfile.id);
+      if (!storedPasswordHash) {
+        logError('Password hash not found for user', null, { userId: userProfile.id });
+        return { success: false, message: 'Authentication system error' };
+      }
+
+      const passwordValid = await bcrypt.compare(password, storedPasswordHash);
+      if (!passwordValid) {
+        await this.recordFailedLoginAttempt(email);
+        return { success: false, message: 'Invalid email or password' };
+      }
+
+      // Check email verification if required
+      if (env.REQUIRE_EMAIL_VERIFICATION && !accountStatus.isEmailVerified) {
+        return { success: false, message: 'Please verify your email address before logging in' };
+      }
+
+      // Clear failed login attempts on successful authentication
+      this.cleanupFailedLoginAttempts();
+
+      return { success: true, user: userProfile };
+    } catch (error) {
+      logError('Credential validation failed', error, { email });
+      return { success: false, message: 'Authentication system error' };
+    }
+  }
+
+  /**
    * Authenticate user login with password verification and security checks
    */
   async loginUser(data: unknown): Promise<AuthSuccessResponse | AuthErrorResponse> {

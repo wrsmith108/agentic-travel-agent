@@ -4,6 +4,7 @@
  */
 
 import axios from 'axios';
+import { isErr } from '@/utils/result';
 import { v4 as uuidv4 } from 'uuid';
 
 const API_BASE_URL = 'http://localhost:3001/api/v1';
@@ -95,7 +96,7 @@ async function runTests() {
         throw new Error('Expected registration to fail but it succeeded');
       } catch (error) {
         if (axios.isAxiosError(error) && error.response?.status === 409) {
-          console.log('   Expected error:', error.response.data.error.type);
+          console.log('   Expected error:', isErr(error.response.data) ? error.response.data.error : error.response.data.type);
         } else {
           throw error;
         }
@@ -130,7 +131,7 @@ async function runTests() {
         throw new Error('Expected login to fail but it succeeded');
       } catch (error) {
         if (axios.isAxiosError(error) && error.response?.status === 401) {
-          console.log('   Expected error:', error.response.data.error.type);
+          console.log('   Expected error:', isErr(error.response.data) ? error.response.data.error : error.response.data.type);
         } else {
           throw error;
         }
@@ -161,7 +162,7 @@ async function runTests() {
         throw new Error('Expected request to fail but it succeeded');
       } catch (error) {
         if (axios.isAxiosError(error) && error.response?.status === 401) {
-          console.log('   Expected error:', error.response.data.error.type);
+          console.log('   Expected error:', isErr(error.response.data) ? error.response.data.error : error.response.data.type);
         } else {
           throw error;
         }

@@ -17,8 +17,20 @@ export type ResetToken = Brand<string, 'ResetToken'>;
 export type VerificationToken = Brand<string, 'VerificationToken'>;
 export type DeviceFingerprint = Brand<string, 'DeviceFingerprint'>;
 export type IpAddress = Brand<string, 'IpAddress'>;
+export type IPAddress = IpAddress; // Alias for compatibility
 export type UserAgent = Brand<string, 'UserAgent'>;
 export type RequestId = Brand<string, 'RequestId'>;
+export type AccessToken = Brand<string, 'AccessToken'>;
+export type AuthToken = Brand<string, 'AuthToken'>;
+export type PasswordResetToken = Brand<string, 'PasswordResetToken'>;
+export type EmailVerificationToken = Brand<string, 'EmailVerificationToken'>;
+
+// File system types
+export type FilePath = Brand<string, 'FilePath'>;
+
+// Conversation types
+export type ConversationId = Brand<string, 'ConversationId'>;
+export type MessageId = Brand<string, 'MessageId'>;
 
 // Time-related branded types
 export type Timestamp = Brand<string, 'Timestamp'>;
@@ -38,8 +50,16 @@ export const DeviceFingerprint = (value: string): DeviceFingerprint => value as 
 export const IpAddress = (value: string): IpAddress => value as IpAddress;
 export const UserAgent = (value: string): UserAgent => value as UserAgent;
 export const RequestId = (value: string): RequestId => value as RequestId;
+export const AccessToken = (value: string): AccessToken => value as AccessToken;
+export const AuthToken = (value: string): AuthToken => value as AuthToken;
+export const PasswordResetToken = (value: string): PasswordResetToken => value as PasswordResetToken;
+export const EmailVerificationToken = (value: string): EmailVerificationToken => value as EmailVerificationToken;
+export const FilePath = (value: string): FilePath => value as FilePath;
+export const ConversationId = (value: string): ConversationId => value as ConversationId;
+export const MessageId = (value: string): MessageId => value as MessageId;
 export const Timestamp = (value: string): Timestamp => value as Timestamp;
 export const Duration = (value: number): Duration => value as Duration;
+export const IPAddress = IpAddress; // Alias for compatibility
 
 // Type guards
 export const isUserId = (value: unknown): value is UserId =>

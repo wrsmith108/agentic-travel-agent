@@ -1,8 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Result, ok, err } from '../../utils/result';
 import { AppError, ErrorCodes } from '../../middleware/errorHandler';
-import logger from '../../utils/logger';
-
+import createLogger from '../../utils/logger';
+const logger = createLogger('UerrorTracker');
 const logError = (message: string, error?: any, context?: any) => logger.error(message, { error, ...context });
 const logWarn = (message: string, context?: any) => logger.warn(message, context);
 

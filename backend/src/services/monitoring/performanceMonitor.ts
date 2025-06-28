@@ -1,8 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Result, ok, err } from '../../utils/result';
 import { AppError, ErrorCodes } from '../../middleware/errorHandler';
-import logger from '../../utils/logger';
-
+import createLogger from '../../utils/logger';
+const logger = createLogger('UperformanceMonitor');
 const logWarn = (message: string, context?: any) => logger.warn(message, context);
 
 interface TransactionContext {
@@ -199,7 +199,7 @@ export class PerformanceMonitor {
       existing.minDuration = Math.min(existing.minDuration, transaction.duration);
       existing.maxDuration = Math.max(existing.maxDuration, transaction.duration);
       
-      if (transaction.error) {
+      if (isErr(transaction)) {
         existing.errorCount++;
       }
       

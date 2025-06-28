@@ -4,7 +4,7 @@
  */
 
 import { createClient } from 'redis';
-import { Result, ok, err } from '../../utils/result';
+import { Result, ok, err, isOk } from '../../utils/result';
 import { AppError, ErrorCodes } from '../../middleware/errorHandler';
 
 export interface RedisConfig {
@@ -117,7 +117,7 @@ export class RedisClient {
     try {
       if (!this.isConnected) {
         const connectResult = await this.connect();
-        if (!connectResult.success) {
+        if (!isOk(connectResult)) {
           return err(connectResult.error);
         }
       }
@@ -138,7 +138,7 @@ export class RedisClient {
 
       if (!this.isConnected) {
         const connectResult = await this.connect();
-        if (!connectResult.success) {
+        if (!isOk(connectResult)) {
           return err(connectResult.error);
         }
       }
@@ -164,7 +164,7 @@ export class RedisClient {
 
       if (!this.isConnected) {
         const connectResult = await this.connect();
-        if (!connectResult.success) {
+        if (!isOk(connectResult)) {
           return err(connectResult.error);
         }
       }
@@ -185,7 +185,7 @@ export class RedisClient {
 
       if (!this.isConnected) {
         const connectResult = await this.connect();
-        if (!connectResult.success) {
+        if (!isOk(connectResult)) {
           return err(connectResult.error);
         }
       }
@@ -206,7 +206,7 @@ export class RedisClient {
 
       if (!this.isConnected) {
         const connectResult = await this.connect();
-        if (!connectResult.success) {
+        if (!isOk(connectResult)) {
           return err(connectResult.error);
         }
       }
@@ -231,7 +231,7 @@ export class RedisClient {
 
       if (!this.isConnected) {
         const connectResult = await this.connect();
-        if (!connectResult.success) {
+        if (!isOk(connectResult)) {
           return err(connectResult.error);
         }
       }
@@ -252,7 +252,7 @@ export class RedisClient {
 
       if (!this.isConnected) {
         const connectResult = await this.connect();
-        if (!connectResult.success) {
+        if (!isOk(connectResult)) {
           return err(connectResult.error);
         }
       }
@@ -273,7 +273,7 @@ export class RedisClient {
 
       if (!this.isConnected) {
         const connectResult = await this.connect();
-        if (!connectResult.success) {
+        if (!isOk(connectResult)) {
           return err(connectResult.error);
         }
       }
@@ -290,7 +290,7 @@ export class RedisClient {
     try {
       if (!this.isConnected) {
         const connectResult = await this.connect();
-        if (!connectResult.success) {
+        if (!isOk(connectResult)) {
           return err(connectResult.error);
         }
       }
@@ -311,7 +311,7 @@ export class RedisClient {
 
       if (!this.isConnected) {
         const connectResult = await this.connect();
-        if (!connectResult.success) {
+        if (!isOk(connectResult)) {
           return err(connectResult.error);
         }
       }
@@ -346,7 +346,7 @@ export class RedisClient {
 
       if (!this.isConnected) {
         const connectResult = await this.connect();
-        if (!connectResult.success) {
+        if (!isOk(connectResult)) {
           return err(connectResult.error);
         }
       }

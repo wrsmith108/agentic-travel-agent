@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
 import { env } from '../config/env';
-import logger from './logger';
-
+import createLogger from './logger';
+const logger = createLogger('Umonitoring');
 // Simple request logging middleware
 export const requestLoggingMiddleware = (req: Request, res: Response, next: NextFunction): void => {
   const start = Date.now();

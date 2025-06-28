@@ -1,8 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Result, ok, err } from '../../utils/result';
 import { AppError, ErrorCodes } from '../../middleware/errorHandler';
-import logger from '../../utils/logger';
-
+import createLogger from '../../utils/logger';
+const logger = createLogger('UauditLogger');
 type RiskLevel = 'low' | 'medium' | 'high' | 'critical';
 type LogCategory = 'auth' | 'data' | 'security' | 'admin' | 'system';
 

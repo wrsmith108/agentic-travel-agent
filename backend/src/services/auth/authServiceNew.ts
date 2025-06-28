@@ -4,7 +4,8 @@
 
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
-import { Result, ok, err, flatMap, map } from '@/utils/result';
+import { Result, ok, err, flatMap, map, isErr } from '@/utils/result';
+import { castUserId } from '@/utils/brandedTypeUtils';
 import { 
   generateTokenPair, 
   verifyAccessToken, 
@@ -93,7 +94,7 @@ export const register = async (
     const userId = asUserId(newUser.id);
 
     // Create session
-    const sessionResult = createSession(userId, {
+    const sessionResult = createSession(castUserId(userId), {
       ipAddress: undefined,
       userAgent: undefined,
     });
@@ -131,7 +132,7 @@ export const register = async (
         createdAt: newUser.createdAt,
         emailVerified: false,
         role: 'user',
-        lastLoginAt: new Date().toISOString(),
+        lastLogin: new Date().toISOString(),
       },
       accessToken,
       refreshToken,
@@ -187,7 +188,7 @@ export const login = async (
     }
 
     // Create session
-    const sessionResult = createSession(userId, {
+    const sessionResult = createSession(castUserId(userId), {
       rememberMe: data.rememberMe,
       ipAddress: undefined,
       userAgent: undefined,
@@ -231,7 +232,7 @@ export const login = async (
         createdAt: user.createdAt,
         emailVerified: false,
         role: 'user',
-        lastLoginAt: new Date().toISOString(),
+        lastLogin: new Date().toISOString(),
       },
       accessToken,
       refreshToken,
@@ -279,8 +280,8 @@ export const refreshAccessToken = async (
   try {
     // Verify refresh token
     const tokenResult = verifyRefreshToken(asRefreshToken(refreshToken));
-    if (!tokenResult.ok) {
-      return tokenResult;
+    if (isErr(tokenResult)) {
+      return err(tokenResult.error);
     }
 
     const tokenPayload = tokenResult.value;

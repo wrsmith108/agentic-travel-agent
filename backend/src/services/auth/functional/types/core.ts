@@ -7,23 +7,23 @@
 type Brand<K, T> = K & { readonly __brand: T };
 
 // User-related branded types
-export type UserId = Brand<string, 'UserId'>;
-export type Email = Brand<string, 'Email'>;
-export type HashedPassword = Brand<string, 'HashedPassword'>;
-export type PlainPassword = Brand<string, 'PlainPassword'>;
+// Removed - using @/types/brandedTypes: export type UserId = Brand<string, 'UserId'>;
+// Removed - using @/types/brandedTypes: export type Email = Brand<string, 'Email'>;
+// Removed - using @/types/brandedTypes: export type HashedPassword = Brand<string, 'HashedPassword'>;
+// Removed - using @/types/brandedTypes: export type PlainPassword = Brand<string, 'PlainPassword'>;
 
 // Session-related branded types
-export type SessionId = Brand<string, 'SessionId'>;
-export type AccessToken = Brand<string, 'AccessToken'>;
-export type RefreshToken = Brand<string, 'RefreshToken'>;
+// Removed - using @/types/brandedTypes: export type SessionId = Brand<string, 'SessionId'>;
+// Removed - using @/types/brandedTypes: export type AccessToken = Brand<string, 'AccessToken'>;
+// Removed - using @/types/brandedTypes: export type RefreshToken = Brand<string, 'RefreshToken'>;
 
 // Token-related branded types
 export type PasswordResetToken = Brand<string, 'PasswordResetToken'>;
 export type EmailVerificationToken = Brand<string, 'EmailVerificationToken'>;
 
 // Time-related branded types
-export type Timestamp = Brand<string, 'Timestamp'>; // ISO 8601 format
-export type Duration = Brand<number, 'Duration'>; // seconds
+// Removed - using @/types/brandedTypes: export type Timestamp = Brand<string, 'Timestamp'>; // ISO 8601 format
+// Removed - using @/types/brandedTypes: export type Duration = Brand<number, 'Duration'>; // seconds
 
 // Type guards
 export const isUserId = (value: unknown): value is UserId =>
@@ -104,3 +104,6 @@ export const Duration = (value: number): Duration => {
 
 // Helper functions for branded types
 export const unwrap = <T>(branded: Brand<T, unknown>): T => branded as unknown as T;
+
+// Re-export branded types from canonical source
+export { UserId, Email, HashedPassword, PlainPassword, SessionId, AccessToken, RefreshToken, Timestamp, Duration } from '@/types/brandedTypes';

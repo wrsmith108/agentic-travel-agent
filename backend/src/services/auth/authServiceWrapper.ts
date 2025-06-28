@@ -8,7 +8,16 @@ import { AuthSuccess, AuthError } from '@/types/auth';
  */
 const convertToAuthSuccess = (response: AuthSuccessResponse): AuthSuccess => {
   return {
-    user: response.data.user,
+    user: {
+      id: response.data.user.id!,
+      firstName: response.data.user.firstName!,
+      lastName: response.data.user.lastName!,
+      email: response.data.user.email!,
+      createdAt: response.data.user.createdAt!,
+      emailVerified: response.data.user.emailVerified!,
+      role: response.data.user.role!,
+      lastLoginAt: response.data.user.lastLoginAt,
+    },
     accessToken: response.data.accessToken,
     refreshToken: response.data.refreshToken,
     expiresAt: response.data.expiresAt,

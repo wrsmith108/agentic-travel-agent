@@ -205,7 +205,7 @@ export const sendMessage = async (
     // Get conversation
     const convResult = getConversation(conversationId, userId);
     if (!convResult.ok) {
-      return convResult;
+      return err((convResult as any).error);
     }
     
     const conversation = convResult.value;
@@ -294,7 +294,7 @@ const formatAgentResponse = (rawContent: string): string => {
   // Clean up questions and remove them from main content
   const cleanQuestions = questions
     .map(q => q.trim())
-    .filter(q => q.length > 5 && !q.includes('wondering') && !q.includes('asking'))
+    .filter(q => q.length > 5 && !q?.includes('wondering') && !q?.includes('asking'))
     .map(q => {
       // Remove leading connectors and clean up
       return q.replace(/^(and|or|but|so|also|additionally)\s+/i, '')
@@ -308,7 +308,7 @@ const formatAgentResponse = (rawContent: string): string => {
   let mainContent = content;
   cleanQuestions.forEach(q => {
     // Try to remove the question and surrounding context
-    const originalQ = questions.find(orig => orig.includes(q.split('?')[0]));
+    const originalQ = questions.find((orig: string) => orig && orig.includes(q.split('?')[0]));
     if (originalQ) {
       mainContent = mainContent.replace(originalQ, '');
     }
@@ -439,7 +439,7 @@ export const deleteConversation = (
   const convResult = getConversation(conversationId, userId);
   
   if (!convResult.ok) {
-    return convResult;
+    return err((convResult as any).error);
   }
   
   const conversation = convResult.value;
@@ -480,7 +480,7 @@ export const exportConversation = (
   const convResult = getConversation(conversationId, userId);
   
   if (!convResult.ok) {
-    return convResult;
+    return err((convResult as any).error);
   }
   
   const conversation = convResult.value;
