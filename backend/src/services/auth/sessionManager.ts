@@ -3,7 +3,7 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import { Result, ok, err, isOk } from '@/utils/result';
+import { Result, ok, err, isOk, isErr } from '@/utils/result';
 import { UserId } from '@/types/brandedTypes';
 
 // Session types

@@ -6,6 +6,7 @@
 import { createClient } from 'redis';
 import { Result, ok, err, isOk } from '../../utils/result';
 import { AppError, ErrorCodes } from '../../middleware/errorHandler';
+import { Result, ok, err, isOk, isErr } from '@/utils/result';
 
 export interface RedisConfig {
   url: string;

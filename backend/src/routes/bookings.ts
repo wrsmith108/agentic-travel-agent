@@ -13,6 +13,7 @@ import { flightBookingService } from '@/services/booking/flightBookingService';
 import { createRequestLogger } from '@/utils/logger';
 import { isOk, isErr } from '@/utils/result';
 import { UserId } from '@/types/brandedTypes';
+import { zodToResult } from '@/utils/zodToResult';
 import {
   BookingRequestSchema,
   BookingSearchFiltersSchema,
@@ -40,8 +41,8 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     });
 
     // Validate request body
-    const validationResult = BookingRequestSchema.safeParse(req.body);
-    if (!validationResult.success) {
+    const validationResult = zodToResult(BookingRequestSchema.safeParse(req.body));
+    if (isErr(validationResult)) {
       return res.status(400).json({
         success: false,
         error: {
@@ -66,7 +67,7 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     // Create booking
     const result = await flightBookingService.createBooking(
       userId as UserId,
-      validationResult.data
+      validationResult.value
     );
 
     if (!isOk(result)) {
@@ -171,7 +172,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 
     // Parse and validate query parameters
     const filtersResult = BookingSearchFiltersSchema.safeParse(req.query);
-    const filters = filtersResult.success ? filtersResult.data : undefined;
+    const filters = filtersResult.success ? filtersResult.value : undefined;
 
     requestLogger.info('Fetching user bookings', {
       userId,
@@ -230,12 +231,11 @@ router.post('/:id/cancel', async (req: Request, res: Response, next: NextFunctio
     }
 
     // Validate cancellation request
-    const validationResult = BookingCancellationSchema.safeParse({
+    const validationResult = zodToResult(BookingCancellationSchema.safeParse({
       bookingId,
       ...req.body,
-    });
-
-    if (!validationResult.success) {
+    }));
+    if (isErr(validationResult)) {
       return res.status(400).json({
         success: false,
         error: {
@@ -249,12 +249,12 @@ router.post('/:id/cancel', async (req: Request, res: Response, next: NextFunctio
     requestLogger.info('Cancelling booking', {
       bookingId,
       userId,
-      reason: validationResult.data.reason,
+      reason: validationResult.value.reason,
     });
 
     const result = await flightBookingService.cancelBooking(
       userId as UserId,
-      validationResult.data
+      validationResult.value
     );
 
     if (!isOk(result)) {

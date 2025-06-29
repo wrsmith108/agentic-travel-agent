@@ -17,6 +17,7 @@ import {
 } from '../../schemas/flight';
 import { getRedisClient } from '../redis/redisClient';
 
+
 // Cache configuration
 const CACHE_TTL = {
   SEARCH_RESULTS: 5 * 60, // 5 minutes
@@ -35,7 +36,7 @@ const RATE_LIMITS = {
 interface AmadeusError {
   response?: {
     statusCode: number;
-    result?: {
+    resultString?: {
       errors?: Array<{
         code: string;
         title: string;
@@ -538,7 +539,7 @@ export class EnhancedAmadeusService {
   private async getFromCache(key: string): Promise<any | null> {
     try {
       const result = await this.redisClient.get(key);
-      if (result.ok && result.value) {
+          if (result.ok && result.value) {
         return JSON.parse(result.value);
       }
       return null;

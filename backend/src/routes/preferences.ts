@@ -14,6 +14,7 @@ import { createRequestLogger } from '@/utils/logger';
 import { isOk, isErr } from '@/utils/result';
 import { UserId } from '@/types/brandedTypes';
 import { UserPreferencesUpdateSchema } from '@/schemas/preferences';
+import { zodToResult } from '@/utils/zodToResult';
 
 const router = Router();
 
@@ -85,8 +86,8 @@ router.patch('/', async (req: Request, res: Response, next: NextFunction) => {
     }
 
     // Validate request body
-    const validationResult = UserPreferencesUpdateSchema.safeParse(req.body);
-    if (!validationResult.success) {
+    const validationResult = zodToResult(UserPreferencesUpdateSchema.safeParse(req.body));
+    if (isErr(validationResult)) {
       return res.status(400).json({
         success: false,
         error: {
@@ -99,12 +100,12 @@ router.patch('/', async (req: Request, res: Response, next: NextFunction) => {
 
     requestLogger.info('Updating user preferences', { 
       userId,
-      sections: Object.keys(validationResult.data),
+      sections: Object.keys(validationResult.value),
     });
 
     const result = await userPreferencesService.updatePreferences(
       userId as UserId,
-      validationResult.data
+      validationResult.value
     );
 
     if (!isOk(result)) {
@@ -261,9 +262,8 @@ router.patch('/:section', async (req: Request, res: Response, next: NextFunction
 
     // Wrap the section data in an object for validation
     const updateData = { [section]: req.body };
-    const validationResult = UserPreferencesUpdateSchema.safeParse(updateData);
-    
-    if (!validationResult.success) {
+    const validationResult = zodToResult(UserPreferencesUpdateSchema.safeParse(updateData));
+    if (isErr(validationResult)) {
       return res.status(400).json({
         success: false,
         error: {
@@ -278,7 +278,7 @@ router.patch('/:section', async (req: Request, res: Response, next: NextFunction
 
     const result = await userPreferencesService.updatePreferences(
       userId as UserId,
-      validationResult.data
+      validationResult.value
     );
 
     if (!isOk(result)) {

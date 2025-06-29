@@ -14,7 +14,7 @@ import { flightSearchService } from '../flights/flightSearchService';
 import { enhancedAmadeusService } from '../flights/enhancedAmadeusService';
 import { conversationalSearchService } from './conversationalSearchService';
 import createLogger from '../../utils/logger';
-import { 
+import {
   FlightSearchQuery, 
   FlightOffer,
   validateFlightSearchQuery

@@ -13,6 +13,7 @@ import type {
   UserRole,
 } from './types';
 import { ok, err } from './types';
+import { Result, ok, err, isOk, isErr } from '@/utils/result';
 
 export class JWTTokenService {
   private readonly secret: string;
@@ -373,7 +374,7 @@ export class JWTTokenService {
       const blacklistedAt = new Date();
 
       const blacklistData = JSON.stringify({
-        blacklistedAt: blacklistedAt as string,
+        blacklistedAt: blacklistedAt.toISOString(),
         reason: reason || 'Manual blacklist',
         tokenType: decoded.type || 'access',
       });

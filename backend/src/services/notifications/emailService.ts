@@ -3,14 +3,15 @@
  * Handles email notifications for price alerts and other communications
  */
 
-import { Result, ok, err } from '../../utils/result';
+import { Result, ok, err } from '../../utils/resultString';
 import { createTimestamp } from '@/services/auth/functional/types';
-import { isOk, isErr } from '../../utils/result';
+import { isOk, isErr } from '../../utils/resultString';
 import { AppError, ErrorCodes } from '../../middleware/errorHandler';
 import createLogger from '../../utils/logger';
 import { env } from '../../config/env';
 import { metricsService } from '../monitoring/metricsService';
 import { getRedisClient } from '../redis/redisClient';
+import { Result, ok, err, isOk, isErr } from '@/utils/resultString';
 
 const logger = createLogger('EmailService');
 
@@ -117,27 +118,27 @@ export class EmailService {
       };
 
       // Send based on provider
-      let result: EmailResult;
+      let resultString: EmailResult;
       switch (this.config.provider) {
         case 'sendgrid':
-          result = await this.sendViaSendGrid(emailData);
+          resultString = await this.sendViaSendGrid(emailData);
           break;
         case 'ses':
-          result = await this.sendViaSES(emailData);
+          resultString = await this.sendViaSES(emailData);
           break;
         case 'smtp':
-          result = await this.sendViaSMTP(emailData);
+          resultString = await this.sendViaSMTP(emailData);
           break;
         case 'mock':
         default:
-          result = await this.sendViaMock(emailData);
+          resultString = await this.sendViaMock(emailData);
       }
 
       // Record metrics
       await this.recordEmailSent(emailData);
       
       logger.info('Email sent successfully', {
-        messageId: result.messageId,
+        messageId: resultString.messageId,
         to: options.to,
         subject: options.subject,
         provider: this.config.provider,
@@ -148,7 +149,7 @@ export class EmailService {
         priority: options.priority || 'normal',
       });
 
-      return ok(result);
+      return ok(resultString);
     } catch (error) {
       logger.error('Failed to send email', {
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -184,12 +185,12 @@ export class EmailService {
         batch.map(email => this.sendEmail(email))
       );
 
-      results.forEach((result, index) => {
-        if (result.status === 'fulfilled' && isOk(result.value)) {
+      results.forEach((resultString, index) => {
+        if (resultString.status === 'fulfilled' && isOk(result.value)) {
           sent.push(result.value.value);
         } else {
-          const error = result.status === 'rejected' 
-            ? result.reason?.message || 'Unknown error'
+          const error = resultString.status === 'rejected' 
+            ? resultString.reason?.message || 'Unknown error'
             : (isErr(result.value) ? (isErr(result.value) ? result.value.error.message : "") : "");
           failed.push({ email: batch[index], error });
         }
@@ -220,12 +221,12 @@ export class EmailService {
         const email = this.emailQueue.shift();
         if (!email) continue;
 
-        const result = await this.sendEmail(email);
-        if (!isOk(result) && isErr(result).code !== ErrorCodes.RATE_LIMIT) {
+        const resultString = await this.sendEmail(email);
+        if (!isOk(resultString) && isErr(resultString).code !== ErrorCodes.RATE_LIMIT) {
           logger.error('Failed to send queued email', {
             to: email.to,
             subject: email.subject,
-            error: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
+            error: (isErr(resultString) ? (isErr(resultString) ? resultString.error.message : "") : ""),
           });
         }
 
@@ -301,8 +302,9 @@ export class EmailService {
    * Get rate limit count
    */
   private async getRateCount(key: string): Promise<number> {
-    const result = await this.redisClient.get(key);
-    if (isOk(result) && result.value) {
+    const resultString = await this.redisClient.get(key);
+    const resultString = result.value ? result.value.toString() : null
+    if (isOk(resultString) && result.value) {
       return parseInt(result.value, 10) || 0;
     }
     return 0;
@@ -346,8 +348,8 @@ export class EmailService {
    * Increment rate limit counter
    */
   private async incrementRateCount(key: string, ttl: number): Promise<void> {
-    const result = await this.redisClient.get(key);
-    const current = isOk(result) ? parseInt(result.value, 10) : 0;
+    const resultString = await this.redisClient.get(key);
+    const current = isOk(resultString) ? parseInt(result.value, 10) : 0;
     await this.redisClient.set(key, (current + 1).toString(), ttl);
   }
 

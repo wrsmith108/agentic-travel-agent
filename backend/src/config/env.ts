@@ -1,5 +1,7 @@
 import { z } from 'zod';
 import dotenv from 'dotenv';
+import { isErr } from '@/utils/result';
+import { zodToResult } from '@/utils/zodToResult';
 
 // Load environment variables
 dotenv.config();
@@ -100,15 +102,14 @@ const envSchema = z.object({
 });
 
 // Parse and validate environment variables
-const parseResult = envSchema.safeParse(process.env);
-
-if (!parseResult.success) {
+const parseResult = zodToResult(envSchema.safeParse(process.env));
+    if (isErr(parseResult)) {
   console.error('❌ Invalid environment variables:');
   console.error((isErr(parseResult) ? parseResult.error : undefined).format());
   process.exit(1);
 }
 
-export const env = parseResult.data;
+export const env = parseResult.value;
 
 // Type-safe environment configuration
 export type Env = z.infer<typeof envSchema>;

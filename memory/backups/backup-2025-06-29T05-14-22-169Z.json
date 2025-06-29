@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-06-28T16:57:50.821Z",
+  "timestamp": "2025-06-29T05:14:22.169Z",
   "version": "1.0",
   "entries": [
     {
@@ -527,7 +527,7 @@
       "accessLevel": "shared",
       "createdAt": "2025-06-28T02:36:17.188Z",
       "updatedAt": "2025-06-28T02:36:17.188Z",
-      "lastAccessedAt": "2025-06-28T16:57:50.782Z",
+      "lastAccessedAt": "2025-06-28T16:59:35.144Z",
       "version": 1,
       "size": 298,
       "compressed": false,
@@ -547,7 +547,7 @@
       "accessLevel": "shared",
       "createdAt": "2025-06-28T02:36:31.988Z",
       "updatedAt": "2025-06-28T02:36:31.988Z",
-      "lastAccessedAt": "2025-06-28T16:57:50.782Z",
+      "lastAccessedAt": "2025-06-28T16:59:35.144Z",
       "version": 1,
       "size": 328,
       "compressed": false,
@@ -567,7 +567,7 @@
       "accessLevel": "shared",
       "createdAt": "2025-06-28T02:36:33.663Z",
       "updatedAt": "2025-06-28T02:36:33.663Z",
-      "lastAccessedAt": "2025-06-28T16:57:50.782Z",
+      "lastAccessedAt": "2025-06-28T16:59:35.144Z",
       "version": 1,
       "size": 328,
       "compressed": false,
@@ -587,7 +587,7 @@
       "accessLevel": "shared",
       "createdAt": "2025-06-28T02:36:47.213Z",
       "updatedAt": "2025-06-28T02:36:47.213Z",
-      "lastAccessedAt": "2025-06-28T16:57:50.782Z",
+      "lastAccessedAt": "2025-06-28T16:59:35.144Z",
       "version": 1,
       "size": 300,
       "compressed": false,
@@ -607,7 +607,7 @@
       "accessLevel": "shared",
       "createdAt": "2025-06-28T02:36:48.841Z",
       "updatedAt": "2025-06-28T02:36:48.841Z",
-      "lastAccessedAt": "2025-06-28T16:57:50.782Z",
+      "lastAccessedAt": "2025-06-28T16:59:35.144Z",
       "version": 1,
       "size": 311,
       "compressed": false,
@@ -627,7 +627,7 @@
       "accessLevel": "shared",
       "createdAt": "2025-06-28T02:58:06.322Z",
       "updatedAt": "2025-06-28T02:58:06.322Z",
-      "lastAccessedAt": "2025-06-28T16:57:50.782Z",
+      "lastAccessedAt": "2025-06-28T16:59:35.144Z",
       "version": 1,
       "size": 1497,
       "compressed": true,
@@ -647,7 +647,7 @@
       "accessLevel": "shared",
       "createdAt": "2025-06-28T02:59:01.705Z",
       "updatedAt": "2025-06-28T02:59:01.705Z",
-      "lastAccessedAt": "2025-06-28T16:57:50.782Z",
+      "lastAccessedAt": "2025-06-28T16:59:35.144Z",
       "version": 1,
       "size": 306,
       "compressed": false,
@@ -667,7 +667,7 @@
       "accessLevel": "shared",
       "createdAt": "2025-06-28T03:10:38.049Z",
       "updatedAt": "2025-06-28T03:10:38.049Z",
-      "lastAccessedAt": "2025-06-28T16:57:50.782Z",
+      "lastAccessedAt": "2025-06-28T16:59:35.144Z",
       "version": 1,
       "size": 360,
       "compressed": false,
@@ -687,7 +687,7 @@
       "accessLevel": "shared",
       "createdAt": "2025-06-28T03:10:38.899Z",
       "updatedAt": "2025-06-28T03:10:38.899Z",
-      "lastAccessedAt": "2025-06-28T16:57:50.782Z",
+      "lastAccessedAt": "2025-06-28T16:59:35.144Z",
       "version": 1,
       "size": 302,
       "compressed": false,
@@ -707,7 +707,7 @@
       "accessLevel": "shared",
       "createdAt": "2025-06-28T03:12:57.645Z",
       "updatedAt": "2025-06-28T03:12:57.645Z",
-      "lastAccessedAt": "2025-06-28T16:57:50.782Z",
+      "lastAccessedAt": "2025-06-28T16:59:35.144Z",
       "version": 1,
       "size": 353,
       "compressed": false,
@@ -727,7 +727,7 @@
       "accessLevel": "shared",
       "createdAt": "2025-06-28T03:12:58.582Z",
       "updatedAt": "2025-06-28T03:12:58.582Z",
-      "lastAccessedAt": "2025-06-28T16:57:50.782Z",
+      "lastAccessedAt": "2025-06-28T16:59:35.144Z",
       "version": 1,
       "size": 282,
       "compressed": false,
@@ -789,7 +789,7 @@
       "accessLevel": "shared",
       "createdAt": "2025-06-28T03:43:05.381Z",
       "updatedAt": "2025-06-28T03:43:05.381Z",
-      "lastAccessedAt": "2025-06-28T16:57:50.782Z",
+      "lastAccessedAt": "2025-06-28T16:59:35.144Z",
       "version": 1,
       "size": 929,
       "compressed": false,
@@ -847,7 +847,7 @@
       "accessLevel": "shared",
       "createdAt": "2025-06-28T04:24:35.553Z",
       "updatedAt": "2025-06-28T04:24:35.553Z",
-      "lastAccessedAt": "2025-06-28T16:57:50.782Z",
+      "lastAccessedAt": "2025-06-28T16:59:35.144Z",
       "version": 1,
       "size": 878,
       "compressed": false,
@@ -900,7 +900,7 @@
       "accessLevel": "shared",
       "createdAt": "2025-06-28T04:37:35.718Z",
       "updatedAt": "2025-06-28T04:37:35.718Z",
-      "lastAccessedAt": "2025-06-28T16:57:50.782Z",
+      "lastAccessedAt": "2025-06-28T16:59:35.144Z",
       "version": 1,
       "size": 811,
       "compressed": false,
@@ -920,7 +920,7 @@
       "accessLevel": "shared",
       "createdAt": "2025-06-28T04:46:53.272Z",
       "updatedAt": "2025-06-28T04:46:53.272Z",
-      "lastAccessedAt": "2025-06-28T16:57:50.782Z",
+      "lastAccessedAt": "2025-06-28T16:59:35.144Z",
       "version": 1,
       "size": 2506,
       "compressed": true,
@@ -940,7 +940,7 @@
       "accessLevel": "shared",
       "createdAt": "2025-06-28T05:01:11.488Z",
       "updatedAt": "2025-06-28T05:01:11.488Z",
-      "lastAccessedAt": "2025-06-28T16:57:50.782Z",
+      "lastAccessedAt": "2025-06-28T16:59:35.144Z",
       "version": 1,
       "size": 3532,
       "compressed": true,
@@ -960,7 +960,7 @@
       "accessLevel": "shared",
       "createdAt": "2025-06-28T05:05:54.562Z",
       "updatedAt": "2025-06-28T05:05:54.562Z",
-      "lastAccessedAt": "2025-06-28T16:57:50.782Z",
+      "lastAccessedAt": "2025-06-28T16:59:35.144Z",
       "version": 1,
       "size": 4612,
       "compressed": true,
@@ -980,61 +980,240 @@
       "accessLevel": "shared",
       "createdAt": "2025-06-28T05:26:00.331Z",
       "updatedAt": "2025-06-28T05:26:00.331Z",
-      "lastAccessedAt": "2025-06-28T16:57:50.782Z",
+      "lastAccessedAt": "2025-06-28T16:59:35.144Z",
       "version": 1,
       "size": 2135,
       "compressed": true,
       "checksum": "c5ccfefd9b9981fcbab2571cbdf660e5e7b129dc6424a098faba392c4ea3929f",
       "references": [],
       "dependencies": []
+    },
+    {
+      "id": "entry_mcghjvah_pyibvkghr",
+      "key": "decision_log_scope_control",
+      "value": {
+        "date": "2025-06-28",
+        "decision": "Scope Control Implementation",
+        "context": "Added booking functionality without verifying it was in MVP scope",
+        "measures_taken": [
+          "Created MVP_SCOPE.md with explicit in/out of scope features",
+          "Updated CLAUDE.md with critical scope control guidelines",
+          "Created SCOPE_CONTROL_REPORT.md for accountability",
+          "Established 4-step verification process before implementing features"
+        ],
+        "accountability_commitment": {
+          "rules": [
+            "Check MVP_SCOPE.md before ANY implementation",
+            "Only implement explicitly requested features",
+            "Ask for clarification when uncertain",
+            "No scope creep or nice-to-have additions"
+          ],
+          "remaining_mvp": [
+            "User preferences system",
+            "API documentation"
+          ],
+          "out_of_scope": [
+            "Booking functionality",
+            "Payment processing",
+            "E-tickets",
+            "Hotels, car rentals, etc."
+          ]
+        },
+        "impact": "Prevents future scope creep and maintains focus on agreed deliverables"
+      },
+      "type": "object",
+      "namespace": "default",
+      "tags": [],
+      "metadata": {},
+      "owner": "system",
+      "accessLevel": "shared",
+      "createdAt": "2025-06-28T16:58:57.449Z",
+      "updatedAt": "2025-06-28T16:58:57.449Z",
+      "lastAccessedAt": "2025-06-28T16:59:35.144Z",
+      "version": 1,
+      "size": 898,
+      "compressed": false,
+      "checksum": "2fdfb17a229265e53c3554acf344569887dc307694bfee584068e26bc389d226",
+      "references": [],
+      "dependencies": []
+    },
+    {
+      "id": "entry_mcghket1_h6m8z5kcg",
+      "key": "project_decision_log",
+      "value": {
+        "project": "AI Travel Agent",
+        "decisions": [
+          {
+            "id": "001",
+            "date": "2025-06-28",
+            "type": "SCOPE_CONTROL",
+            "decision": "Implement strict scope control after unauthorized booking feature addition",
+            "outcome": "Created MVP_SCOPE.md, updated CLAUDE.md, established verification process",
+            "reference": "decision_log_scope_control"
+          }
+        ],
+        "mvp_scope": {
+          "agreed_features": [
+            "Conversational flight search",
+            "Saved searches with price monitoring",
+            "Batch processing for price checks",
+            "Email notifications for price alerts",
+            "User preferences system",
+            "API documentation"
+          ],
+          "explicitly_out_of_scope": [
+            "Flight booking",
+            "Payment processing",
+            "E-ticket generation",
+            "Hotel search/booking",
+            "Car rental",
+            "Travel packages"
+          ]
+        }
+      },
+      "type": "object",
+      "namespace": "default",
+      "tags": [],
+      "metadata": {},
+      "owner": "system",
+      "accessLevel": "shared",
+      "createdAt": "2025-06-28T16:59:22.741Z",
+      "updatedAt": "2025-06-28T16:59:22.741Z",
+      "lastAccessedAt": "2025-06-28T16:59:35.144Z",
+      "version": 1,
+      "size": 710,
+      "compressed": false,
+      "checksum": "b6e013826da2cd5b09c071eb862b8ed61fa49ffc7133047f2236e651ce028c59",
+      "references": [],
+      "dependencies": []
+    },
+    {
+      "id": "entry_mcgtv7wu_e4abicdzn",
+      "key": "typescript_error_prevention",
+      "value": "\"Key TypeScript Error Prevention Strategies:\\n\\n1. **Result Type Safety**: Always use isOk/isErr guards, never access .error or .value directly. Add ESLint rules to enforce this.\\n\\n2. **Single Source of Truth**: Define types once in canonical locations - Result from @/utils/result, branded types from @/types/brandedTypes.\\n\\n3. **Consistent Naming**: Use 'is' prefix for boolean properties (isEmailVerified not emailVerified).\\n\\n4. **Complete Migrations**: Don't mix error handling patterns. Fully migrate from success/error objects to Result pattern before using.\\n\\n5. **Export Discipline**: Export all types that other modules depend on. Use --isolatedModules flag.\\n\\n6. **Pre-commit Validation**: Run 'npm run typecheck' in git hooks to catch errors before commit.\\n\\n7. **Import Path Management**: Use TypeScript path aliases (@/) consistently and update all imports when moving files.\\n\\n8. **Automated Fixes**: Create scripts like fix-result-patterns.js to automatically fix common patterns.\\n\\nImplementation: See /backend/docs/TYPESCRIPT_ERROR_PREVENTION.md for full guide with code examples, ESLint rules, and CI/CD configuration.\"",
+      "type": "string",
+      "namespace": "default",
+      "tags": [],
+      "metadata": {},
+      "owner": "system",
+      "accessLevel": "shared",
+      "createdAt": "2025-06-28T22:43:42.414Z",
+      "updatedAt": "2025-06-28T22:43:42.414Z",
+      "lastAccessedAt": "2025-06-28T22:43:42.414Z",
+      "version": 1,
+      "size": 1196,
+      "compressed": true,
+      "checksum": "01a3a435be3b1299c5c70e5bb15e1ba7aebb7dd8ecf5e809f36e43d068959cee",
+      "references": [],
+      "dependencies": []
+    },
+    {
+      "id": "entry_mcgtvl3l_ag5g1rhy3",
+      "key": "decision_typescript_strict_mode",
+      "value": "\"DECISION: TypeScript Strict Mode and Error Prevention\\n\\nDate: 2025-06-28\\nContext: After encountering 173 TypeScript errors during MVP development, mainly from Result type misuse and inconsistent patterns.\\n\\nDecision:\\n1. Enforce TypeScript strict mode on all new code\\n2. No any types allowed - must define proper types\\n3. Use Result pattern consistently - no mixed error handling\\n4. Run typecheck in pre-commit hooks - no commits with TS errors\\n5. All branded types from single source @/types/brandedTypes\\n6. ESLint rules to prevent direct .error/.value access on Results\\n\\nRationale:\\n- Prevented errors would have saved hours of debugging\\n- Type safety catches bugs at compile time not runtime\\n- Consistent patterns reduce cognitive load\\n- Automated checks prevent human error\\n\\nImplementation:\\n- Updated tsconfig.json with strict settings\\n- Created fix-result-patterns.js for automated fixes\\n- Documented in TYPESCRIPT_ERROR_PREVENTION.md\\n- Added to CLAUDE.md workflow guidelines\\n\\nThis decision is non-negotiable for code quality.\"",
+      "type": "string",
+      "namespace": "default",
+      "tags": [],
+      "metadata": {},
+      "owner": "system",
+      "accessLevel": "shared",
+      "createdAt": "2025-06-28T22:43:59.505Z",
+      "updatedAt": "2025-06-28T22:43:59.505Z",
+      "lastAccessedAt": "2025-06-28T22:43:59.505Z",
+      "version": 1,
+      "size": 1111,
+      "compressed": true,
+      "checksum": "2a9102dcb286bb28278a49c81eb8c83b137fce66cc3c3fd156eb9df94234547d",
+      "references": [],
+      "dependencies": []
+    },
+    {
+      "id": "entry_mch7tcdm_dfzqpwmyj",
+      "key": "typescript_error_resolution_learnings",
+      "value": "\"# TypeScript Error Resolution Learnings\\n\\n## Executive Summary\\nDuring the TypeScript error resolution process, we reduced errors from 177 to effectively 10 core issues, but uncovered additional type conflicts that were previously masked. This document captures key learnings and patterns for future reference.\\n\\n## Key Learnings\\n\\n### 1. Automated Script Effectiveness\\n**What Worked Well:**\\n- Pattern-based fixes using AST-unaware regex replacements were surprisingly effective\\n- Scripts successfully fixed 48+ files across multiple error patterns\\n- Batch processing allowed rapid iteration and testing\\n\\n**Limitations Discovered:**\\n- Some fixes revealed hidden type conflicts\\n- Context-aware changes require manual intervention\\n- Scripts can introduce new patterns if not carefully designed\\n\\n### 2. Common Error Patterns\\n\\n#### Pattern 1: Result Type Import Conflicts\\n**Issue:** Duplicate imports of Result utilities from different sources\\n```typescript\\n// BAD - Creates conflicts\\nimport { Result, ok, err, isOk, isErr } from '../../utils/result';\\nimport { Result, ok, err, isOk } from '@/utils/result';\\n```\\n**Solution:** Use consistent import paths and avoid duplicates\\n\\n#### Pattern 2: Direct Property Access Without Type Guards\\n**Issue:** Accessing properties on Result types without checking success\\n```typescript\\n// BAD\\nif (result.value) { ... }\\nif (result.error) { ... }\\n\\n// GOOD\\nif (isOk(result)) { \\n  // result.value is now typed\\n}\\n```\\n\\n#### Pattern 3: Unsafe Type Assertions\\n**Issue:** Using `as` for type conversions that aren't valid\\n```typescript\\n// BAD\\ncreatedAt: new Date() as string\\n\\n// GOOD\\ncreatedAt: new Date().toISOString()\\n```\\n\\n#### Pattern 4: Zod SafeParseReturnType Incompatibility\\n**Issue:** Zod's SafeParseReturnType doesn't match our Result pattern\\n```typescript\\n// BAD\\nconst parsed = schema.safeParse(data);\\nif (!parsed.success) return err(parsed);\\n\\n// GOOD\\nconst parsed = zodToResult(schema.safeParse(data));\\nif (isErr(parsed)) return parsed;\\n```\\n\\n### 3. Error Cascading Effect\\n- Fixing one type error often reveals others that TypeScript couldn't previously analyze\\n- Import fixes can expose incompatible type definitions\\n- Property rename fixes can reveal incorrect usage patterns\\n\\n### 4. Effective Resolution Strategies\\n\\n#### Strategy 1: Phased Approach\\n1. **Phase 1:** Fix import and syntax errors first\\n2. **Phase 2:** Address type mismatches and conversions\\n3. **Phase 3:** Handle complex type relationships\\n4. **Phase 4:** Clean up any cascading issues\\n\\n#### Strategy 2: Pattern Recognition\\n- Group similar errors together\\n- Create reusable utilities (like zodToResult)\\n- Write targeted scripts for each pattern\\n\\n#### Strategy 3: Type Safety First\\n- Never use `any` to suppress errors\\n- Create proper type guards and utilities\\n- Use branded types consistently\\n\\n## Technical Insights\\n\\n### 1. Result Pattern Implementation\\nThe Result pattern requires discipline:\\n- Always use type guards (isOk/isErr)\\n- Never access .value or .error directly\\n- Consistent error types across the application\\n\\n### 2. Zod Integration Challenges\\nZod's SafeParseReturnType has different structure than our Result:\\n- Created zodToResult utility for seamless conversion\\n- Maintains type safety while adapting external libraries\"",
+      "type": "string",
+      "namespace": "default",
+      "tags": [],
+      "metadata": {},
+      "owner": "system",
+      "accessLevel": "shared",
+      "createdAt": "2025-06-29T05:14:09.514Z",
+      "updatedAt": "2025-06-29T05:14:09.514Z",
+      "lastAccessedAt": "2025-06-29T05:14:09.514Z",
+      "version": 1,
+      "size": 3461,
+      "compressed": true,
+      "checksum": "898664d73b915e1f08ab4497a5f387de0de1a4a812742168be53a4b587c40739",
+      "references": [],
+      "dependencies": []
+    },
+    {
+      "id": "entry_mch7tm53_7h6tjucap",
+      "key": "typescript_final_resolution_plan",
+      "value": "Final TypeScript error resolution plan after reducing from 177 to 10 errors. Key insight: fixing initial errors revealed ~150 hidden type conflicts. Plan includes 4 phases: 1) Foundation fixes (duplicate imports, date conversions), 2) Type safety fixes (Zod validations, unknown access), 3) Manual complex fixes, 4) Validation. Created reusable scripts and utilities like zodToResult. Estimated 12 hours to achieve 0 errors.",
+      "type": "string",
+      "namespace": "default",
+      "tags": [],
+      "metadata": {},
+      "owner": "system",
+      "accessLevel": "shared",
+      "createdAt": "2025-06-29T05:14:22.167Z",
+      "updatedAt": "2025-06-29T05:14:22.167Z",
+      "lastAccessedAt": "2025-06-29T05:14:22.167Z",
+      "version": 1,
+      "size": 455,
+      "compressed": false,
+      "checksum": "52f0c12b7b8d0955ea9481862fd5e304f8fada7f49751d4d81d9ca7002101683",
+      "references": [],
+      "dependencies": []
     }
   ],
   "statistics": {
     "overview": {
-      "totalEntries": 39,
-      "totalSize": 57449,
-      "compressedEntries": 13,
-      "compressionRatio": -2.977386934673367,
-      "indexSize": 1950,
-      "memoryUsage": 10750672,
+      "totalEntries": 45,
+      "totalSize": 65280,
+      "compressedEntries": 16,
+      "compressionRatio": -2.798235942668137,
+      "indexSize": 2250,
+      "memoryUsage": 10856680,
       "diskUsage": 0
     },
     "distribution": {
       "byNamespace": {
         "default": {
-          "count": 39,
-          "size": 57449
+          "count": 45,
+          "size": 65280
         }
       },
       "byType": {
         "object": {
-          "count": 16,
-          "size": 28254
+          "count": 18,
+          "size": 29862
         },
         "string": {
-          "count": 23,
-          "size": 29195
+          "count": 27,
+          "size": 35418
         }
       },
       "byOwner": {
         "system": {
-          "count": 39,
-          "size": 57449
+          "count": 45,
+          "size": 65280
         }
       },
       "byAccessLevel": {
         "shared": {
-          "count": 39,
-          "size": 57449
+          "count": 45,
+          "size": 65280
         }
       }
     },
     "temporal": {
-      "entriesCreatedLast24h": 19,
-      "entriesUpdatedLast24h": 19,
-      "entriesAccessedLast24h": 39,
+      "entriesCreatedLast24h": 7,
+      "entriesUpdatedLast24h": 7,
+      "entriesAccessedLast24h": 26,
       "oldestEntry": "2025-06-25T02:46:56.023Z",
-      "newestEntry": "2025-06-28T05:26:00.331Z"
+      "newestEntry": "2025-06-29T05:14:22.167Z"
     },
     "performance": {
       "averageQueryTime": 0,

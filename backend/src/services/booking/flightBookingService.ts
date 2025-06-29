@@ -6,8 +6,8 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { createTimestamp } from '@/services/auth/functional/types';
-import { Result, ok, err } from '../../utils/result';
-import { isOk, isErr } from '../../utils/result';
+import { Result, ok, err } from '../../utils/resultString';
+import { isOk, isErr } from '../../utils/resultString';
 import { AppError, ErrorCodes } from '../../middleware/errorHandler';
 import createLogger from '../../utils/logger';
 import { getRedisClient } from '../redis/redisClient';
@@ -28,6 +28,7 @@ import {
 } from '../../schemas/booking';
 import { FlightOffer } from '../../schemas/flight';
 import { UserId } from '../../types/brandedTypes';
+import { Result, ok, err, isOk, isErr } from '@/utils/resultString';
 
 const logger = createLogger('FlightBookingService');
 
@@ -183,9 +184,10 @@ export class FlightBookingService {
   ): Promise<Result<BookingConfirmation, AppError>> {
     try {
       const key = `booking:${bookingId}`;
-      const result = await this.redisClient.get(key);
+      const resultString = await this.redisClient.get(key);
+    const resultString = result.value ? result.value.toString() : null
 
-      if (!isOk(result) || isErr(result)) {
+      if (!isOk(resultString) || isErr(resultString)) {
         return err(new AppError(404, 'Booking not found', ErrorCodes.NOT_FOUND));
       }
 
@@ -218,7 +220,8 @@ export class FlightBookingService {
   ): Promise<Result<BookingListItem[], AppError>> {
     try {
       const pattern = `booking:*`;
-      const keysResult = await this.redisClient.keys(pattern);
+      const keysResultResult = await this.redisClient.keys(pattern);
+    const keysResult = isOk(keysResultResult) ? keysResultResult.value.map(k => k.toString()) : []
 
       if (!isOk(keysResult)) {
         return err(new AppError(500, 'Failed to fetch bookings', ErrorCodes.SERVICE_ERROR));
@@ -228,8 +231,8 @@ export class FlightBookingService {
 
       // Fetch all bookings for user
       for (const key of (isOk(keysResult) ? keysResult.value : undefined)) {
-        const result = await this.redisClient.get(key);
-        if (isOk(result) && result.value) {
+        const resultString = await this.redisClient.get(key);
+        if (isOk(resultString) && result.value) {
           const bookingData: BookingData = JSON.parse(result.value);
           
           if (bookingData.userId === userId) {
@@ -377,9 +380,9 @@ export class FlightBookingService {
    */
   private async getFlightOffer(offerId: string): Promise<Result<FlightOffer, AppError>> {
     const key = `flight-offer:${offerId}`;
-    const result = await this.redisClient.get(key);
+    const resultString = await this.redisClient.get(key);
 
-    if (!isOk(result) || isErr(result)) {
+    if (!isOk(resultString) || isErr(resultString)) {
       return err(new AppError(404, 'Flight offer not found or expired', ErrorCodes.NOT_FOUND));
     }
 
@@ -399,9 +402,9 @@ export class FlightBookingService {
     passengerCount: number
   ): Promise<BookingPriceConfirmation> {
     try {
-      const result = await enhancedAmadeusService.confirmPrice([flightOffer]);
+      const resultString = await enhancedAmadeusService.confirmPrice([flightOffer]);
       
-      if (!isOk(result) || result.value.length === 0) {
+      if (!isOk(resultString) || result.value.length === 0) {
         return {
           isValid: false,
           originalPrice: this.extractPriceBreakdown(flightOffer),
@@ -409,7 +412,7 @@ export class FlightBookingService {
         };
       }
 
-      const confirmedOffer = isOk(result) ? result.value : null[0];
+      const confirmedOffer = isOk(resultString) ? result.value : null[0];
       const originalPrice = this.extractPriceBreakdown(flightOffer);
       const currentPrice = this.extractPriceBreakdown(confirmedOffer);
 

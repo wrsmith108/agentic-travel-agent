@@ -4,7 +4,7 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
-import { Result, ok, err, map, flatMap, isOk } from '@/utils/result';
+import { Result, ok, err, isOk, isErr, map, flatMap } from '@/utils/result';
 import { v4 as uuidv4 } from 'uuid';
 import { UserId } from '@/types/brandedTypes';
 

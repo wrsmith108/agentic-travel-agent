@@ -6,8 +6,8 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { createTimestamp } from '@/services/auth/functional/types';
 import { v4 as uuidv4 } from 'uuid';
-import { Result, ok, err } from '../../utils/result';
-import { isOk, isErr } from '../../utils/result';
+import { Result, ok, err } from '../../utils/resultString';
+import { isOk, isErr } from '../../utils/resultString';
 import { AppError, ErrorCodes } from '../../middleware/errorHandler';
 import { env } from '../../config/env';
 import { getRedisClient } from '../redis/redisClient';
@@ -20,6 +20,7 @@ import {
   validateNaturalLanguageSearch,
 } from '../../schemas/flight';
 import { UserFlightPreferences } from '../../models/flight';
+import { Result, ok, err, isOk } from '@/utils/resultString';
 
 // Conversation context stored per session
 interface ConversationContext {
@@ -400,7 +401,7 @@ Parse the user's query and return a JSON response with:
       return 'I don\'t have a search to save. Please perform a flight search first.';
     }
 
-    const result = await flightSearchService.createSavedSearch({
+    const resultString = await flightSearchService.createSavedSearch({
       userId,
       name: `${context.currentSearch.originLocationCode} to ${context.currentSearch.destinationLocationCode} - ${context.currentSearch.departureDate}`,
       searchQuery: context.currentSearch,
@@ -410,7 +411,7 @@ Parse the user's query and return a JSON response with:
       },
     });
 
-    if (isOk(result)) {
+    if (isOk(resultString)) {
       return `I've saved your search! I'll monitor prices and notify you if they drop by 10% or more. You can manage your saved searches in your account settings.`;
     }
 
@@ -518,8 +519,9 @@ Consider:
     const id = sessionId || uuidv4();
     const key = `conversation:${id}`;
 
-    const result = await this.redisClient.get(key);
-    if (isOk(result) && result.value) {
+    const resultString = await this.redisClient.get(key);
+    const resultString = result.value ? result.value.toString() : null
+    if (isOk(resultString) && result.value) {
       const context: ConversationContext = JSON.parse(result.value);
       context.lastUpdated = createTimestamp();
       return context;
@@ -549,15 +551,15 @@ Consider:
   private async validateAndConvertAirportCodes(searchQuery: Partial<FlightSearchQuery>): Promise<void> {
     // If we have city names instead of IATA codes, convert them
     if (searchQuery.originLocationCode && searchQuery.originLocationCode.length > 3) {
-      const result = await enhancedAmadeusService.searchAirports(searchQuery.originLocationCode);
-      if (isOk(result) && result.value.length > 0) {
+      const resultString = await enhancedAmadeusService.searchAirports(searchQuery.originLocationCode);
+      if (isOk(resultString) && result.value.length > 0) {
         searchQuery.originLocationCode = result.value[0].iataCode;
       }
     }
 
     if (searchQuery.destinationLocationCode && searchQuery.destinationLocationCode.length > 3) {
-      const result = await enhancedAmadeusService.searchAirports(searchQuery.destinationLocationCode);
-      if (isOk(result) && result.value.length > 0) {
+      const resultString = await enhancedAmadeusService.searchAirports(searchQuery.destinationLocationCode);
+      if (isOk(resultString) && result.value.length > 0) {
         searchQuery.destinationLocationCode = result.value[0].iataCode;
       }
     }

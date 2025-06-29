@@ -205,7 +205,7 @@ export class FlightSearchService {
       for (const searchId of searchIds) {
         const key = `saved-search:${userId}:${searchId}`;
         const searchResult = await this.redisClient.get(key);
-        
+            
         if (isOk(searchResult) && searchResult.value) {
           const search: SavedSearch = JSON.parse(searchResult.value);
           if (search.isActive && (!search.expiresAt || new Date(search.expiresAt) > new Date())) {

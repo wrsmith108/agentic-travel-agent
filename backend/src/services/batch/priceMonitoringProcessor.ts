@@ -18,6 +18,7 @@ import { userPreferencesService } from '../preferences/userPreferencesService';
 import { SavedSearch, PriceAlert } from '../../schemas/flight';
 import { env } from '../../config/env';
 import { UserId } from '../../types/brandedTypes';
+import { Result, ok, err, isOk, isErr } from '@/utils/result';
 
 const logger = createLogger('PriceMonitoringProcessor');
 
@@ -174,7 +175,8 @@ export class PriceMonitoringProcessor {
   private async getActiveUsers(): Promise<Result<string[], AppError>> {
     try {
       const pattern = 'saved-searches:*';
-      const keysResult = await this.redisClient.keys(pattern);
+      const keysResultResult = await this.redisClient.keys(pattern);
+    const keysResult = isOk(keysResultResult) ? keysResultResult.value.map(k => k.toString()) : []
       
       if (!isOk(keysResult)) {
         return err(new AppError(500, 'Failed to fetch user keys', ErrorCodes.SERVICE_ERROR));
@@ -306,9 +308,10 @@ export class PriceMonitoringProcessor {
    */
   private async shouldProcessSearch(savedSearch: SavedSearch, userId: string): Promise<boolean> {
     const lastCheckKey = `last-price-check:${savedSearch.id}`;
-    const lastCheckResult = await this.redisClient.get(lastCheckKey);
+    const lastCheckResultString = await this.redisClient.get(lastCheckKey);
+    const lastCheckResultString = lastCheckResult.value ? lastCheckResult.value.toString() : null
 
-    if (isOk(lastCheckResult) && lastCheckResult.value) {
+    if (isOk(lastCheckResultString) && lastCheckResult.value) {
       const lastCheck = new Date(lastCheckResult.value);
       
       // Get user's notification frequency preference

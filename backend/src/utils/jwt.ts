@@ -6,6 +6,7 @@ import jwt from 'jsonwebtoken';
 import { env } from '@/config/env';
 import { Result, ok, err, tryCatch, isErr, isOk } from './result';
 import { UserId, AccessToken, RefreshToken } from '@/types/brandedTypes';
+import { Result, ok, err, isOk, isErr } from '@/utils/result';
 
 // JWT payload types
 export interface JWTPayload {

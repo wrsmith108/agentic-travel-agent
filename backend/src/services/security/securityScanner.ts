@@ -4,6 +4,7 @@ import createLogger from '../../utils/logger';
 const logger = createLogger('UsecurityScanner');import * as validator from 'validator';
 import DOMPurify from 'dompurify';
 import { JSDOM } from 'jsdom';
+import { Result, ok, err, isErr } from '@/utils/result';
 
 // Initialize DOMPurify for server-side use
 const window = new JSDOM('').window;

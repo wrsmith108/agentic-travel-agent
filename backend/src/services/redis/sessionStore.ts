@@ -7,6 +7,7 @@ import { RedisClient } from './redisClient';
 import { Result, ok, err, isErr, isOk } from '../../utils/result';
 import { AppError, ErrorCodes } from '../../middleware/errorHandler';
 import { v4 as uuidv4 } from 'uuid';
+import { Result, ok, err, isOk, isErr } from '@/utils/result';
 
 export interface SessionData {
   userId: string;
@@ -200,17 +201,18 @@ export class SessionStore {
       }
 
       const userSessionsKey = this.getUserSessionsKey(userId);
-      const sessionIdsResult = await this.redisClient.get(userSessionsKey);
+      const sessionIdsResultString = await this.redisClient.get(userSessionsKey);
+    const sessionIdsResultString = sessionIdsResult.value ? sessionIdsResult.value.toString() : null
 
-      if (isErr(sessionIdsResult)) {
-        return err(sessionIdsResult.error);
+      if (isErr(sessionIdsResultString)) {
+        return err(sessionIdsResultString.error);
       }
 
-      if (isErr(sessionIdsResult)) {
+      if (isErr(sessionIdsResultString)) {
         return ok(0);
       }
 
-      const sessionIds: string[] = JSON.parse((isOk(sessionIdsResult) ? sessionIdsResult.value : undefined));
+      const sessionIds: string[] = JSON.parse((isOk(sessionIdsResultString) ? sessionIdsResult.value : undefined));
       let deletedCount = 0;
 
       // Delete each session
@@ -242,17 +244,17 @@ export class SessionStore {
       }
 
       const userSessionsKey = this.getUserSessionsKey(userId);
-      const sessionIdsResult = await this.redisClient.get(userSessionsKey);
+      const sessionIdsResultString = await this.redisClient.get(userSessionsKey);
 
-      if (isErr(sessionIdsResult)) {
-        return err(sessionIdsResult.error);
+      if (isErr(sessionIdsResultString)) {
+        return err(sessionIdsResultString.error);
       }
 
-      if (isErr(sessionIdsResult)) {
+      if (isErr(sessionIdsResultString)) {
         return ok([]);
       }
 
-      const sessionIds: string[] = JSON.parse((isOk(sessionIdsResult) ? sessionIdsResult.value : undefined));
+      const sessionIds: string[] = JSON.parse((isOk(sessionIdsResultString) ? sessionIdsResult.value : undefined));
       const sessions: SessionData[] = [];
 
       // Get each session's data
@@ -337,10 +339,10 @@ export class SessionStore {
         for (const session of sessionsToRemove) {
           // Find session ID by checking each session
           const userSessionsKey = this.getUserSessionsKey(userId);
-          const sessionIdsResult = await this.redisClient.get(userSessionsKey);
+          const sessionIdsResultString = await this.redisClient.get(userSessionsKey);
           
-          if (sessionIdsResult.ok && sessionIdsResult.value) {
-            const sessionIds: string[] = JSON.parse((isOk(sessionIdsResult) ? sessionIdsResult.value : undefined));
+          if (sessionIdsResultString.ok && sessionIdsResult.value) {
+            const sessionIds: string[] = JSON.parse((isOk(sessionIdsResultString) ? sessionIdsResult.value : undefined));
             
             // Find matching session ID (this is inefficient but works for the constraint)
             for (const sessionId of sessionIds) {
@@ -373,7 +375,8 @@ export class SessionStore {
   }, AppError>> {
     try {
       const pattern = `${this.config.keyPrefix}*`;
-      const keysResult = await this.redisClient.keys(pattern);
+      const keysResultResult = await this.redisClient.keys(pattern);
+    const keysResult = isOk(keysResultResult) ? keysResultResult.value.map(k => k.toString()) : []
       
       if (isErr(keysResult)) {
         return err(keysResult.error);

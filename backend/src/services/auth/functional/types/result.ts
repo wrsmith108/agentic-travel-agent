@@ -1,3 +1,5 @@
+import { Result, ok, err, isOk, isErr } from '@/utils/result';
+
 /**
  * Result pattern implementation for explicit error handling
  * Inspired by Rust's Result type and functional programming patterns

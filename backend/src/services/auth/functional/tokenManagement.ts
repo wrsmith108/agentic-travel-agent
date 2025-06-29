@@ -29,7 +29,7 @@ import type {
   TimeProvider,
   Logger,
 } from './types';
-import { ok, err, isOk } from '@/utils/result';;
+import { ok, err, isOk, isErr } from '@/utils/result';;
 import { AUTH_CONSTANTS } from '@/schemas/auth';
 
 /**
