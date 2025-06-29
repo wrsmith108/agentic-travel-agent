@@ -55,7 +55,7 @@ export const createSession = async (
     userId: user.id,
     user,
     createdAt: now as string,
-    expiresAt: expiresAt as string,
+    expiresAt: expiresAt,
     lastAccessedAt: now as string,
     ipAddress: deviceInfo?.ipAddress,
     userAgent: deviceInfo?.userAgent,
@@ -101,7 +101,7 @@ export const createSession = async (
     sessionId,
     accessToken,
     refreshToken,
-    expiresAt: expiresAt as string,
+    expiresAt: expiresAt,
   };
 };
 

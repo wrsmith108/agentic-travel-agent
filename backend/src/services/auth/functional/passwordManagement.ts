@@ -24,6 +24,7 @@ import {
 import { Result, ok, err, isOk, isErr } from '@/utils/result';
 import type { PlainTextPassword } from './password';
 import { AUTH_CONSTANTS } from '@/schemas/auth';
+import { RequestId } from '@/types/brandedTypes';
 
 /**
  * Hash a plain password using bcrypt
@@ -96,8 +97,8 @@ export const createPasswordResetToken = async (
   try {
     // Generate token
     const tokenResult = generateResetToken();
-    if (!tokenResult.ok) {
-      return tokenResult;
+    if (isErr(tokenResult)) {
+      return err(tokenResult.error);
     }
 
     const token = isOk(tokenResult) ? tokenResult.value : null;
@@ -118,7 +119,7 @@ export const createPasswordResetToken = async (
 
     logger.info('Password reset token generated', {
       userId,
-      tokenExpiry: expiresAt as string,
+      tokenExpiry: expiresAt,
       requestId,
     });
 
@@ -202,8 +203,8 @@ export const resetPasswordWithToken = async (
     token
   );
 
-  if (!validationResult.ok) {
-    return validationResult;
+  if (isErr(validationResult)) {
+    return err(validationResult.error);
   }
 
   const { userId } = validationResult.value;
@@ -211,15 +212,15 @@ export const resetPasswordWithToken = async (
   try {
     // Hash new password
     const hashResult = await hashPassword(newPassword);
-    if (!hashResult.ok) {
-      return hashResult;
+    if (isErr(hashResult)) {
+      return err(hashResult.error);
     }
 
     // Update password
-    await passwordStorage.store(userId, hashResult.value);
+    await passwordStorage.set(userId, hashResult.value);
 
     // Mark token as used
-    await tokenStorage.markUsed(token);
+    await tokenStorage.delete(token);
 
     logger.info('Password reset successful', { userId, requestId });
 
@@ -252,7 +253,7 @@ export const changeUserPassword = async (
 
   try {
     // Get current password hash
-    const currentHash = await passwordStorage.retrieve(userId);
+    const currentHash = await passwordStorage.get(userId);
     if (!currentHash) {
       logger.error('Password hash not found for user during change', null, { userId });
       return err({
@@ -264,8 +265,8 @@ export const changeUserPassword = async (
 
     // Verify current password
     const verifyResult = await verifyPassword(currentPassword, currentHash);
-    if (!verifyResult.ok) {
-      return verifyResult;
+    if (isErr(verifyResult)) {
+      return err(verifyResult.error);
     }
 
     if (isErr(verifyResult)) {
@@ -278,12 +279,12 @@ export const changeUserPassword = async (
 
     // Hash new password
     const hashResult = await hashPassword(newPassword);
-    if (!hashResult.ok) {
-      return hashResult;
+    if (isErr(hashResult)) {
+      return err(hashResult.error);
     }
 
     // Update password
-    await passwordStorage.store(userId, hashResult.value);
+    await passwordStorage.set(userId, hashResult.value);
 
     logger.info('Password changed successfully', { userId, requestId });
 

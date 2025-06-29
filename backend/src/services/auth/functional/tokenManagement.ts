@@ -133,8 +133,8 @@ export const createSessionTokens = (
 
   // Generate access token
   const accessTokenResult = generateJWT(jwtPayload, crypto.jwtSecret);
-  if (!accessTokenResult.ok) {
-    return accessTokenResult;
+  if (isErr(accessTokenResult)) {
+    return err(accessTokenResult.error);
   }
 
   const result: {
@@ -155,8 +155,8 @@ export const createSessionTokens = (
       AUTH_CONSTANTS.TOKEN_EXPIRY.REFRESH_TOKEN
     );
 
-    if (!refreshTokenResult.ok) {
-      return refreshTokenResult;
+    if (isErr(refreshTokenResult)) {
+      return err(refreshTokenResult.error);
     }
 
     result.refreshToken = createRefreshToken(refreshTokenResult.value);
@@ -198,8 +198,8 @@ export const createEmailVerificationToken = async (
   try {
     // Generate token
     const tokenResult = generateVerificationToken();
-    if (!tokenResult.ok) {
-      return tokenResult;
+    if (isErr(tokenResult)) {
+      return err(tokenResult.error);
     }
 
     const token = isOk(tokenResult) ? tokenResult.value : null;
@@ -224,7 +224,7 @@ export const createEmailVerificationToken = async (
     logger.info('Email verification token generated', {
       userId,
       email,
-      tokenExpiry: expiresAt as string,
+      tokenExpiry: expiresAt,
     });
 
     return ok(token);
@@ -299,8 +299,8 @@ export const refreshAccessToken = async (
 
   // Verify refresh token
   const verifyResult = verifyJWT(createJWTToken(refreshToken), crypto.jwtRefreshSecret);
-  if (!verifyResult.ok) {
-    return verifyResult;
+  if (isErr(verifyResult)) {
+    return err(verifyResult.error);
   }
 
   const payload = isOk(verifyResult) ? verifyResult.value : null;
@@ -327,8 +327,8 @@ export const refreshAccessToken = async (
   };
 
   const accessTokenResult = generateJWT(newPayload, crypto.jwtSecret);
-  if (!accessTokenResult.ok) {
-    return accessTokenResult;
+  if (isErr(accessTokenResult)) {
+    return err(accessTokenResult.error);
   }
 
   return ok({

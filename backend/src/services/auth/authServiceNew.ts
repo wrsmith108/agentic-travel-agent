@@ -99,7 +99,7 @@ export const register = async (
       userAgent: undefined,
     });
 
-    if (!sessionResult.ok) {
+    if (isErr(sessionResult)) {
       return err(systemError('Failed to create session'));
     }
 
@@ -114,7 +114,7 @@ export const register = async (
       false
     );
 
-    if (!tokenResult.ok) {
+    if (isErr(tokenResult)) {
       return err(systemError('Failed to generate tokens'));
     }
 
@@ -136,7 +136,7 @@ export const register = async (
       },
       accessToken,
       refreshToken,
-      expiresAt: session.expiresAt as string,
+      expiresAt: session.expiresAt,
     });
   } catch (error) {
     return err(systemError(
@@ -194,7 +194,7 @@ export const login = async (
       userAgent: undefined,
     });
 
-    if (!sessionResult.ok) {
+    if (isErr(sessionResult)) {
       return err(systemError('Failed to create session'));
     }
 
@@ -209,7 +209,7 @@ export const login = async (
       data.rememberMe
     );
 
-    if (!tokenResult.ok) {
+    if (isErr(tokenResult)) {
       return err(systemError('Failed to generate tokens'));
     }
 
@@ -236,7 +236,7 @@ export const login = async (
       },
       accessToken,
       refreshToken,
-      expiresAt: session.expiresAt as string,
+      expiresAt: session.expiresAt,
     });
   } catch (error) {
     return err(systemError(
@@ -288,7 +288,7 @@ export const refreshAccessToken = async (
 
     // Find session by refresh token
     const sessionResult = findSessionByRefreshToken(refreshToken);
-    if (!sessionResult.ok) {
+    if (isErr(sessionResult)) {
       return err(invalidCredentials('Invalid refresh token'));
     }
 
@@ -313,8 +313,8 @@ export const refreshAccessToken = async (
       role: 'user',
     });
 
-    if (!newTokenResult.ok) {
-      return newTokenResult;
+    if (isErr(newTokenResult)) {
+      return err(newTokenResult.error);
     }
 
     // Touch session to update last accessed
@@ -322,7 +322,7 @@ export const refreshAccessToken = async (
 
     return ok({
       accessToken: newTokenResult.value,
-      expiresAt: new Date(Date.now() + 15 * 60 * 1000) as string, // 15 minutes
+      expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(), // 15 minutes
     });
   } catch (error) {
     return err(systemError(
@@ -339,8 +339,8 @@ export const verifySession = async (
 ): Promise<Result<Session, AuthError | SessionError>> => {
   const sessionResult = getSession(sessionId as SessionId);
   
-  if (!sessionResult.ok) {
-    return sessionResult;
+  if (isErr(sessionResult)) {
+    return err(sessionResult.error);
   }
 
   // Touch session to update last accessed

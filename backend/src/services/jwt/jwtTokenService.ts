@@ -130,8 +130,8 @@ export class JWTTokenService {
 
   async sign(payload: JWTPayload): Promise<Result<SignResult, TokenError>> {
     const validationResult = this.validatePayload(payload);
-    if (!validationResult.ok) {
-      return validationResult;
+    if (isErr(validationResult)) {
+      return err(validationResult.error);
     }
 
     try {
@@ -318,8 +318,8 @@ export class JWTTokenService {
         };
 
         const signResult = await this.sign(newPayload);
-        if (!signResult.ok) {
-          return signResult;
+        if (isErr(signResult)) {
+          return err(signResult.error);
         }
 
         return ok(signResult.value);

@@ -99,7 +99,7 @@ export const createMockSessionData = (
     userId: user.id,
     user,
     createdAt: now as string,
-    expiresAt: expiresAt as string,
+    expiresAt: expiresAt,
     lastAccessedAt: now as string,
     isActive: true,
     loginMethod: 'email',

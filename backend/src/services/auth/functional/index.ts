@@ -6,7 +6,7 @@
  */
 
 import jwt from 'jsonwebtoken';
-import { isOk } from '@/utils/result';
+import { isOk, isErr } from '@/utils/result';
 import { logError, logInfo } from '@/utils/logger';
 import type {
   AuthTokenPair,
@@ -111,7 +111,7 @@ async function checkRateLimit(email: Email): Promise<boolean> {
   const key = `login:${email}`;
   const rateLimit = await storageOps.rateLimit.get(key);
 
-  if (!rateLimit.ok) {
+  if (isErr(rateLimit)) {
     return true; // Allow if we can't check
   }
 
@@ -126,7 +126,7 @@ async function checkRateLimit(email: Email): Promise<boolean> {
     key,
     AUTH_CONSTANTS.SECURITY.LOCKOUT_DURATION * 1000
   );
-  if (!result.ok) {
+  if (isErr(result)) {
     return true; // Allow if we can't increment
   }
 

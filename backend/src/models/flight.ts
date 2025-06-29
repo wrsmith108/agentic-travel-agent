@@ -186,7 +186,7 @@ export function createPriceAlert(data: CreatePriceAlertData): PriceAlert {
     percentChange,
     alertedAt: now as string,
     isRead: false,
-    expiresAt: expiresAt as string,
+    expiresAt: expiresAt,
   };
 }
 

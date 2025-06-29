@@ -56,11 +56,11 @@ router.post(
       // Convert to JSON-serializable format
       const conversation = {
         ...result.value,
-        createdAt: result.value.createdAt as string,
-        updatedAt: result.value.updatedAt as string,
+        createdAt: result.value.createdAt,
+        updatedAt: result.value.updatedAt,
         messages: result.value.messages.map(msg => ({
           ...msg,
-          timestamp: msg.timestamp as string,
+          timestamp: msg.timestamp,
         })),
       };
 
@@ -92,11 +92,11 @@ router.get('/', async (req: Request, res: Response): Promise<Response | void> =>
     // Convert to JSON-serializable format
     const conversations = isOk(result) ? result.value : null.map(conv => ({
       ...conv,
-      createdAt: conv.createdAt as string,
-      updatedAt: conv.updatedAt as string,
+      createdAt: conv.createdAt,
+      updatedAt: conv.updatedAt,
       messages: conv.messages.map(msg => ({
         ...msg,
-        timestamp: msg.timestamp as string,
+        timestamp: msg.timestamp,
       })),
     }));
 
@@ -135,11 +135,11 @@ router.get('/:id', async (req: Request, res: Response): Promise<Response | void>
     // Convert to JSON-serializable format
     const conversation = {
       ...result.value,
-      createdAt: result.value.createdAt as string,
-      updatedAt: result.value.updatedAt as string,
+      createdAt: result.value.createdAt,
+      updatedAt: result.value.updatedAt,
       messages: result.value.messages.map(msg => ({
         ...msg,
-        timestamp: msg.timestamp as string,
+        timestamp: msg.timestamp,
       })),
     };
 
@@ -190,7 +190,7 @@ router.post(
       // Convert to JSON-serializable format
       const message = {
         ...result.value,
-        timestamp: result.value.timestamp as string,
+        timestamp: result.value.timestamp,
       };
 
       return res.json(createMessageSuccess(message));
@@ -233,11 +233,11 @@ router.patch(
       // Convert to JSON-serializable format
       const conversation = {
         ...result.value,
-        createdAt: result.value.createdAt as string,
-        updatedAt: result.value.updatedAt as string,
+        createdAt: result.value.createdAt,
+        updatedAt: result.value.updatedAt,
         messages: result.value.messages.map(msg => ({
           ...msg,
-          timestamp: msg.timestamp as string,
+          timestamp: msg.timestamp,
         })),
       };
 
@@ -277,8 +277,8 @@ router.post('/:id/clear', async (req: Request, res: Response): Promise<Response 
     // Convert to JSON-serializable format
     const conversation = {
       ...result.value,
-      createdAt: result.value.createdAt as string,
-      updatedAt: result.value.updatedAt as string,
+      createdAt: result.value.createdAt,
+      updatedAt: result.value.updatedAt,
       messages: [],
     };
 

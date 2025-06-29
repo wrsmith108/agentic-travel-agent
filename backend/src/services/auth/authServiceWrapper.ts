@@ -29,17 +29,20 @@ const convertToAuthSuccess = (response: AuthSuccessResponse): AuthSuccess => {
  */
 const convertToAuthError = (response: AuthErrorResponse): AuthError => {
   // Map auth error types to simplified error types
-  switch ((isErr(response) ? response.error.type : "")) {
+  const errorType = response.error?.type || 'SYSTEM_ERROR';
+  const errorMessage = response.error?.message || 'An error occurred';
+  
+  switch (errorType) {
     case 'INVALID_CREDENTIALS':
-      return { type: 'INVALID_CREDENTIALS', message: (isErr(response) ? response.error.message : "") };
+      return { type: 'INVALID_CREDENTIALS', message: errorMessage };
     case 'USER_NOT_FOUND':
-      return { type: 'USER_NOT_FOUND', message: (isErr(response) ? response.error.message : "") };
+      return { type: 'USER_NOT_FOUND', message: errorMessage };
     case 'USER_ALREADY_EXISTS':
-      return { type: 'USER_ALREADY_EXISTS', message: (isErr(response) ? response.error.message : "") };
+      return { type: 'USER_ALREADY_EXISTS', message: errorMessage };
     case 'VALIDATION_ERROR':
-      return { type: 'VALIDATION_ERROR', message: (isErr(response) ? response.error.message : ""), details: response.error.details };
+      return { type: 'VALIDATION_ERROR', message: errorMessage, details: response.error?.details };
     default:
-      return { type: 'SYSTEM_ERROR', message: (isErr(response) ? response.error.message : ""), code: (isErr(response) ? response.error.code : "") };
+      return { type: 'SYSTEM_ERROR', message: errorMessage, code: response.error?.code };
   }
 };
 

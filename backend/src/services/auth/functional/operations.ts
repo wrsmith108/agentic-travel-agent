@@ -64,7 +64,7 @@ export async function register(
 
     // Store password
     const storeResult = await deps.storage.password.store(userId, hashedPassword);
-    if (!storeResult.ok) {
+    if (isErr(storeResult)) {
       return err({ type: 'SERVER_ERROR', message: 'Failed to create user' });
     }
 
@@ -95,7 +95,7 @@ export async function register(
     };
 
     const sessionResult = await deps.storage.session.create(session);
-    if (!sessionResult.ok) {
+    if (isErr(sessionResult)) {
       return err({ type: 'SERVER_ERROR', message: 'Failed to create session' });
     }
 
@@ -231,7 +231,7 @@ export async function login(
     };
 
     const sessionResult = await deps.storage.session.create(session);
-    if (!sessionResult.ok) {
+    if (isErr(sessionResult)) {
       return err({ type: 'SERVER_ERROR', message: 'Failed to create session' });
     }
 
@@ -290,13 +290,13 @@ export async function logout(
     if (input.logoutAll) {
       // Delete all sessions for the user
       const deleteResult = await deps.storage.session.deleteAll(session.userId);
-      if (!deleteResult.ok) {
+      if (isErr(deleteResult)) {
         return err({ type: 'SERVER_ERROR', message: 'Failed to logout from all sessions' });
       }
     } else {
       // Delete only the current session
       const deleteResult = await deps.storage.session.delete(input.sessionId);
-      if (!deleteResult.ok) {
+      if (isErr(deleteResult)) {
         return err({ type: 'SERVER_ERROR', message: 'Failed to logout' });
       }
     }

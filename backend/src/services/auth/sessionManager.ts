@@ -136,8 +136,8 @@ export const getSession = (sessionId: SessionId): Result<Session, SessionError> 
 export const touchSession = (sessionId: SessionId): Result<Session, SessionError> => {
   const sessionResult = getSession(sessionId);
   
-  if (!sessionResult.ok) {
-    return sessionResult;
+  if (isErr(sessionResult)) {
+    return err(sessionResult.error);
   }
   
   const session = isOk(sessionResult) ? sessionResult.value : null;
@@ -219,8 +219,8 @@ export const updateSessionRefreshToken = (
 ): Result<Session, SessionError> => {
   const sessionResult = getSession(sessionId);
   
-  if (!sessionResult.ok) {
-    return sessionResult;
+  if (isErr(sessionResult)) {
+    return err(sessionResult.error);
   }
   
   const session = isOk(sessionResult) ? sessionResult.value : null;
@@ -255,8 +255,8 @@ export const extendSession = (
 ): Result<Session, SessionError> => {
   const sessionResult = getSession(sessionId);
   
-  if (!sessionResult.ok) {
-    return sessionResult;
+  if (isErr(sessionResult)) {
+    return err(sessionResult.error);
   }
   
   const session = isOk(sessionResult) ? sessionResult.value : null;

@@ -485,7 +485,7 @@ class AuthService {
 
       logInfo('Password reset token generated', {
         userId: userProfile.id,
-        tokenExpiry: expiresAt as string,
+        tokenExpiry: expiresAt,
         requestId,
       });
 
@@ -831,7 +831,7 @@ class AuthService {
       userId: user.id,
       user,
       createdAt: now as string,
-      expiresAt: expiresAt as string,
+      expiresAt: expiresAt,
       lastAccessedAt: now as string,
       ipAddress: deviceInfo?.ipAddress,
       userAgent: deviceInfo?.userAgent,
@@ -873,7 +873,7 @@ class AuthService {
     } = {
       sessionId,
       accessToken,
-      expiresAt: expiresAt as string,
+      expiresAt: expiresAt,
     };
 
     if (refreshToken) {

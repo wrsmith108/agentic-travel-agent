@@ -171,8 +171,8 @@ export const updateConversationContext = (
 ): Result<Conversation, ConversationError> => {
   const convResult = getConversation(conversationId, userId);
   
-  if (!convResult.ok) {
-    return convResult;
+  if (isErr(convResult)) {
+    return err(convResult.error);
   }
   
   const conversation = isOk(convResult) ? convResult.value : null;
@@ -204,7 +204,7 @@ export const sendMessage = async (
   try {
     // Get conversation
     const convResult = getConversation(conversationId, userId);
-    if (!convResult.ok) {
+    if (isErr(convResult)) {
       return err((convResult as any).error);
     }
     
@@ -438,7 +438,7 @@ export const deleteConversation = (
 ): Result<void, ConversationError> => {
   const convResult = getConversation(conversationId, userId);
   
-  if (!convResult.ok) {
+  if (isErr(convResult)) {
     return err((convResult as any).error);
   }
   
@@ -458,8 +458,8 @@ export const clearConversation = (
 ): Result<Conversation, ConversationError> => {
   const convResult = getConversation(conversationId, userId);
   
-  if (!convResult.ok) {
-    return convResult;
+  if (isErr(convResult)) {
+    return err(convResult.error);
   }
   
   const conversation = isOk(convResult) ? convResult.value : null;
@@ -479,7 +479,7 @@ export const exportConversation = (
 ): Result<string, ConversationError> => {
   const convResult = getConversation(conversationId, userId);
   
-  if (!convResult.ok) {
+  if (isErr(convResult)) {
     return err((convResult as any).error);
   }
   
