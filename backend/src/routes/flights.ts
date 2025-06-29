@@ -146,7 +146,7 @@ router.post('/search/natural', async (req: Request, res: Response, next: NextFun
 
     requestLogger.info('Natural language search successful', {
       sessionId: result.value.sessionId,
-      hasResults: !isErr(result).searchResults,
+      hasResults: isOk(result) && result.value.searchResults?.length > 0,
     });
 
     res.status(200).json({

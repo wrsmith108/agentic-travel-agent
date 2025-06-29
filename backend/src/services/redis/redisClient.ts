@@ -43,7 +43,6 @@ export class RedisClient {
       url: this.config.url,
       socket: {
         connectTimeout: this.config.connectTimeout,
-        commandTimeout: this.config.commandTimeout,
         reconnectStrategy: (retries) => {
           if (retries >= this.config.maxRetries) {
             return false;
@@ -123,7 +122,7 @@ export class RedisClient {
       }
 
       const response = await this.client.ping();
-      return ok(response);
+      return ok(typeof response === 'string' ? response : response.toString());
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Redis ping failed';
       return err(new AppError(500, `Redis ping failed: ${message}`, ErrorCodes.DATABASE_ERROR));
@@ -170,7 +169,7 @@ export class RedisClient {
       }
 
       const value = await this.client.get(key);
-      return ok(value);
+      return ok(value ? (typeof value === 'string' ? value : value.toString()) : null);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Redis get operation failed';
       return err(new AppError(500, `Redis get failed: ${message}`, ErrorCodes.DATABASE_ERROR));
@@ -191,7 +190,7 @@ export class RedisClient {
       }
 
       const deletedCount = await this.client.del(key);
-      return ok(deletedCount);
+      return ok(typeof deletedCount === 'number' ? deletedCount : parseInt(deletedCount.toString(), 10));
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Redis delete operation failed';
       return err(new AppError(500, `Redis delete failed: ${message}`, ErrorCodes.DATABASE_ERROR));
@@ -237,7 +236,7 @@ export class RedisClient {
       }
 
       const result = await this.client.expire(key, ttlSeconds);
-      return ok(result);
+      return ok(typeof result === 'number' ? result > 0 : parseInt(result.toString(), 10) > 0);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Redis expire operation failed';
       return err(new AppError(500, `Redis expire failed: ${message}`, ErrorCodes.DATABASE_ERROR));
@@ -258,7 +257,7 @@ export class RedisClient {
       }
 
       const ttl = await this.client.ttl(key);
-      return ok(ttl);
+      return ok(typeof ttl === 'number' ? ttl : parseInt(ttl.toString(), 10));
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Redis TTL operation failed';
       return err(new AppError(500, `Redis TTL failed: ${message}`, ErrorCodes.DATABASE_ERROR));
@@ -279,7 +278,7 @@ export class RedisClient {
       }
 
       const keys = await this.client.keys(pattern);
-      return ok(keys);
+      return ok(keys.map(key => typeof key === 'string' ? key : key.toString()));
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Redis keys operation failed';
       return err(new AppError(500, `Redis keys failed: ${message}`, ErrorCodes.DATABASE_ERROR));
@@ -352,7 +351,7 @@ export class RedisClient {
       }
 
       const values = await this.client.mGet(keys);
-      return ok(values);
+      return ok(values.map(value => value ? (typeof value === 'string' ? value : value.toString()) : null));
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Redis multiGet operation failed';
       return err(new AppError(500, `Redis multiGet failed: ${message}`, ErrorCodes.DATABASE_ERROR));

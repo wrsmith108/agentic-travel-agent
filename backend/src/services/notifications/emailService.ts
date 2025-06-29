@@ -184,12 +184,12 @@ export class EmailService {
       );
 
       results.forEach((resultString, index) => {
-        if (resultString.status === 'fulfilled' && isOk(result.value)) {
-          sent.push(result.value.value);
+        if (resultString.status === 'fulfilled' && isOk(resultString.value)) {
+          sent.push(resultString.value.value);
         } else {
-          const error = resultString.status === 'rejected' 
+          const error = resultString.status === 'rejected'
             ? resultString.reason?.message || 'Unknown error'
-            : (isErr(result.value) ? (isErr(result.value) ? result.value.error.message : "") : "");
+            : (isErr(resultString.value) ? (isErr(resultString.value) ? resultString.value.error.message : "") : "");
           failed.push({ email: batch[index], error });
         }
       });
@@ -220,7 +220,7 @@ export class EmailService {
         if (!email) continue;
 
         const resultString = await this.sendEmail(email);
-        if (!isOk(resultString) && isErr(resultString).code !== ErrorCodes.RATE_LIMIT) {
+        if (!isOk(resultString) && isErr(resultString) && resultString.error.code !== ErrorCodes.RATE_LIMIT) {
           logger.error('Failed to send queued email', {
             to: email.to,
             subject: email.subject,
@@ -300,9 +300,8 @@ export class EmailService {
    * Get rate limit count
    */
   private async getRateCount(key: string): Promise<number> {
-    const resultString = await this.redisClient.get(key);
-    const resultString = result.value ? result.value.toString() : null
-    if (isOk(resultString) && result.value) {
+    const result = await this.redisClient.get(key);
+    if (isOk(result) && result.value) {
       return parseInt(result.value, 10) || 0;
     }
     return 0;
@@ -346,8 +345,8 @@ export class EmailService {
    * Increment rate limit counter
    */
   private async incrementRateCount(key: string, ttl: number): Promise<void> {
-    const resultString = await this.redisClient.get(key);
-    const current = isOk(resultString) ? parseInt(result.value, 10) : 0;
+    const result = await this.redisClient.get(key);
+    const current = isOk(result) ? parseInt(result.value, 10) : 0;
     await this.redisClient.set(key, (current + 1).toString(), ttl);
   }
 

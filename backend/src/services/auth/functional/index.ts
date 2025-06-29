@@ -200,7 +200,7 @@ const storageOps: StorageOps = {
     get: async (key) => ({ ok: true, value: null }),
     increment: async (key, windowMs) => ({
       ok: true,
-      value: { count: 1, firstAttempt: new Date(), lockedUntil: null },
+      value: { count: 1, windowStart: new Date(), lastAttempt: new Date(), lockedUntil: undefined },
     }),
     reset: async (key) => ({ ok: true, value: undefined }),
     setLockout: async (key, until) => ({ ok: true, value: undefined }),

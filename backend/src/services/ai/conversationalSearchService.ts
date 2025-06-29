@@ -518,9 +518,8 @@ Consider:
     const key = `conversation:${id}`;
 
     const resultString = await this.redisClient.get(key);
-    const resultString = result.value ? result.value.toString() : null
-    if (isOk(resultString) && result.value) {
-      const context: ConversationContext = JSON.parse(result.value);
+    if (isOk(resultString) && resultString.value) {
+      const context: ConversationContext = JSON.parse(resultString.value);
       context.lastUpdated = createTimestamp();
       return context;
     }
@@ -549,15 +548,15 @@ Consider:
   private async validateAndConvertAirportCodes(searchQuery: Partial<FlightSearchQuery>): Promise<void> {
     // If we have city names instead of IATA codes, convert them
     if (searchQuery.originLocationCode && searchQuery.originLocationCode.length > 3) {
-      const resultString = await enhancedAmadeusService.searchAirports(searchQuery.originLocationCode);
-      if (isOk(resultString) && result.value.length > 0) {
+      const result = await enhancedAmadeusService.searchAirports(searchQuery.originLocationCode);
+      if (isOk(result) && result.value.length > 0) {
         searchQuery.originLocationCode = result.value[0].iataCode;
       }
     }
 
     if (searchQuery.destinationLocationCode && searchQuery.destinationLocationCode.length > 3) {
-      const resultString = await enhancedAmadeusService.searchAirports(searchQuery.destinationLocationCode);
-      if (isOk(resultString) && result.value.length > 0) {
+      const result = await enhancedAmadeusService.searchAirports(searchQuery.destinationLocationCode);
+      if (isOk(result) && result.value.length > 0) {
         searchQuery.destinationLocationCode = result.value[0].iataCode;
       }
     }

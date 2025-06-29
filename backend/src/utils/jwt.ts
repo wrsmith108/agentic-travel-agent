@@ -222,12 +222,17 @@ export const decodeToken = (token: string): Result<JWTPayload | RefreshTokenPayl
  */
 export const isTokenExpired = (token: string): boolean => {
   const decoded = decodeToken(token);
-  if (!decoded.ok || isErr(decoded).exp) {
+  if (isErr(decoded)) {
+    return true;
+  }
+  
+  const payload = decoded.value;
+  if (!payload.exp) {
     return true;
   }
   
   const now = Math.floor(Date.now() / 1000);
-  return isOk(decoded) ? decoded.value : null.exp < now;
+  return payload.exp < now;
 };
 
 /**
@@ -239,14 +244,15 @@ export const getTokenExpiration = (token: string): Result<Date, JWTError> => {
     return err(decoded.error);
   }
   
-  if (isErr(decoded).exp) {
+  const payload = decoded.value;
+  if (!payload.exp) {
     return err({
       type: 'INVALID_TOKEN',
       message: 'Token does not have expiration',
     });
   }
   
-  return ok(new Date(decoded.value.exp * 1000));
+  return ok(new Date(payload.exp * 1000));
 };
 // Re-export branded types from canonical source
 export { AccessToken, RefreshToken } from '@/types/brandedTypes';

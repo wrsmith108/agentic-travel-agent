@@ -246,7 +246,7 @@ export class UserPreferencesService {
       const results = await Promise.all(promises);
 
       results.forEach((result, index) => {
-        if (result.value) {
+        if (isOk(result)) {
           preferencesMap.set(userIds[index], result.value);
         }
       });
@@ -296,10 +296,10 @@ export class UserPreferencesService {
    */
   async getNotificationFrequency(userId: UserId): Promise<string> {
     const result = await this.getPreferences(userId);
-    if (isErr(result) || isErr(result)) {
+    if (isErr(result)) {
       return 'INSTANT'; // Default
     }
-    return isOk(result) ? result.value : null.notifications.frequency;
+    return result.value.notifications?.frequency || 'INSTANT';
   }
 }
 

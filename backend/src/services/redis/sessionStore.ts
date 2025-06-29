@@ -61,7 +61,7 @@ export class SessionStore {
       const cleanupResult = await this.cleanupUserSessions(sessionData.userId);
       if (isErr(cleanupResult)) {
         // Log warning but don't fail session creation
-        console.warn('Failed to cleanup user sessions:', isErr(cleanupResult) ? cleanupResult.error : cleanupResult.message);
+        console.warn('Failed to cleanup user sessions:', isErr(cleanupResult) ? cleanupResult.error : 'Unknown error');
       }
 
       // Store session data
@@ -118,7 +118,7 @@ export class SessionStore {
         const updateResult = await this.updateSession(sessionId, sessionData);
         if (isErr(updateResult)) {
           // Log warning but return session data
-          console.warn('Failed to extend session:', isErr(updateResult) ? updateResult.error : updateResult.message);
+          console.warn('Failed to extend session:', isErr(updateResult) ? updateResult.error : 'Unknown error');
         }
       }
 
@@ -200,18 +200,17 @@ export class SessionStore {
       }
 
       const userSessionsKey = this.getUserSessionsKey(userId);
-      const sessionIdsResultString = await this.redisClient.get(userSessionsKey);
-    const sessionIdsResultString = sessionIdsResult.value ? sessionIdsResult.value.toString() : null
-
-      if (isErr(sessionIdsResultString)) {
-        return err(sessionIdsResultString.error);
+      const sessionIdsResult = await this.redisClient.get(userSessionsKey);
+      
+      if (isErr(sessionIdsResult)) {
+        return err(sessionIdsResult.error);
       }
 
-      if (isErr(sessionIdsResultString)) {
+      if (!sessionIdsResult.value) {
         return ok(0);
       }
 
-      const sessionIds: string[] = JSON.parse((isOk(sessionIdsResultString) ? sessionIdsResult.value : undefined));
+      const sessionIds: string[] = JSON.parse(sessionIdsResult.value);
       let deletedCount = 0;
 
       // Delete each session
@@ -243,17 +242,17 @@ export class SessionStore {
       }
 
       const userSessionsKey = this.getUserSessionsKey(userId);
-      const sessionIdsResultString = await this.redisClient.get(userSessionsKey);
+      const sessionIdsResult = await this.redisClient.get(userSessionsKey);
 
-      if (isErr(sessionIdsResultString)) {
-        return err(sessionIdsResultString.error);
+      if (isErr(sessionIdsResult)) {
+        return err(sessionIdsResult.error);
       }
 
-      if (isErr(sessionIdsResultString)) {
+      if (!sessionIdsResult.value) {
         return ok([]);
       }
 
-      const sessionIds: string[] = JSON.parse((isOk(sessionIdsResultString) ? sessionIdsResult.value : undefined));
+      const sessionIds: string[] = JSON.parse(sessionIdsResult.value);
       const sessions: SessionData[] = [];
 
       // Get each session's data
@@ -340,8 +339,8 @@ export class SessionStore {
           const userSessionsKey = this.getUserSessionsKey(userId);
           const sessionIdsResultString = await this.redisClient.get(userSessionsKey);
           
-          if (sessionIdsResultString.ok && sessionIdsResult.value) {
-            const sessionIds: string[] = JSON.parse((isOk(sessionIdsResultString) ? sessionIdsResult.value : undefined));
+          if (isOk(sessionIdsResultString) && sessionIdsResultString.value) {
+            const sessionIds: string[] = JSON.parse(sessionIdsResultString.value);
             
             // Find matching session ID (this is inefficient but works for the constraint)
             for (const sessionId of sessionIds) {
@@ -375,16 +374,17 @@ export class SessionStore {
     try {
       const pattern = `${this.config.keyPrefix}*`;
       const keysResultResult = await this.redisClient.keys(pattern);
-    const keysResult = isOk(keysResultResult) ? keysResultResult.value.map(k => k.toString()) : []
       
-      if (isErr(keysResult)) {
-        return err(keysResult.error);
+      if (isErr(keysResultResult)) {
+        return err(keysResultResult.error);
       }
 
-      const sessionKeys = isOk(keysResult) ? keysResult.value : [].filter(key => 
-        key.startsWith(this.config.keyPrefix) && 
-        !key.includes(':users:')
-      );
+      const sessionKeys = keysResultResult.value
+        .map(k => k.toString())
+        .filter(key =>
+          key.startsWith(this.config.keyPrefix) &&
+          !key.includes(':users:')
+        );
 
       const totalSessions = sessionKeys.length;
       const activeUsers = new Set<string>();

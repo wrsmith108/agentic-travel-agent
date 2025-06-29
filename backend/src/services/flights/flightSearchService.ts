@@ -144,8 +144,8 @@ export class FlightSearchService {
       const listResult = await this.redisClient.get(listKey);
       
       let searchIds: string[] = [];
-      if (listResult.success && listResult.data) {
-        searchIds = JSON.parse(listResult.data);
+      if (isOk(listResult) && listResult.value) {
+        searchIds = JSON.parse(listResult.value);
       }
       searchIds.push(savedSearch.id);
       
@@ -170,11 +170,11 @@ export class FlightSearchService {
       const key = `saved-search:${userId}:${searchId}`;
       const existingResult = await this.redisClient.get(key);
       
-      if (!existingResult.success || !existingResult.data) {
+      if (isErr(existingResult)) {
         return err(new AppError(404, 'Saved search not found', ErrorCodes.NOT_FOUND));
       }
 
-      const existing: SavedSearch = JSON.parse(existingResult.data);
+      const existing: SavedSearch = JSON.parse(existingResult.value);
       const updated = updateSavedSearch(existing, updates);
       
       await this.redisClient.set(key, JSON.stringify(updated));
@@ -194,11 +194,11 @@ export class FlightSearchService {
       const listKey = `saved-searches:${userId}`;
       const listResult = await this.redisClient.get(listKey);
       
-      if (!listResult.success || !listResult.data) {
+      if (isErr(listResult)) {
         return ok([]);
       }
 
-      const searchIds: string[] = JSON.parse(listResult.data);
+      const searchIds: string[] = JSON.parse(listResult.value);
       const searches: SavedSearch[] = [];
 
       for (const searchId of searchIds) {
@@ -232,8 +232,8 @@ export class FlightSearchService {
       const listKey = `saved-searches:${userId}`;
       const listResult = await this.redisClient.get(listKey);
       
-      if (listResult.success && listResult.data) {
-        const searchIds: string[] = JSON.parse(listResult.data);
+      if (isOk(listResult) && listResult.value) {
+        const searchIds: string[] = JSON.parse(listResult.value);
         const filtered = searchIds.filter(id => id !== searchId);
         await this.redisClient.set(listKey, JSON.stringify(filtered));
       }
@@ -252,13 +252,13 @@ export class FlightSearchService {
     try {
       const savedSearchesResult = await this.getSavedSearches(userId);
       
-      if (!savedSearchesResult.success) {
-        return err((isErr(savedSearchesResult) ? savedSearchesResult.error : undefined));
+      if (isErr(savedSearchesResult)) {
+        return err(savedSearchesResult.error);
       }
 
       const results: PriceTrackingResult[] = [];
 
-      for (const savedSearch of savedSearchesResult.data) {
+      for (const savedSearch of savedSearchesResult.value) {
         if (!savedSearch.priceAlerts?.enabled) continue;
 
         // Search for current prices
@@ -269,17 +269,17 @@ export class FlightSearchService {
 
         if (isOk(searchResult) && searchResult.value.length > 0) {
           // Find the best price
-          const prices = isOk(searchResult) ? searchResult.value : [].map(f => parseFloat(f.price.grandTotal));
+          const prices = searchResult.value.map(f => parseFloat(f.price.grandTotal));
           const currentBestPrice = Math.min(...prices);
-          const bestFlight = isOk(searchResult) ? searchResult.value : null.find(f => parseFloat(f.price.grandTotal) === currentBestPrice);
+          const bestFlight = searchResult.value.find(f => parseFloat(f.price.grandTotal) === currentBestPrice);
 
           // Get previous best price
           const priceHistoryKey = `price-history:${savedSearch.id}`;
           const historyResult = await this.redisClient.get(priceHistoryKey);
           
           let previousBestPrice: number | undefined;
-          if (historyResult.success && historyResult.data) {
-            const history: number[] = JSON.parse(historyResult.data);
+          if (isOk(historyResult)) {
+            const history: number[] = JSON.parse(historyResult.value);
             previousBestPrice = history[history.length - 1];
           }
 
@@ -306,7 +306,6 @@ export class FlightSearchService {
 
           // Update last checked time
           savedSearch.lastCheckedAt = createTimestamp();
-          await this.updateSavedSearch(userId, savedSearch.id, { lastCheckedAt: savedSearch.lastCheckedAt });
 
           results.push({
             savedSearch,
@@ -411,7 +410,7 @@ export class FlightSearchService {
       const airlineInfo = await enhancedAmadeusService.getAirlineInfo(code);
       airlines.push({
         code,
-        name: airlineInfo.success ? airlineInfo.data.name : code,
+        name: isOk(airlineInfo) ? airlineInfo.value.name : code,
         count,
       });
     }

@@ -43,7 +43,14 @@
     "format:backend": "cd backend && npm run format",
     "format:check": "npm run format:check:frontend && npm run format:check:backend",
     "format:check:frontend": "cd frontend && npm run format:check",
-    "format:check:backend": "cd backend && npm run format:check"
+    "format:check:backend": "cd backend && npm run format:check",
+    "validate": "npm run validate:patterns && npm run validate:imports",
+    "validate:patterns": "node backend/scripts/validate-result-patterns.js",
+    "validate:imports": "node backend/scripts/validate-imports.js",
+    "fix-patterns": "node backend/scripts/auto-fix-common-patterns.js",
+    "fix-patterns:dry": "node backend/scripts/auto-fix-common-patterns.js --dry-run",
+    "precommit": "npm run validate && npm run typecheck",
+    "setup-hooks": "cp backend/scripts/pre-commit-typescript-check.sh .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit"
   },
   "devDependencies": {
     "claude-flow": "^1.0.72",

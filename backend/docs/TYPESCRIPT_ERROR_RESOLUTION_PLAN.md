@@ -1,225 +1,282 @@
-# TypeScript Error Resolution Plan
+# TypeScript Error Resolution Execution Plan
 
-## Current Status
-- **Total Errors**: 175 (down from 173 initial)
-- **Categories**: 4 main error types identified
-- **Goal**: Zero TypeScript errors
-
-## Error Analysis
-
-### 1. Property Access on Result Types (47 errors - 27%)
-**Root Cause**: Direct `.error` or `.value` access without type guards
-**Impact**: High - causes runtime errors
-**Dependencies**: None - can be fixed independently
-
-### 2. Type Mismatches (33 errors - 19%)
-**Root Cause**: Multiple auth service implementations with incompatible interfaces
-**Impact**: High - prevents service integration
-**Dependencies**: Must fix before integration testing
-
-### 3. Missing Exports (27 errors - 15%)
-**Root Cause**: Types used by other modules but not exported
-**Impact**: Medium - blocks compilation
-**Dependencies**: Must analyze import chains
-
-### 4. Property Name Inconsistencies (9 errors - 5%)
-**Root Cause**: Evolution of codebase without refactoring
-**Impact**: Low - but causes confusion
-**Dependencies**: Requires coordinated update
+## Current State: 196 Errors Remaining
 
 ## Resolution Strategy
+Fix errors in dependency order to prevent cascading issues. Start with foundational types and work up to consumers.
 
-### Phase 1: Result Type Fixes (Day 1 Morning)
-**Why First**: Most errors, scriptable fix, immediate impact
+## Day 1: Foundation Types (Target: 50 errors fixed)
 
-1. **Automated Fix Enhancement**
-   ```bash
-   # Enhance fix-result-patterns.js to catch more patterns
-   - Add console.* patterns
-   - Add throw patterns  
-   - Add assignment patterns
-   - Add promise chain patterns
-   ```
+### Step 1: Fix Type Exports (1 hour)
+**Goal:** Ensure all types are properly exported from their modules
 
-2. **Manual Review Required**
-   - Complex conditional logic
-   - Nested Result handling
-   - Promise chain conversions
+```bash
+# Find all interfaces/types not exported
+npm run typecheck 2>&1 | grep "Cannot find name" | sort | uniq
+```
 
-3. **Validation**
-   ```bash
-   npm run validate:result-patterns
-   ```
+**Action Items:**
+1. Add missing exports to `src/types/index.ts`
+2. Create barrel exports for each module
+3. Update import statements to use central exports
 
-### Phase 2: Missing Exports (Day 1 Afternoon)
-**Why Second**: Blocks other modules from compiling
+**Fix Pattern:**
+```typescript
+// src/types/index.ts
+export type { User, CreateUserDto, UpdateUserDto } from './user';
+export type { AppError, ErrorCode } from './errors';
+export type { AuthSuccess, AuthFailure } from './auth';
+export type { FlightSearch, FlightResult } from './flights';
+export type { Conversation, Message } from './conversation';
+```
 
-1. **Export Analysis Script**
-   ```bash
-   # Create analyze-missing-exports.js
-   - Parse TypeScript errors
-   - Identify which types are needed
-   - Determine correct export location
-   - Generate export statements
-   ```
+### Step 2: Fix Date Type Mismatches (1 hour)
+**Goal:** Standardize all date handling to ISO strings
 
-2. **Export Structure**
-   ```typescript
-   // auth/functional/types.ts
-   export type {
-     PlainTextPassword,
-     PasswordStorage,
-     TokenStorage,
-     Logger,
-     IdGenerator,
-     TimeProvider
-   } from './password';
-   ```
+```bash
+# Create and run date fix script
+cat > scripts/fix-remaining-dates.js << 'EOF'
+const fs = require('fs');
+const path = require('path');
+const { findFilesWithErrors, createBackup } = require('./fix-utils');
 
-3. **Circular Dependency Check**
-   ```bash
-   npm run check:circular
-   ```
+const filesToFix = findFilesWithErrors('not assignable to type \'Date\'');
 
-### Phase 3: Auth Service Consolidation (Day 2)
-**Why Third**: Most complex, requires design decisions
+filesToFix.forEach(file => {
+  createBackup(file);
+  let content = fs.readFileSync(file, 'utf8');
+  
+  // Fix Date property assignments
+  content = content.replace(
+    /(\w+)\.createdAt\s*=\s*new Date\(\)/g,
+    '$1.createdAt = new Date().toISOString()'
+  );
+  
+  // Fix inline Date objects in returns
+  content = content.replace(
+    /createdAt:\s*new Date\(\)/g,
+    'createdAt: new Date().toISOString()'
+  );
+  
+  fs.writeFileSync(file, content);
+});
+EOF
 
-1. **Service Analysis**
-   ```
-   auth/
-   ├── authService.ts         (original)
-   ├── authServiceNew.ts      (partial Result pattern)
-   ├── authServiceWrapper.ts  (Result adapter)
-   ├── authServiceCompat.ts   (backward compat)
-   └── functional/            (pure functional)
-   ```
+node scripts/fix-remaining-dates.js
+```
 
-2. **Consolidation Strategy**
-   - Keep functional/ as core implementation
-   - Create single authService.ts that wraps functional
-   - Delete intermediate implementations
-   - Update all imports
+### Step 3: Fix Result Type Guards (1.5 hours)
+**Goal:** Use proper type guards for Result access
 
-3. **Type Alignment**
-   ```typescript
-   // Canonical auth response type
-   export type AuthResponse = Result<AuthSuccess, AuthError>;
-   ```
+```bash
+# Run enhanced Result pattern fix
+node scripts/enhance-fix-result-patterns.js
 
-### Phase 4: Property Naming (Day 2 Afternoon)
-**Why Last**: Lowest impact, but improves consistency
+# Fix any remaining manual cases
+grep -r "result\.error" src/ --include="*.ts" | grep -v "isErr"
+```
 
-1. **Naming Convention**
-   ```typescript
-   // Before
-   emailVerified: boolean
-   accountLocked: boolean
-   
-   // After  
-   isEmailVerified: boolean
-   isAccountLocked: boolean
-   ```
+## Day 2: Service Layer (Target: 60 errors fixed)
 
-2. **Automated Refactor**
-   ```bash
-   # Create fix-boolean-naming.js
-   - Find all boolean properties
-   - Add 'is' prefix where missing
-   - Update all references
-   ```
+### Step 4: Fix Service Return Types (2 hours)
+**Goal:** Ensure all services return proper Result types
 
-## Execution Plan
+**Checklist:**
+1. [ ] AuthService methods return Result<AuthSuccess, AppError>
+2. [ ] UserService methods return Result<User, AppError>
+3. [ ] FlightService methods return Result<FlightResult, AppError>
+4. [ ] ConversationService methods return Result<Conversation, AppError>
 
-### Day 1: Morning (3 hours)
-- [ ] 9:00 - Enhance result pattern fixes
-- [ ] 9:30 - Run automated fixes
-- [ ] 10:00 - Manual review of complex cases
-- [ ] 11:00 - Validate all Result usage
-- [ ] 11:30 - Check error count reduction
+**Fix Pattern:**
+```typescript
+// Before
+async findUser(id: string): Promise<User | null> {
+  // ...
+}
 
-### Day 1: Afternoon (3 hours)
-- [ ] 1:00 - Create export analysis script
-- [ ] 1:30 - Run analysis and identify missing exports
-- [ ] 2:00 - Add exports to source modules
-- [ ] 2:30 - Fix any circular dependencies
-- [ ] 3:30 - Validate all imports resolve
+// After
+async findUser(id: UserId): Promise<Result<User, AppError>> {
+  try {
+    const user = await this.repository.findById(id);
+    if (!user) {
+      return err({
+        name: 'NotFoundError',
+        code: 'USER_NOT_FOUND',
+        message: 'User not found',
+        statusCode: 404
+      });
+    }
+    return ok(user);
+  } catch (error) {
+    return err(createAppError(error));
+  }
+}
+```
 
-### Day 2: Morning (4 hours)
-- [ ] 9:00 - Document auth service architecture
-- [ ] 9:30 - Create unified auth service interface
-- [ ] 10:00 - Implement wrapper around functional core
-- [ ] 11:00 - Update all import statements
-- [ ] 12:00 - Delete redundant implementations
+### Step 5: Fix Repository Layer (1.5 hours)
+**Goal:** Align repository interfaces with service expectations
 
-### Day 2: Afternoon (2 hours)
-- [ ] 1:00 - Create property naming fix script
-- [ ] 1:30 - Run automated refactor
-- [ ] 2:00 - Update affected tests
-- [ ] 2:30 - Final validation
+**Tasks:**
+1. Update repository method signatures
+2. Add proper type conversions for database results
+3. Handle null cases with Result pattern
+
+## Day 3: API Layer (Target: 50 errors fixed)
+
+### Step 6: Fix Route Handlers (2 hours)
+**Goal:** Ensure route handlers properly handle Result types
+
+**Fix Pattern:**
+```typescript
+// Before
+router.get('/users/:id', async (req, res) => {
+  const user = await userService.findById(req.params.id);
+  res.json(user);
+});
+
+// After
+router.get('/users/:id', async (req: Request, res: Response) => {
+  const result = await userService.findById(userId(req.params.id));
+  
+  if (isErr(result)) {
+    return res.status(result.error.statusCode).json({
+      error: result.error.message,
+      code: result.error.code
+    });
+  }
+  
+  res.json(result.value);
+});
+```
+
+### Step 7: Fix Middleware Types (1 hour)
+**Goal:** Ensure middleware properly types req/res/next
+
+**Tasks:**
+1. Add proper Express type imports
+2. Type custom properties on Request
+3. Fix async middleware error handling
+
+## Day 4: Final Cleanup (Target: 36 errors fixed)
+
+### Step 8: Fix Test Files (1.5 hours)
+**Goal:** Update tests to match new type signatures
+
+**Common Fixes:**
+1. Update mock return types to use Result
+2. Add type guards in assertions
+3. Fix date comparisons
+
+### Step 9: Fix Edge Cases (1.5 hours)
+**Goal:** Handle remaining unique errors
+
+**Categories:**
+1. Complex generic types
+2. Conditional type issues
+3. Module resolution problems
+4. Third-party library types
+
+### Step 10: Enable Strict Mode (1 hour)
+**Goal:** Gradually enable strict settings
+
+```json
+{
+  "compilerOptions": {
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true
+  }
+}
+```
+
+## Automated Fix Scripts
+
+### Script 1: Fix Missing Type Imports
+```javascript
+// scripts/fix-missing-imports.js
+const { addImportToFile } = require('./fix-utils');
+
+const missingImports = [
+  { file: 'src/services/user.ts', import: "import { Result, ok, err } from '@/utils/result';" },
+  { file: 'src/routes/auth.ts', import: "import { AppError } from '@/types/errors';" },
+  // Add more as discovered
+];
+
+missingImports.forEach(({ file, import }) => {
+  addImportToFile(file, import);
+});
+```
+
+### Script 2: Fix Property Access
+```javascript
+// scripts/fix-property-access.js
+const fixes = [
+  { pattern: /user\.profile\.name/g, replacement: "user.profile?.name ?? 'Unknown'" },
+  { pattern: /error\.errorCode/g, replacement: "error.code" },
+  // Add more patterns
+];
+
+// Apply fixes...
+```
+
+## Validation Checklist
+
+After each phase, run:
+```bash
+# Check error count
+npm run typecheck 2>&1 | grep "error TS" | wc -l
+
+# Check specific error types
+npm run typecheck 2>&1 | grep "TS2339" | wc -l  # Property does not exist
+npm run typecheck 2>&1 | grep "TS2345" | wc -l  # Argument type mismatch
+npm run typecheck 2>&1 | grep "TS2322" | wc -l  # Type not assignable
+
+# Run tests to ensure nothing broke
+npm test -- --passWithNoTests
+```
+
+## Progress Tracking
+
+### Day 1 Checkpoint
+- [ ] All types exported: ___/50 errors fixed
+- [ ] Dates standardized: ___/50 errors fixed
+- [ ] Result guards fixed: ___/50 errors fixed
+- **Total Day 1:** ___/50 errors fixed
+
+### Day 2 Checkpoint
+- [ ] Service layer typed: ___/60 errors fixed
+- [ ] Repository layer aligned: ___/60 errors fixed
+- **Total Day 2:** ___/60 errors fixed
+
+### Day 3 Checkpoint
+- [ ] Route handlers fixed: ___/50 errors fixed
+- [ ] Middleware typed: ___/50 errors fixed
+- **Total Day 3:** ___/50 errors fixed
+
+### Day 4 Checkpoint
+- [ ] Tests updated: ___/36 errors fixed
+- [ ] Edge cases resolved: ___/36 errors fixed
+- [ ] Strict mode enabled: ___/36 errors fixed
+- **Total Day 4:** ___/36 errors fixed
+
+## Common Pitfalls to Avoid
+
+1. **Don't use `as any`** - It hides the problem
+2. **Don't ignore null checks** - Add proper guards
+3. **Don't skip type exports** - Other files need them
+4. **Don't mix Date objects and strings** - Pick one
+5. **Don't forget async error handling** - Use Result pattern
 
 ## Success Criteria
+- [ ] 0 TypeScript errors
+- [ ] All tests passing
+- [ ] No new runtime errors
+- [ ] Code follows guidelines
+- [ ] Team can maintain velocity
 
-1. **Zero TypeScript Errors**
-   ```bash
-   npm run typecheck
-   # ✅ No errors
-   ```
-
-2. **All Tests Pass**
-   ```bash
-   npm test
-   # ✅ All tests pass
-   ```
-
-3. **Clean Architecture**
-   - Single auth service implementation
-   - Consistent Result pattern usage
-   - Clear type exports
-   - Uniform naming conventions
-
-## Risk Mitigation
-
-1. **Backup Current State**
-   ```bash
-   git checkout -b fix/typescript-errors
-   git add . && git commit -m "Backup before TS fixes"
-   ```
-
-2. **Incremental Commits**
-   - Commit after each successful phase
-   - Can rollback if issues arise
-
-3. **Test Coverage**
-   - Run tests after each major change
-   - Add tests for any gaps found
-
-## Tooling Required
-
-1. **Scripts to Create**
-   - `enhance-fix-result-patterns.js`
-   - `analyze-missing-exports.js`
-   - `consolidate-auth-services.js`
-   - `fix-boolean-naming.js`
-
-2. **Validation Scripts**
-   - `validate-result-patterns.js`
-   - `check-circular-deps.js`
-   - `validate-exports.js`
-
-## Expected Outcomes
-
-- **Day 1 End**: ~75 errors remaining (Result + Export fixes)
-- **Day 2 Noon**: ~10 errors remaining (Auth consolidation)
-- **Day 2 End**: 0 errors (All issues resolved)
-
-## Notes for CTO Review
-
-1. **Order Rationale**: Fixing Result patterns first gives biggest impact and is most mechanical. Auth consolidation requires more thought but builds on fixed Result patterns.
-
-2. **Time Estimates**: Conservative to account for discovery of edge cases
-
-3. **Automation Focus**: Creating reusable scripts for future prevention
-
-4. **Architecture Decision**: Keeping functional/ as core implementation aligns with functional programming goals
-
-5. **Testing Strategy**: Each phase includes validation to prevent regressions
+## Next Steps After Resolution
+1. Enable full strict mode
+2. Add type coverage monitoring
+3. Setup pre-commit hooks
+4. Document patterns learned
+5. Team knowledge sharing session

@@ -5,6 +5,8 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Result, ok, err, isOk, isErr } from '@/utils/result';
 import { UserId } from '@/types/brandedTypes';
+import { dateUtils } from '@/utils/types/dates';
+
 
 // Session types
 export type SessionId = string & { readonly brand: unique symbol };
@@ -14,7 +16,7 @@ export const createSessionId = (): SessionId => asSessionId(uuidv4());
 export interface Session {
   id: SessionId;
   userId: UserId;
-  createdAt: Date;
+  createdAt: string;
   expiresAt: Date;
   lastAccessedAt: Date;
   ipAddress?: string;
@@ -66,7 +68,7 @@ export const createSession = (
     const session: Session = {
       id: sessionId,
       userId,
-      createdAt: now,
+      createdAt: now.toISOString(),
       expiresAt,
       lastAccessedAt: now,
     };

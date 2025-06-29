@@ -10,16 +10,20 @@ import type {
   SessionId,
   JWTToken,
   RefreshToken,
-  VerificationToken,
   ResetToken,
   Duration,
   Timestamp,
 } from './types';
+import type { VerificationToken } from '@/types/brandedTypes';
 import {
   JWTToken as createJWTToken,
   RefreshToken as createRefreshToken,
-  VerificationToken as createVerificationToken,
-} from './types';
+} from './types/index';
+import { VerificationToken as createVerificationToken } from '@/types/brandedTypes';
+import {
+  Duration as createDuration,
+  SessionId as createSessionId,
+} from './types/core';
 import type {
   Result,
   AuthError,
@@ -152,7 +156,7 @@ export const createSessionTokens = (
     const refreshTokenResult = generateJWT(
       refreshPayload,
       crypto.jwtRefreshSecret,
-      AUTH_CONSTANTS.TOKEN_EXPIRY.REFRESH_TOKEN
+      createDuration(AUTH_CONSTANTS.TOKEN_EXPIRY.REFRESH_TOKEN)
     );
 
     if (isErr(refreshTokenResult)) {
@@ -202,7 +206,7 @@ export const createEmailVerificationToken = async (
       return err(tokenResult.error);
     }
 
-    const token = isOk(tokenResult) ? tokenResult.value : null;
+    const token = tokenResult.value;
     const now = timeProvider.now();
     const expiresAt = new Date(
       now.getTime() + AUTH_CONSTANTS.TOKEN_EXPIRY.VERIFICATION_TOKEN * 1000
@@ -210,12 +214,11 @@ export const createEmailVerificationToken = async (
 
     // Store token
     const tokenRecord: EmailVerificationTokenRecord = {
-      type: 'email_verification',
       userId,
       token,
       email,
       expiresAt,
-      createdAt: now,
+      createdAt: now.toISOString(),
       used: false,
     };
 
@@ -306,7 +309,7 @@ export const refreshAccessToken = async (
   const payload = isOk(verifyResult) ? verifyResult.value : null;
 
   // Validate session still exists
-  const isValidSession = await sessionValidator(payload.sessionId);
+  const isValidSession = await sessionValidator(createSessionId(payload.sessionId));
   if (!isValidSession) {
     return err({
       type: 'SESSION_EXPIRED',

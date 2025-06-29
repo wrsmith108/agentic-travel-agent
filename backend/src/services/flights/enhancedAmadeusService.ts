@@ -89,13 +89,30 @@ export class EnhancedAmadeusService {
       }
 
       // Handle flexible dates if requested
-      if (advancedOptions?.flexibleDates?.enabled) {
-        return await this.searchFlexibleDates(query, advancedOptions.flexibleDates);
+      if (advancedOptions?.flexibleDates?.enabled &&
+          typeof advancedOptions.flexibleDates.daysBefore === 'number' &&
+          typeof advancedOptions.flexibleDates.daysAfter === 'number') {
+        return await this.searchFlexibleDates(query, {
+          daysBefore: advancedOptions.flexibleDates.daysBefore,
+          daysAfter: advancedOptions.flexibleDates.daysAfter
+        });
       }
 
       // Handle multi-city if requested
       if (advancedOptions?.multiCity && advancedOptions.multiCity.length > 0) {
-        return await this.searchMultiCity(advancedOptions.multiCity);
+        const validSegments = advancedOptions.multiCity.filter(segment =>
+          segment.originLocationCode &&
+          segment.destinationLocationCode &&
+          segment.departureDate
+        ).map(segment => ({
+          originLocationCode: segment.originLocationCode!,
+          destinationLocationCode: segment.destinationLocationCode!,
+          departureDate: segment.departureDate!
+        }));
+        
+        if (validSegments.length > 0) {
+          return await this.searchMultiCity(validSegments);
+        }
       }
 
       // Build standard search parameters
@@ -602,7 +619,7 @@ export class EnhancedAmadeusService {
     }
 
     if (error.response?.statusCode === 400) {
-      const errorDetail = error.response.result?.errors?.[0];
+      const errorDetail = error.response?.resultString?.errors?.[0];
       return err(new AppError(
         400, 
         errorDetail?.detail || 'Invalid flight search parameters',

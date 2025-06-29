@@ -4,6 +4,7 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
+import type { IpAddress, UserAgent, DeviceFingerprint } from '@/types/brandedTypes';
 import type {
   Result,
   AuthError,
@@ -343,13 +344,26 @@ export async function validateSession(
     }
 
     // Update last accessed time if requested
+    let updatedLastAccessedAt = session.lastAccessedAt;
     if (input.updateLastAccessed) {
       const now = createTimestamp();
       await deps.storage.session.update(input.sessionId, { lastAccessedAt: now });
-      session.lastAccessedAt = now;
+      updatedLastAccessedAt = now;
     }
 
-    return ok(session);
+    // Convert SessionData to AuthSession format
+    const authSession: AuthSession = {
+      sessionId: session.sessionId,
+      userId: session.userId,
+      createdAt: session.createdAt,
+      expiresAt: session.expiresAt,
+      lastAccessedAt: updatedLastAccessedAt,
+      ipAddress: session.ipAddress ? (session.ipAddress as IpAddress) : undefined,
+      userAgent: session.userAgent ? (session.userAgent as UserAgent) : undefined,
+      deviceFingerprint: session.deviceFingerprint ? (session.deviceFingerprint as DeviceFingerprint) : undefined,
+    };
+
+    return ok(authSession);
   } catch (error) {
     return err({ type: 'SERVER_ERROR', message: 'Session validation failed' });
   }

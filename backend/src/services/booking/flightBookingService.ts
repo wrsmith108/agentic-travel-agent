@@ -183,13 +183,16 @@ export class FlightBookingService {
     try {
       const key = `booking:${bookingId}`;
       const resultString = await this.redisClient.get(key);
-    const resultString = result.value ? result.value.toString() : null
 
-      if (!isOk(resultString) || isErr(resultString)) {
+      if (isErr(resultString)) {
         return err(new AppError(404, 'Booking not found', ErrorCodes.NOT_FOUND));
       }
 
-      const bookingData: BookingData = JSON.parse(result.value);
+      if (!resultString.value) {
+        return err(new AppError(404, 'Booking not found', ErrorCodes.NOT_FOUND));
+      }
+
+      const bookingData: BookingData = JSON.parse(resultString.value);
 
       // Verify user owns this booking
       if (bookingData.userId !== userId) {
@@ -219,19 +222,19 @@ export class FlightBookingService {
     try {
       const pattern = `booking:*`;
       const keysResultResult = await this.redisClient.keys(pattern);
-    const keysResult = isOk(keysResultResult) ? keysResultResult.value.map(k => k.toString()) : []
+      const keysResult = isOk(keysResultResult) ? keysResultResult.value.map(k => k.toString()) : []
 
-      if (!isOk(keysResult)) {
+      if (isErr(keysResultResult)) {
         return err(new AppError(500, 'Failed to fetch bookings', ErrorCodes.SERVICE_ERROR));
       }
 
       const bookings: BookingListItem[] = [];
 
       // Fetch all bookings for user
-      for (const key of (isOk(keysResult) ? keysResult.value : undefined)) {
+      for (const key of keysResult) {
         const resultString = await this.redisClient.get(key);
-        if (isOk(resultString) && result.value) {
-          const bookingData: BookingData = JSON.parse(result.value);
+        if (isOk(resultString) && resultString.value) {
+          const bookingData: BookingData = JSON.parse(resultString.value);
           
           if (bookingData.userId === userId) {
             // Apply filters
@@ -380,12 +383,16 @@ export class FlightBookingService {
     const key = `flight-offer:${offerId}`;
     const resultString = await this.redisClient.get(key);
 
-    if (!isOk(resultString) || isErr(resultString)) {
+    if (isErr(resultString)) {
+      return err(new AppError(404, 'Flight offer not found or expired', ErrorCodes.NOT_FOUND));
+    }
+
+    if (!resultString.value) {
       return err(new AppError(404, 'Flight offer not found or expired', ErrorCodes.NOT_FOUND));
     }
 
     try {
-      const flightOffer: FlightOffer = JSON.parse(result.value);
+      const flightOffer: FlightOffer = JSON.parse(resultString.value);
       return ok(flightOffer);
     } catch (error) {
       return err(new AppError(500, 'Invalid flight offer data', ErrorCodes.SERVICE_ERROR));
@@ -400,9 +407,9 @@ export class FlightBookingService {
     passengerCount: number
   ): Promise<BookingPriceConfirmation> {
     try {
-      const resultString = await enhancedAmadeusService.confirmPrice([flightOffer]);
+      const result = await enhancedAmadeusService.confirmPrice(flightOffer);
       
-      if (!isOk(resultString) || result.value.length === 0) {
+      if (isErr(result)) {
         return {
           isValid: false,
           originalPrice: this.extractPriceBreakdown(flightOffer),
@@ -410,7 +417,7 @@ export class FlightBookingService {
         };
       }
 
-      const confirmedOffer = isOk(resultString) ? result.value : null[0];
+      const confirmedOffer = result.value;
       const originalPrice = this.extractPriceBreakdown(flightOffer);
       const currentPrice = this.extractPriceBreakdown(confirmedOffer);
 
@@ -722,7 +729,7 @@ export class FlightBookingService {
     }
 
     const deadline = new Date(now.getTime() + deadlineHours * 60 * 60 * 1000);
-    return deadline as string;
+    return deadline.toISOString();
   }
 }
 

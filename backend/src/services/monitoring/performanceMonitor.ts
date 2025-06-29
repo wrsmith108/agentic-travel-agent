@@ -200,7 +200,7 @@ export class PerformanceMonitor {
       existing.minDuration = Math.min(existing.minDuration, transaction.duration);
       existing.maxDuration = Math.max(existing.maxDuration, transaction.duration);
       
-      if (isErr(transaction)) {
+      if (transaction.error) {
         existing.errorCount++;
       }
       
@@ -214,8 +214,8 @@ export class PerformanceMonitor {
         avgDuration: transaction.duration,
         minDuration: transaction.duration,
         maxDuration: transaction.duration,
-        errorCount: isErr(transaction) ? 1 : 0,
-        errorRate: isErr(transaction) ? 1 : 0,
+        errorCount: transaction.error ? 1 : 0,
+        errorRate: transaction.error ? 1 : 0,
         throughput: 1
       });
     }

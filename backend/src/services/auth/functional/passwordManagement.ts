@@ -107,11 +107,10 @@ export const createPasswordResetToken = async (
 
     // Store token
     const tokenRecord: PasswordResetTokenRecord = {
-      type: 'password_reset',
       userId,
       token,
       expiresAt,
-      createdAt: now,
+      createdAt: now.toISOString(),
       used: false,
     };
 

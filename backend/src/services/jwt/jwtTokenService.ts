@@ -3,7 +3,6 @@ import crypto from 'crypto';
 import type {
   JWTServiceConfig,
   JWTPayload,
-  Result,
   TokenError,
   SignResult,
   DecodedToken,
@@ -12,7 +11,6 @@ import type {
   RotationResult,
   UserRole,
 } from './types';
-import { ok, err } from './types';
 import { Result, ok, err, isOk, isErr } from '@/utils/result';
 
 export class JWTTokenService {
@@ -152,13 +150,13 @@ export class JWTTokenService {
       };
 
       const accessToken = jwt.sign(accessTokenPayload, this.secret, {
-        expiresIn: this.accessTokenExpiry,
+        expiresIn: this.expiryToSeconds(this.accessTokenExpiry),
         issuer: this.issuer,
         audience: this.audience,
       });
 
       const refreshToken = jwt.sign(refreshTokenPayload, this.refreshSecret, {
-        expiresIn: this.refreshTokenExpiry,
+        expiresIn: this.expiryToSeconds(this.refreshTokenExpiry),
         issuer: this.issuer,
         audience: this.audience,
       });

@@ -22,6 +22,8 @@ const envSchema = z.object({
     .string()
     .min(32)
     .default('test-jwt-refresh-secret-at-least-32-chars-long-for-development'),
+  JWT_ACCESS_TOKEN_EXPIRY: z.string().default('15m'),
+  JWT_REFRESH_TOKEN_EXPIRY: z.string().default('7d'),
   REQUIRE_EMAIL_VERIFICATION: z.coerce.boolean().default(false),
 
   // Anthropic API
@@ -105,7 +107,7 @@ const envSchema = z.object({
 const parseResult = zodToResult(envSchema.safeParse(process.env));
     if (isErr(parseResult)) {
   console.error('❌ Invalid environment variables:');
-  console.error((isErr(parseResult) ? parseResult.error : undefined).format());
+  console.error((isErr(parseResult) ? parseResult.error : undefined).message);
   process.exit(1);
 }
 

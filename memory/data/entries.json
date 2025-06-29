@@ -1163,5 +1163,25 @@
     "checksum": "52f0c12b7b8d0955ea9481862fd5e304f8fada7f49751d4d81d9ca7002101683",
     "references": [],
     "dependencies": []
+  },
+  {
+    "id": "entry_mch8k5kz_reyav56ri",
+    "key": "typescript_resolution_progress",
+    "value": "Successfully reduced TypeScript errors from 363 to 196 (46% reduction). Created 7 automated fix scripts: critical imports, Zod error access, unknown property access, date conversions, duplicate imports, AppError properties. Key insights: 1) Fix foundation issues first to prevent cascading, 2) Pattern-based automation scales well, 3) Initial fixes revealed ~150 hidden errors, 4) AppError uses .code not .errorCode. Remaining: 39 property access, 38 type assignments, 31 missing exports.",
+    "type": "string",
+    "namespace": "default",
+    "tags": [],
+    "metadata": {},
+    "owner": "system",
+    "accessLevel": "shared",
+    "createdAt": "2025-06-29T05:35:00.419Z",
+    "updatedAt": "2025-06-29T05:35:00.419Z",
+    "lastAccessedAt": "2025-06-29T05:35:00.419Z",
+    "version": 1,
+    "size": 519,
+    "compressed": false,
+    "checksum": "9b414ef50fd720df1d20587c133607cdf1c26aa82894bc2bdd2fff5a7f940624",
+    "references": [],
+    "dependencies": []
   }
 ]

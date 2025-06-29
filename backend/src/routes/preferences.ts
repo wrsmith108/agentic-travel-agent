@@ -93,7 +93,7 @@ router.patch('/', async (req: Request, res: Response, next: NextFunction) => {
         error: {
           code: 'VALIDATION_ERROR',
           message: 'Invalid preference data',
-          details: isErr(validationResult) && validationResult.error.details ? validationResult.error.details.errors || [] : [],
+          details: isErr(validationResult) && validationResult.error.details && typeof validationResult.error.details === 'object' && 'errors' in validationResult.error.details ? (validationResult.error.details as any).errors || [] : [],
         },
       });
     }
@@ -269,7 +269,7 @@ router.patch('/:section', async (req: Request, res: Response, next: NextFunction
         error: {
           code: 'VALIDATION_ERROR',
           message: 'Invalid preference data',
-          details: isErr(validationResult) && validationResult.error.details ? validationResult.error.details.errors || [] : [],
+          details: isErr(validationResult) && validationResult.error.details && typeof validationResult.error.details === 'object' && 'errors' in validationResult.error.details ? (validationResult.error.details as any).errors || [] : [],
         },
       });
     }

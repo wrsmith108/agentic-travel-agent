@@ -174,14 +174,14 @@ export class PriceMonitoringProcessor {
     try {
       const pattern = 'saved-searches:*';
       const keysResultResult = await this.redisClient.keys(pattern);
-    const keysResult = isOk(keysResultResult) ? keysResultResult.value.map(k => k.toString()) : []
       
-      if (!isOk(keysResult)) {
+      if (!isOk(keysResultResult)) {
         return err(new AppError(500, 'Failed to fetch user keys', ErrorCodes.SERVICE_ERROR));
       }
 
       // Extract user IDs from keys
-      const userIds = isOk(keysResult) ? keysResult.value : null
+      const keys = keysResultResult.value.map(k => k.toString());
+      const userIds = keys
         .map(key => key.replace('saved-searches:', ''))
         .filter(id => id.length > 0);
 
@@ -214,13 +214,14 @@ export class PriceMonitoringProcessor {
       const chunkResults = await Promise.allSettled(promises);
 
       chunkResults.forEach((result, index) => {
-        if (result.status === 'fulfilled' && isOk(result.value)) {
-          results.processedCount += result.value.value.processedCount;
-          results.alertsGenerated += result.value.value.alertsGenerated;
+        if (result.status === 'fulfilled' && isOk(result.value as any)) {
+          const userResult = (result.value as any).value as { processedCount: number; alertsGenerated: number };
+          results.processedCount += userResult.processedCount;
+          results.alertsGenerated += userResult.alertsGenerated;
         } else {
-          const error = result.status === 'rejected' 
+          const error = result.status === 'rejected'
             ? result.reason?.message || 'Unknown error'
-            : (isErr(result.value) ? (isErr(result.value) ? result.value.error.message : "") : "");
+            : (isErr(result.value as any) ? (result.value as any).error.message : "");
           results.errors.push(`User ${chunk[index]}: ${error}`);
         }
       });
@@ -307,10 +308,9 @@ export class PriceMonitoringProcessor {
   private async shouldProcessSearch(savedSearch: SavedSearch, userId: string): Promise<boolean> {
     const lastCheckKey = `last-price-check:${savedSearch.id}`;
     const lastCheckResultString = await this.redisClient.get(lastCheckKey);
-    const lastCheckResultString = lastCheckResult.value ? lastCheckResult.value.toString() : null
 
-    if (isOk(lastCheckResultString) && lastCheckResult.value) {
-      const lastCheck = new Date(lastCheckResult.value);
+    if (isOk(lastCheckResultString) && lastCheckResultString.value) {
+      const lastCheck = new Date(lastCheckResultString.value);
       
       // Get user's notification frequency preference
       const frequency = await userPreferencesService.getNotificationFrequency(userId as UserId);
@@ -365,7 +365,7 @@ export class PriceMonitoringProcessor {
       }
 
       // Find results for this specific search
-      const searchResult = isOk(priceCheckResult) ? priceCheckResult.value : null.find(r => r.savedSearchId === savedSearch.id);
+      const searchResult = isOk(priceCheckResult) ? priceCheckResult.value.find(r => r.savedSearch === savedSearch.id) : null;
       if (!searchResult || !searchResult.alert) {
         return ok({ alertGenerated: false });
       }

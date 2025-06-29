@@ -254,7 +254,7 @@ export const createDeviceFingerprint = (fingerprint: string): DeviceFingerprint 
 };
 
 export const createTimestamp = (date?: Date): Timestamp => {
-  const timestamp = (date || new Date()) as string;
+  const timestamp = (date || new Date()).toISOString();
   return timestamp as Timestamp;
 };
 

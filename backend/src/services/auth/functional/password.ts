@@ -196,8 +196,8 @@ export const needsRehash = (
 export interface PasswordStorageEntry {
   userId: string;
   hash: HashedPassword;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
   version: number;
 }
 
@@ -212,8 +212,8 @@ export const createPasswordStorage = (
   return {
     userId,
     hash,
-    createdAt: now,
-    updatedAt: now,
+    createdAt: now.toISOString(),
+    updatedAt: now.toISOString(),
     version: 1,
   };
 };
@@ -242,7 +242,7 @@ export const updatePasswordStorage = (
  */
 export interface PasswordHistoryEntry {
   hash: HashedPassword;
-  createdAt: Date;
+  createdAt: string;
 }
 
 /**

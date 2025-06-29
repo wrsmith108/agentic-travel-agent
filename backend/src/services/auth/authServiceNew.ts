@@ -136,7 +136,7 @@ export const register = async (
       },
       accessToken,
       refreshToken,
-      expiresAt: session.expiresAt,
+      expiresAt: session.expiresAt.toISOString(),
     });
   } catch (error) {
     return err(systemError(
@@ -218,10 +218,7 @@ export const login = async (
     // Update session with refresh token
     updateSessionRefreshToken(session.id, refreshToken);
 
-    // Update last login time
-    await userDataOps.updateUserData(userId, {
-      lastLoginAt: new Date().toISOString(),
-    });
+    // Note: lastLogin is included in response but not persistently stored
 
     return ok({
       user: {
@@ -236,7 +233,7 @@ export const login = async (
       },
       accessToken,
       refreshToken,
-      expiresAt: session.expiresAt,
+      expiresAt: session.expiresAt.toISOString(),
     });
   } catch (error) {
     return err(systemError(

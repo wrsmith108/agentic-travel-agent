@@ -99,7 +99,7 @@ export const createMockSessionData = (
     userId: user.id,
     user,
     createdAt: now.toISOString(),
-    expiresAt: expiresAt,
+    expiresAt: expiresAt.toISOString(),
     lastAccessedAt: now.toISOString(),
     isActive: true,
     loginMethod: 'email',
@@ -144,7 +144,7 @@ export const createAuthHeaders = (token: string) => ({
 export const createRateLimitHeaders = () => ({
   'X-RateLimit-Limit': '5',
   'X-RateLimit-Remaining': '0',
-  'X-RateLimit-Reset': new Date(Date.now() + 900000) as string, // 15 minutes from now
+  'X-RateLimit-Reset': new Date(Date.now() + 900000).toISOString(), // 15 minutes from now
 });
 
 /**
@@ -192,7 +192,7 @@ export const createExpiredSessionData = (user: SessionUser): SessionData => {
     user,
     createdAt: past.toISOString(),
     expiresAt: past.toISOString(), // Already expired
-    lastAccessedAt: past as string,
+    lastAccessedAt: past.toISOString(),
     isActive: true,
     loginMethod: 'email',
   };

@@ -592,7 +592,7 @@ export class TravelAgentService {
 
     const result = await enhancedAmadeusService.searchAirports(location);
     if (isOk(result) && result.value.length > 0) {
-      return isOk(result) ? result.value : null[0].iataCode;
+      return result.value[0].iataCode;
     }
 
     // Fallback to common mappings
@@ -623,7 +623,7 @@ export class TravelAgentService {
     const flightResult = await this.searchFlights(from, to, options.date);
     
     if (isOk(flightResult) && flightResult.value.length > 0) {
-      const flight = isOk(flightResult) ? flightResult.value : null[0];
+      const flight = flightResult.value[0];
       return ok([{
         type: 'flight',
         from,

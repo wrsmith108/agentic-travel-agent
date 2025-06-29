@@ -54,9 +54,9 @@ export const createSession = async (
     sessionId,
     userId: user.id,
     user,
-    createdAt: now.toISOString(),
-    expiresAt: expiresAt,
-    lastAccessedAt: now.toISOString(),
+    createdAt: createTimestamp(),
+    expiresAt: createTimestamp(expiresAt),
+    lastAccessedAt: createTimestamp(),
     ipAddress: deviceInfo?.ipAddress,
     userAgent: deviceInfo?.userAgent,
     deviceFingerprint: deviceInfo?.fingerprint,
@@ -101,7 +101,7 @@ export const createSession = async (
     sessionId,
     accessToken,
     refreshToken,
-    expiresAt: expiresAt,
+    expiresAt: expiresAt.toISOString(),
   };
 };
 
@@ -123,7 +123,11 @@ export const validateSession = (sessionId: string): SessionUser | null => {
   }
 
   // Update last accessed time
-  sessionData.lastAccessedAt = createTimestamp();
+  const updatedSessionData = {
+    ...sessionData,
+    lastAccessedAt: createTimestamp(),
+  };
+  sessions[sessionId] = updatedSessionData;
 
   return sessionData.user;
 };
@@ -202,7 +206,11 @@ export const getSessionInfo = (sessionId: string): SessionData | null => {
 export const updateSessionActivity = (sessionId: string): void => {
   const session = sessions[sessionId];
   if (session) {
-    session.lastAccessedAt = createTimestamp();
+    const updatedSession = {
+      ...session,
+      lastAccessedAt: createTimestamp(),
+    };
+    sessions[sessionId] = updatedSession;
   }
 };
 

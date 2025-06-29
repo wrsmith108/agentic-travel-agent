@@ -304,7 +304,10 @@ router.post(
         ip: req.ip,
       });
 
-      const result = await authServiceWrapper.resetPassword(req.body.token, req.body.password);
+      const result = await authServiceWrapper.resetPassword({
+        token: req.body.token,
+        newPassword: req.body.password
+      });
 
       if (isOk(result)) {
         requestLogger.info('Password reset successful');

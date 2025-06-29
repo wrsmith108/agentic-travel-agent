@@ -1,6 +1,6 @@
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
-import { redis } from '../../../config/redis';
+import { getRedis } from '../../../config/redis';
 import { Result, ok, err } from '../../../utils/result';
 import type { JWTConfig, TokenPayload, TokenPair, JWTError } from './types';
 
@@ -29,7 +29,7 @@ export class JWTService {
       const accessToken = jwt.sign(
         accessPayload,
         this.config.accessSecret,
-        { expiresIn: this.config.accessTokenExpiry }
+        { expiresIn: this.config.accessTokenExpiry as any }
       );
 
       // Generate refresh token with jti
@@ -43,14 +43,14 @@ export class JWTService {
       const refreshToken = jwt.sign(
         refreshPayload,
         this.config.refreshSecret,
-        { expiresIn: this.config.refreshTokenExpiry }
+        { expiresIn: this.config.refreshTokenExpiry as any }
       );
 
       // Store refresh token in Redis
       const refreshKey = `${this.refreshTokenPrefix}${userId}:${jti}`;
       const refreshExpiry = this.parseExpiry(this.config.refreshTokenExpiry);
       
-      await redis.set(refreshKey, email, 'EX', refreshExpiry);
+      await getRedis().setEx(refreshKey, refreshExpiry, email);
 
       return ok({ accessToken, refreshToken });
     } catch (error) {
@@ -64,7 +64,7 @@ export class JWTService {
   async verifyAccessToken(token: string): Promise<Result<TokenPayload, JWTError>> {
     try {
       // Check if token is blacklisted
-      const isBlacklisted = await redis.sismember(this.blacklistKey, token);
+      const isBlacklisted = await getRedis().sismember(this.blacklistKey, token);
       if (isBlacklisted) {
         return err({
           code: 'TOKEN_BLACKLISTED',
@@ -98,7 +98,7 @@ export class JWTService {
 
       // Check if refresh token exists in Redis
       const refreshKey = `${this.refreshTokenPrefix}${payload.userId}:${payload.jti}`;
-      const storedEmail = await redis.get(refreshKey);
+      const storedEmail = await getRedis().get(refreshKey);
       
       if (!storedEmail) {
         return err({
@@ -108,7 +108,7 @@ export class JWTService {
       }
 
       // Delete old refresh token
-      await redis.del(refreshKey);
+      await getRedis().del(refreshKey);
 
       // Generate new token pair
       return this.generateTokens(payload.userId, payload.email);
@@ -133,12 +133,12 @@ export class JWTService {
       }
 
       // Add to blacklist set
-      await redis.sadd(this.blacklistKey, token);
+      await getRedis().sadd(this.blacklistKey, token);
       
       // Set expiry on blacklist to match token expiry
       const ttl = payload.exp - Math.floor(Date.now() / 1000);
       if (ttl > 0) {
-        await redis.expire(this.blacklistKey, ttl);
+        await getRedis().expire(this.blacklistKey, ttl);
       }
 
       return ok(undefined);
@@ -159,7 +159,7 @@ export class JWTService {
       const keys = await this.scanKeys(pattern);
       
       if (keys.length > 0) {
-        await redis.del(...keys);
+        await getRedis().del(keys);
       }
 
       return ok(undefined);
@@ -199,16 +199,15 @@ export class JWTService {
     let cursor = '0';
 
     do {
-      const [newCursor, foundKeys] = await redis.scan(
-        cursor,
-        'MATCH',
-        pattern,
-        'COUNT',
-        100
-      );
+      const scanResult = await getRedis().scan(cursor, {
+        MATCH: pattern,
+        COUNT: 100
+      });
+      const newCursor = scanResult.cursor;
+      const foundKeys = scanResult.keys;
       
-      cursor = newCursor;
-      keys.push(...foundKeys);
+      cursor = newCursor.toString();
+      keys.push(...foundKeys.map(key => key.toString()));
     } while (cursor !== '0');
 
     return keys;

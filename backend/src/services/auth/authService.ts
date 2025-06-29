@@ -32,7 +32,7 @@ interface PasswordResetToken {
   userId: string;
   token: string;
   expiresAt: Date;
-  createdAt: Date;
+  createdAt: string;
   used: boolean;
 }
 
@@ -44,7 +44,7 @@ interface EmailVerificationToken {
   token: string;
   email: string;
   expiresAt: Date;
-  createdAt: Date;
+  createdAt: string;
   used: boolean;
 }
 
@@ -831,7 +831,7 @@ class AuthService {
       userId: user.id,
       user,
       createdAt: now.toISOString(),
-      expiresAt: expiresAt,
+      expiresAt: expiresAt.toISOString(),
       lastAccessedAt: now.toISOString(),
       ipAddress: deviceInfo?.ipAddress,
       userAgent: deviceInfo?.userAgent,
@@ -873,7 +873,7 @@ class AuthService {
     } = {
       sessionId,
       accessToken,
-      expiresAt: expiresAt,
+      expiresAt: expiresAt.toISOString(),
     };
 
     if (refreshToken) {

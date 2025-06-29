@@ -16,7 +16,7 @@ export interface Message {
   id: MessageId;
   role: 'user' | 'assistant';
   content: string;
-  timestamp: Date;
+  timestamp: string;
   metadata?: {
     model?: string;
     tokenCount?: number;
@@ -30,8 +30,8 @@ export interface Conversation {
   title: string;
   messages: Message[];
   context: ConversationContext;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
   active: boolean;
 }
 
@@ -156,7 +156,7 @@ export const getUserConversations = (
     .map(id => conversations.get(id))
     .filter((conv): conv is Conversation => conv !== undefined)
     .filter(conv => conv.active)
-    .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
   
   return ok(userConvs);
 };
@@ -188,7 +188,7 @@ export const updateConversationContext = (
     bookingHistory: contextUpdate.bookingHistory || conversation.context.bookingHistory,
   };
   
-  conversation.updatedAt = new Date();
+  conversation.updatedAt = new Date().toISOString();
   
   return ok(conversation);
 };
@@ -260,7 +260,7 @@ export const sendMessage = async (
     };
     
     conversation.messages.push(assistantMessage);
-    conversation.updatedAt = new Date();
+    conversation.updatedAt = new Date().toISOString();
     
     // Update title if it's the first exchange
     if (conversation.messages.length === 2) {
@@ -444,7 +444,7 @@ export const deleteConversation = (
   
   const conversation = isOk(convResult) ? convResult.value : null;
   conversation.active = false;
-  conversation.updatedAt = new Date();
+  conversation.updatedAt = new Date().toISOString();
   
   return ok(undefined);
 };
@@ -464,7 +464,7 @@ export const clearConversation = (
   
   const conversation = isOk(convResult) ? convResult.value : null;
   conversation.messages = [];
-  conversation.updatedAt = new Date();
+  conversation.updatedAt = new Date().toISOString();
   conversation.title = 'New Conversation';
   
   return ok(conversation);
@@ -490,7 +490,7 @@ export const exportConversation = (
   
   conversation.messages.forEach(message => {
     const role = message.role === 'user' ? '**You**' : '**Assistant**';
-    markdown += `${role} (${message.timestamp.toLocaleTimeString()}):\n`;
+    markdown += `${role} (${new Date(message.timestamp).toLocaleTimeString()}):\n`;
     markdown += `${message.content}\n\n`;
   });
   
