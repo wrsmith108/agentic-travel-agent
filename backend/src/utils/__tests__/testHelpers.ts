@@ -281,7 +281,7 @@ export class AuthTestHelpers {
         createdAt: createTimestamp(),
       },
       createdAt: createTimestamp(),
-      expiresAt: new Date(Date.now() + 3600000) as string,
+      expiresAt: new Date(Date.now() + 3600000).toISOString(),
       lastAccessedAt: new Date().toISOString(),
       ipAddress: faker.internet.ip(),
       userAgent: faker.internet.userAgent(),

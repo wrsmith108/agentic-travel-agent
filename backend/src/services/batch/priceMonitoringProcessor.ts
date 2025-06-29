@@ -5,8 +5,7 @@
 
 import { CronJob } from 'cron';
 import { v4 as uuidv4 } from 'uuid';
-import { Result, ok, err } from '../../utils/result';
-import { isOk, isErr } from '../../utils/result';
+import { Result, ok, err, isOk, isErr } from '@/utils/result';
 import { AppError, ErrorCodes } from '../../middleware/errorHandler';
 import createLogger from '../../utils/logger';
 import { getRedisClient } from '../redis/redisClient';
@@ -18,7 +17,6 @@ import { userPreferencesService } from '../preferences/userPreferencesService';
 import { SavedSearch, PriceAlert } from '../../schemas/flight';
 import { env } from '../../config/env';
 import { UserId } from '../../types/brandedTypes';
-import { Result, ok, err, isOk, isErr } from '@/utils/result';
 
 const logger = createLogger('PriceMonitoringProcessor');
 

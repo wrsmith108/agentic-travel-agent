@@ -6,8 +6,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { createTimestamp } from '@/services/auth/functional/types';
-import { Result, ok, err } from '../../utils/resultString';
-import { isOk, isErr } from '../../utils/resultString';
+import { Result, ok, err, isOk, isErr } from '@/utils/result';
 import { AppError, ErrorCodes } from '../../middleware/errorHandler';
 import createLogger from '../../utils/logger';
 import { getRedisClient } from '../redis/redisClient';
@@ -28,7 +27,6 @@ import {
 } from '../../schemas/booking';
 import { FlightOffer } from '../../schemas/flight';
 import { UserId } from '../../types/brandedTypes';
-import { Result, ok, err, isOk, isErr } from '@/utils/resultString';
 
 const logger = createLogger('FlightBookingService');
 

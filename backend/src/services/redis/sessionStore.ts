@@ -4,10 +4,9 @@
  */
 
 import { RedisClient } from './redisClient';
-import { Result, ok, err, isErr, isOk } from '../../utils/result';
+import { Result, ok, err, isErr, isOk } from '@/utils/result';
 import { AppError, ErrorCodes } from '../../middleware/errorHandler';
 import { v4 as uuidv4 } from 'uuid';
-import { Result, ok, err, isOk, isErr } from '@/utils/result';
 
 export interface SessionData {
   userId: string;

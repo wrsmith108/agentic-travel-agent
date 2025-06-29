@@ -5,8 +5,7 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 import { v4 as uuidv4 } from 'uuid';
-import { Result, ok, err } from '../../utils/result';
-import { isOk, isErr } from '../../utils/result';
+import { Result, ok, err, isOk, isErr } from '@/utils/result';
 import { AppError, ErrorCodes } from '../../middleware/errorHandler';
 import { env } from '../../config/env';
 import { getRedisClient } from '../redis/redisClient';

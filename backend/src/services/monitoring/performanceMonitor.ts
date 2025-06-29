@@ -1,9 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
 import { createTimestamp } from '@/services/auth/functional/types';
-import { Result, ok, err, isErr } from '../../utils/result';
+import { Result, ok, err, isErr } from '@/utils/result';
 import { AppError, ErrorCodes } from '../../middleware/errorHandler';
 import createLogger from '../../utils/logger';
-import { Result, ok, isErr } from '@/utils/result';
 const logger = createLogger('UperformanceMonitor');
 const logWarn = (message: string, context?: any) => logger.warn(message, context);
 

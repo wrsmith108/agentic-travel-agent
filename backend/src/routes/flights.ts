@@ -71,7 +71,7 @@ router.post('/search', async (req: Request, res: Response, next: NextFunction): 
         success: false,
         error: {
           code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
-          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
+          message: (isErr(result) ? result.error.message : "An error occurred"),
         },
       });
       return;
@@ -138,7 +138,7 @@ router.post('/search/natural', async (req: Request, res: Response, next: NextFun
         success: false,
         error: {
           code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
-          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
+          message: (isErr(result) ? result.error.message : "An error occurred"),
         },
       });
       return;
@@ -205,7 +205,7 @@ router.get('/airports', async (req: Request, res: Response, next: NextFunction):
         success: false,
         error: {
           code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
-          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
+          message: (isErr(result) ? result.error.message : "An error occurred"),
         },
       });
       return;
@@ -256,7 +256,7 @@ router.post('/price/confirm', requireAuth, async (req: Request, res: Response, n
         success: false,
         error: {
           code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
-          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
+          message: (isErr(result) ? result.error.message : "An error occurred"),
         },
       });
       return;
@@ -299,7 +299,7 @@ router.get('/saved', requireAuth, async (req: Request, res: Response, next: Next
         success: false,
         error: {
           code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
-          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
+          message: (isErr(result) ? result.error.message : "An error occurred"),
         },
       });
       return;
@@ -353,7 +353,7 @@ router.post('/saved', requireAuth, async (req: Request, res: Response, next: Nex
         success: false,
         error: {
           code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
-          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
+          message: (isErr(result) ? result.error.message : "An error occurred"),
         },
       });
       return;
@@ -424,7 +424,7 @@ router.put('/saved/:id', requireAuth, async (req: Request, res: Response, next: 
         success: false,
         error: {
           code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
-          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
+          message: (isErr(result) ? result.error.message : "An error occurred"),
         },
       });
       return;
@@ -479,7 +479,7 @@ router.delete('/saved/:id', requireAuth, async (req: Request, res: Response, nex
         success: false,
         error: {
           code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
-          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
+          message: (isErr(result) ? result.error.message : "An error occurred"),
         },
       });
       return;
@@ -515,14 +515,14 @@ router.post('/saved/check-prices', requireAuth, async (req: Request, res: Respon
         success: false,
         error: {
           code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
-          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
+          message: (isErr(result) ? result.error.message : "An error occurred"),
         },
       });
       return;
     }
 
     requestLogger.info('Price check completed', {
-      searchesChecked: result.value.length,
+      searchesChecked: (result.value as any).length,
       alertsGenerated: result.value.filter(r => r.alert).length,
     });
 
@@ -563,7 +563,7 @@ router.get('/alerts', requireAuth, async (req: Request, res: Response, next: Nex
         success: false,
         error: {
           code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
-          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
+          message: (isErr(result) ? result.error.message : "An error occurred"),
         },
       });
       return;
@@ -606,7 +606,7 @@ router.put('/alerts/:id/read', requireAuth, async (req: Request, res: Response, 
         success: false,
         error: {
           code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
-          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
+          message: (isErr(result) ? result.error.message : "An error occurred"),
         },
       });
       return;
@@ -663,7 +663,7 @@ router.post('/book', requireAuth, async (req: Request, res: Response, next: Next
         success: false,
         error: {
           code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
-          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
+          message: (isErr(result) ? result.error.message : "An error occurred"),
         },
       });
       return;

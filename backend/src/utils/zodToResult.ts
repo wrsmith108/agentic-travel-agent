@@ -24,6 +24,7 @@ export function zodToResult<T>(
   }));
   
   return err({
+      name: "ValidationError",
     statusCode: 400,
     message: 'Validation failed',
     errorCode: 'VALIDATION_ERROR',

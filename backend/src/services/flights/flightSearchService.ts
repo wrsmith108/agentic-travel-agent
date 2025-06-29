@@ -5,8 +5,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { createTimestamp } from '@/services/auth/functional/types';
-import { Result, ok, err } from '../../utils/result';
-import { isOk, isErr } from '../../utils/result';
+import { Result, ok, err, isOk, isErr } from '@/utils/result';
 import { AppError, ErrorCodes } from '../../middleware/errorHandler';
 import { enhancedAmadeusService } from './enhancedAmadeusService';
 import { getRedisClient } from '../redis/redisClient';

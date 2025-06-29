@@ -3,15 +3,13 @@
  * Handles email notifications for price alerts and other communications
  */
 
-import { Result, ok, err } from '../../utils/resultString';
+import { Result, ok, err, isOk, isErr } from '@/utils/result';
 import { createTimestamp } from '@/services/auth/functional/types';
-import { isOk, isErr } from '../../utils/resultString';
 import { AppError, ErrorCodes } from '../../middleware/errorHandler';
 import createLogger from '../../utils/logger';
 import { env } from '../../config/env';
 import { metricsService } from '../monitoring/metricsService';
 import { getRedisClient } from '../redis/redisClient';
-import { Result, ok, err, isOk, isErr } from '@/utils/resultString';
 
 const logger = createLogger('EmailService');
 

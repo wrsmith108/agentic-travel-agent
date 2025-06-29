@@ -82,7 +82,7 @@ export const authenticate = async (
         error: (isErr(tokenResult) ? tokenResult.error : undefined),
       });
 
-      const statusCode = isErr(tokenResult) ? tokenResult.error : null.type === 'TOKEN_EXPIRED' ? 401 : 403;
+      const statusCode = isErr(tokenResult) && tokenResult.error.type === 'TOKEN_EXPIRED' ? 401 : 403;
       res.status(statusCode).json({
         success: false,
         error: (isErr(tokenResult) ? tokenResult.error : undefined),

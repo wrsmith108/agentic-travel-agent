@@ -337,8 +337,8 @@ export const getCostSummary = () => {
       // Get cost breakdown
       const breakdown = await costTrackingService.getUserCostBreakdown(
         userId,
-        startDate().toISOString(),
-        endDate().toISOString()
+        new Date(String(req.query.startDate)).toISOString(),
+        new Date(String(req.query.endDate)).toISOString()
       );
 
       // Get recommended model

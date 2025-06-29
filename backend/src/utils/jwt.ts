@@ -6,7 +6,6 @@ import jwt from 'jsonwebtoken';
 import { env } from '@/config/env';
 import { Result, ok, err, tryCatch, isErr, isOk } from './result';
 import { UserId, AccessToken, RefreshToken } from '@/types/brandedTypes';
-import { Result, ok, err, isOk, isErr } from '@/utils/result';
 
 // JWT payload types
 export interface JWTPayload {
@@ -205,7 +204,7 @@ export const generateTokenPair = (
 export const decodeToken = (token: string): Result<JWTPayload | RefreshTokenPayload, JWTError> => {
   return tryCatch(
     () => {
-      const decoded = jwt.decode(token) as JWTPayload | RefreshTokenPayload;
+      const decoded = jwt.decode(token) as JWTPayload | null as JWTPayload | RefreshTokenPayload;
       if (!decoded) {
         throw new Error('Failed to decode token');
       }

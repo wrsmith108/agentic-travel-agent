@@ -107,7 +107,7 @@ router.post(
       } else {
         requestLogger.warn('User registration failed', {
           errorType: (isErr(result) ? result.error.type : ""),
-          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
+          message: (isErr(result) ? result.error.message : "An error occurred"),
           email: req.body.email,
         });
 
@@ -167,7 +167,7 @@ router.post(
       } else {
         requestLogger.warn('User login failed', {
           errorType: (isErr(result) ? result.error.type : ""),
-          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
+          message: (isErr(result) ? result.error.message : "An error occurred"),
           email: req.body.email,
         });
 
@@ -325,7 +325,7 @@ router.post(
           error: result.error,
         });
 
-        const statusCode = isErr(result) ? result.error : null.type === 'TOKEN_EXPIRED' ? 401 : 403;
+        const statusCode = isErr(result) && result.error.type === 'TOKEN_EXPIRED' ? 401 : 403;
         res.status(statusCode).json({
           success: false,
           error: result.error,
@@ -409,7 +409,7 @@ router.post(
       } else {
         requestLogger.warn('Password reset failed', {
           errorType: (isErr(result) ? result.error.type : ""),
-          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
+          message: (isErr(result) ? result.error.message : "An error occurred"),
         });
 
         const statusCode = getStatusCodeFromError(result.error);

@@ -142,7 +142,7 @@ router.post('/destinations', sanitizeInputs(), async (req: Request, res: Respons
         success: false,
         error: {
           code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
-          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
+          message: (isErr(result) ? result.error.message : "An error occurred"),
         },
       });
       return;
@@ -209,7 +209,7 @@ router.post('/itinerary', sanitizeInputs(), async (req: Request, res: Response, 
         success: false,
         error: {
           code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
-          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
+          message: (isErr(result) ? result.error.message : "An error occurred"),
         },
       });
       return;
@@ -275,7 +275,7 @@ router.post('/multi-city', sanitizeInputs(), async (req: Request, res: Response,
         success: false,
         error: {
           code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
-          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
+          message: (isErr(result) ? result.error.message : "An error occurred"),
         },
       });
       return;
@@ -338,7 +338,7 @@ router.post('/advice', sanitizeInputs(), async (req: Request, res: Response, nex
         success: false,
         error: {
           code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
-          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
+          message: (isErr(result) ? result.error.message : "An error occurred"),
         },
       });
       return;
@@ -403,7 +403,7 @@ router.post('/tips', sanitizeInputs(), async (req: Request, res: Response, next:
         success: false,
         error: {
           code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
-          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
+          message: (isErr(result) ? result.error.message : "An error occurred"),
         },
       });
       return;

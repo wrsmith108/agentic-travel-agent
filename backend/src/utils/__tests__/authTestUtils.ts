@@ -98,9 +98,9 @@ export const createMockSessionData = (
     sessionId,
     userId: user.id,
     user,
-    createdAt: now as string,
+    createdAt: now.toISOString(),
     expiresAt: expiresAt,
-    lastAccessedAt: now as string,
+    lastAccessedAt: now.toISOString(),
     isActive: true,
     loginMethod: 'email',
     ...overrides,
@@ -190,8 +190,8 @@ export const createExpiredSessionData = (user: SessionUser): SessionData => {
     sessionId,
     userId: user.id,
     user,
-    createdAt: past as string,
-    expiresAt: past as string, // Already expired
+    createdAt: past.toISOString(),
+    expiresAt: past.toISOString(), // Already expired
     lastAccessedAt: past as string,
     isActive: true,
     loginMethod: 'email',
@@ -212,7 +212,7 @@ export const createMockAuthSuccessResponse = (
     user,
     sessionId,
     accessToken,
-    expiresAt: new Date(Date.now() + 3600000) as string,
+    expiresAt: new Date(Date.now() + 3600000).toISOString(),
     permissions: ['user:read', 'user:update'],
   },
 });

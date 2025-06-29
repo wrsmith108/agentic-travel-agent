@@ -1,7 +1,6 @@
 import { JWTService } from '../jwtService';
 import { redis } from '../../../../config/redis';
-import { isOk, isErr } from '../../../../utils/result';
-import type { Result } from '../../../../utils/result';
+import { isOk, isErr } from '@/utils/result';
 
 // Mock Redis
 jest.mock('../../../../config/redis', () => ({

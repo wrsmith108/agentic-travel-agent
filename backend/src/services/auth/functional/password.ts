@@ -228,7 +228,7 @@ export const updatePasswordStorage = (
   return {
     ...entry,
     hash: newHash,
-    updatedAt: new Date(),
+    updatedAt: new Date().toISOString(),
     version: entry.version + 1,
   };
 };
@@ -271,7 +271,7 @@ export const addToPasswordHistory = (
 ): PasswordHistoryEntry[] => {
   const newEntry: PasswordHistoryEntry = {
     hash,
-    createdAt: new Date(),
+    createdAt: new Date().toISOString(),
   };
 
   const updatedHistory = [newEntry, ...history];

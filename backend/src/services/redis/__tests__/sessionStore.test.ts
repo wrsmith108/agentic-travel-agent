@@ -1,7 +1,6 @@
 import { SessionStore, SessionData } from '../sessionStore';
 import { RedisClient } from '../redisClient';
-import { isOk, isErr } from '../../../utils/result';
-import { ok, err } from '../../../utils/result';
+import { isOk, isErr, ok, err } from '@/utils/result';
 import { AppError, ErrorCodes } from '../../../middleware/errorHandler';
 
 // Mock RedisClient

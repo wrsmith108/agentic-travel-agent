@@ -47,11 +47,11 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     const result = await userPreferencesService.getPreferences(userId as UserId);
 
     if (!isOk(result)) {
-      return res.status(result.error.statusCode || 500).json({
+      return res.status((result.error as any).statusCode || 500).json({
         success: false,
         error: {
-          code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
-          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
+          code: isErr(result) ? (result.error as any).code : "UNKNOWN_ERROR",
+          message: (isErr(result) ? (result.error as any).message : "An error occurred"),
         },
       });
     }
@@ -93,7 +93,7 @@ router.patch('/', async (req: Request, res: Response, next: NextFunction) => {
         error: {
           code: 'VALIDATION_ERROR',
           message: 'Invalid preference data',
-          details: (isErr(validationResult) ? validationResult.error : undefined).errors,
+          details: isErr(validationResult) && validationResult.error.details ? validationResult.error.details.errors || [] : [],
         },
       });
     }
@@ -109,11 +109,11 @@ router.patch('/', async (req: Request, res: Response, next: NextFunction) => {
     );
 
     if (!isOk(result)) {
-      return res.status(result.error.statusCode || 500).json({
+      return res.status((result.error as any).statusCode || 500).json({
         success: false,
         error: {
-          code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
-          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
+          code: isErr(result) ? (result.error as any).code : "UNKNOWN_ERROR",
+          message: (isErr(result) ? (result.error as any).message : "An error occurred"),
         },
       });
     }
@@ -154,11 +154,11 @@ router.post('/reset', async (req: Request, res: Response, next: NextFunction) =>
     const result = await userPreferencesService.resetPreferences(userId as UserId);
 
     if (!isOk(result)) {
-      return res.status(result.error.statusCode || 500).json({
+      return res.status((result.error as any).statusCode || 500).json({
         success: false,
         error: {
-          code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
-          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
+          code: isErr(result) ? (result.error as any).code : "UNKNOWN_ERROR",
+          message: (isErr(result) ? (result.error as any).message : "An error occurred"),
         },
       });
     }
@@ -211,11 +211,11 @@ router.get('/:section', async (req: Request, res: Response, next: NextFunction) 
     const result = await userPreferencesService.getPreferences(userId as UserId);
 
     if (!isOk(result)) {
-      return res.status(result.error.statusCode || 500).json({
+      return res.status((result.error as any).statusCode || 500).json({
         success: false,
         error: {
-          code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
-          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
+          code: isErr(result) ? (result.error as any).code : "UNKNOWN_ERROR",
+          message: (isErr(result) ? (result.error as any).message : "An error occurred"),
         },
       });
     }
@@ -269,7 +269,7 @@ router.patch('/:section', async (req: Request, res: Response, next: NextFunction
         error: {
           code: 'VALIDATION_ERROR',
           message: 'Invalid preference data',
-          details: (isErr(validationResult) ? validationResult.error : undefined).errors,
+          details: isErr(validationResult) && validationResult.error.details ? validationResult.error.details.errors || [] : [],
         },
       });
     }
@@ -282,11 +282,11 @@ router.patch('/:section', async (req: Request, res: Response, next: NextFunction
     );
 
     if (!isOk(result)) {
-      return res.status(result.error.statusCode || 500).json({
+      return res.status((result.error as any).statusCode || 500).json({
         success: false,
         error: {
-          code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
-          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
+          code: isErr(result) ? (result.error as any).code : "UNKNOWN_ERROR",
+          message: (isErr(result) ? (result.error as any).message : "An error occurred"),
         },
       });
     }

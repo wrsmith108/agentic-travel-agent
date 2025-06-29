@@ -6,8 +6,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { createTimestamp } from '@/services/auth/functional/types';
 import { v4 as uuidv4 } from 'uuid';
-import { Result, ok, err } from '../../utils/resultString';
-import { isOk, isErr } from '../../utils/resultString';
+import { Result, ok, err, isOk, isErr } from '@/utils/result';
 import { AppError, ErrorCodes } from '../../middleware/errorHandler';
 import { env } from '../../config/env';
 import { getRedisClient } from '../redis/redisClient';
@@ -20,7 +19,6 @@ import {
   validateNaturalLanguageSearch,
 } from '../../schemas/flight';
 import { UserFlightPreferences } from '../../models/flight';
-import { Result, ok, err, isOk } from '@/utils/resultString';
 
 // Conversation context stored per session
 interface ConversationContext {

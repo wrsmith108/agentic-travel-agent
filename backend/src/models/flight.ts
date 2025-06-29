@@ -184,9 +184,9 @@ export function createPriceAlert(data: CreatePriceAlertData): PriceAlert {
     currentPrice: data.currentPrice,
     priceDifference,
     percentChange,
-    alertedAt: now as string,
+    alertedAt: now.toISOString(),
     isRead: false,
-    expiresAt: expiresAt,
+    expiresAt: expiresAt.toISOString(),
   };
 }
 

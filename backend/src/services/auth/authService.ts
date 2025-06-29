@@ -479,7 +479,7 @@ class AuthService {
         userId: userProfile.id,
         token: resetToken,
         expiresAt,
-        createdAt: new Date(),
+        createdAt: new Date().toISOString(),
         used: false,
       });
 
@@ -830,9 +830,9 @@ class AuthService {
       sessionId,
       userId: user.id,
       user,
-      createdAt: now as string,
+      createdAt: now.toISOString(),
       expiresAt: expiresAt,
-      lastAccessedAt: now as string,
+      lastAccessedAt: now.toISOString(),
       ipAddress: deviceInfo?.ipAddress,
       userAgent: deviceInfo?.userAgent,
       deviceFingerprint: deviceInfo?.fingerprint,
@@ -953,7 +953,7 @@ class AuthService {
       token,
       email,
       expiresAt,
-      createdAt: new Date(),
+      createdAt: new Date().toISOString(),
       used: false,
     });
 

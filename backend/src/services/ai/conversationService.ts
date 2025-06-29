@@ -101,8 +101,8 @@ export const createConversation = (
           travelers: { adults: 1, children: 0, infants: 0 },
         },
       },
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       active: true,
     };
 
@@ -215,7 +215,7 @@ export const sendMessage = async (
       id: asMessageId(uuidv4()),
       role: 'user',
       content,
-      timestamp: new Date(),
+      timestamp: new Date().toISOString(),
     };
     
     conversation.messages.push(userMessage);
@@ -252,7 +252,7 @@ export const sendMessage = async (
       id: asMessageId(uuidv4()),
       role: 'assistant',
       content: formattedContent,
-      timestamp: new Date(),
+      timestamp: new Date().toISOString(),
       metadata: {
         model: response.model,
         tokenCount: response.usage.input_tokens + response.usage.output_tokens,

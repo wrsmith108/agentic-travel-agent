@@ -48,7 +48,7 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
         error: {
           code: 'VALIDATION_ERROR',
           message: 'Invalid booking data',
-          details: (isErr(validationResult) ? validationResult.error : undefined).errors,
+          details: isErr(validationResult) && (validationResult.error as any).details ? (validationResult.error as any).details.errors || [] : [],
         },
       });
     }
@@ -75,19 +75,19 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
         error: result.error,
       });
 
-      return res.status(result.error.statusCode || 500).json({
+      return res.status((result.error as any).statusCode || 500).json({
         success: false,
         error: {
-          code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
-          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
-          details: result.error.details,
+          code: isErr(result) ? (result.error as any).code : "UNKNOWN_ERROR",
+          message: (isErr(result) ? (result.error as any).message : "An error occurred"),
+          details: (result.error as any).details,
         },
       });
     }
 
     requestLogger.info('Booking created successfully', {
-      bookingId: result.value.bookingId,
-      pnr: result.value.pnr,
+      bookingId: (result.value as any).bookingId,
+      pnr: (result.value as any).pnr,
     });
 
     res.status(201).json({
@@ -132,11 +132,11 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
     );
 
     if (!isOk(result)) {
-      return res.status(result.error.statusCode || 404).json({
+      return res.status((result.error as any).statusCode || 404).json({
         success: false,
         error: {
-          code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
-          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
+          code: isErr(result) ? (result.error as any).code : "UNKNOWN_ERROR",
+          message: (isErr(result) ? (result.error as any).message : "An error occurred"),
         },
       });
     }
@@ -172,7 +172,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 
     // Parse and validate query parameters
     const filtersResult = BookingSearchFiltersSchema.safeParse(req.query);
-    const filters = filtersResult.success ? filtersResult.value : undefined;
+    const filters = filtersResult.success ? filtersResult.data : undefined;
 
     requestLogger.info('Fetching user bookings', {
       userId,
@@ -188,8 +188,8 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       return res.status(500).json({
         success: false,
         error: {
-          code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
-          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
+          code: isErr(result) ? (result.error as any).code : "UNKNOWN_ERROR",
+          message: (isErr(result) ? (result.error as any).message : "An error occurred"),
         },
       });
     }
@@ -198,7 +198,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       success: true,
       data: result.value,
       meta: {
-        total: result.value.length,
+        total: (result.value as any).length,
         limit: filters?.limit || 20,
         offset: filters?.offset || 0,
       },
@@ -241,7 +241,7 @@ router.post('/:id/cancel', async (req: Request, res: Response, next: NextFunctio
         error: {
           code: 'VALIDATION_ERROR',
           message: 'Invalid cancellation data',
-          details: (isErr(validationResult) ? validationResult.error : undefined).errors,
+          details: isErr(validationResult) && (validationResult.error as any).details ? (validationResult.error as any).details.errors || [] : [],
         },
       });
     }
@@ -258,19 +258,19 @@ router.post('/:id/cancel', async (req: Request, res: Response, next: NextFunctio
     );
 
     if (!isOk(result)) {
-      return res.status(result.error.statusCode || 500).json({
+      return res.status((result.error as any).statusCode || 500).json({
         success: false,
         error: {
-          code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
-          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
-          details: result.error.details,
+          code: isErr(result) ? (result.error as any).code : "UNKNOWN_ERROR",
+          message: (isErr(result) ? (result.error as any).message : "An error occurred"),
+          details: (result.error as any).details,
         },
       });
     }
 
     requestLogger.info('Booking cancelled successfully', {
       bookingId,
-      status: result.value.status,
+      status: (result.value as any).status,
     });
 
     res.json({
@@ -310,11 +310,11 @@ router.get('/:id/status', async (req: Request, res: Response, next: NextFunction
     );
 
     if (!isOk(result)) {
-      return res.status(result.error.statusCode || 404).json({
+      return res.status((result.error as any).statusCode || 404).json({
         success: false,
         error: {
-          code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
-          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
+          code: isErr(result) ? (result.error as any).code : "UNKNOWN_ERROR",
+          message: (isErr(result) ? (result.error as any).message : "An error occurred"),
         },
       });
     }
@@ -322,11 +322,11 @@ router.get('/:id/status', async (req: Request, res: Response, next: NextFunction
     res.json({
       success: true,
       data: {
-        bookingId: result.value.bookingId,
-        pnr: result.value.pnr,
-        status: result.value.status,
-        paymentStatus: result.value.paymentStatus,
-        ticketingDeadline: result.value.ticketingDeadline,
+        bookingId: (result.value as any).bookingId,
+        pnr: (result.value as any).pnr,
+        status: (result.value as any).status,
+        paymentStatus: (result.value as any).paymentStatus,
+        ticketingDeadline: (result.value as any).ticketingDeadline,
       },
     });
   } catch (error) {
@@ -368,11 +368,11 @@ router.post('/:id/resend-confirmation', async (req: Request, res: Response, next
     );
 
     if (!isOk(result)) {
-      return res.status(result.error.statusCode || 404).json({
+      return res.status((result.error as any).statusCode || 404).json({
         success: false,
         error: {
-          code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
-          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
+          code: isErr(result) ? (result.error as any).code : "UNKNOWN_ERROR",
+          message: (isErr(result) ? (result.error as any).message : "An error occurred"),
         },
       });
     }
@@ -384,7 +384,7 @@ router.post('/:id/resend-confirmation', async (req: Request, res: Response, next
       message: 'Booking confirmation email has been resent',
       data: {
         bookingId,
-        email: result.value.contactInfo.email,
+        email: (result.value as any).contactInfo.email,
       },
     });
   } catch (error) {
@@ -420,11 +420,11 @@ router.get('/:id/invoice', async (req: Request, res: Response, next: NextFunctio
     );
 
     if (!isOk(result)) {
-      return res.status(result.error.statusCode || 404).json({
+      return res.status((result.error as any).statusCode || 404).json({
         success: false,
         error: {
-          code: (isErr(result) ? (isErr(result) ? result.error.code : "") : ""),
-          message: (isErr(result) ? (isErr(result) ? result.error.message : "") : ""),
+          code: isErr(result) ? (result.error as any).code : "UNKNOWN_ERROR",
+          message: (isErr(result) ? (result.error as any).message : "An error occurred"),
         },
       });
     }
@@ -433,20 +433,20 @@ router.get('/:id/invoice', async (req: Request, res: Response, next: NextFunctio
     // For MVP, return structured invoice data
     const invoice = {
       invoiceNumber: `INV-${bookingId.slice(0, 8).toUpperCase()}`,
-      bookingReference: result.value.pnr,
-      issueDate: result.value.createdAt,
-      dueDate: result.value.ticketingDeadline,
-      status: result.value.paymentStatus === 'CAPTURED' ? 'PAID' : 'PENDING',
+      bookingReference: (result.value as any).pnr,
+      issueDate: (result.value as any).createdAt,
+      dueDate: (result.value as any).ticketingDeadline,
+      status: (result.value as any).paymentStatus === 'CAPTURED' ? 'PAID' : 'PENDING',
       billTo: {
-        name: `${result.value.passengers[0].firstName} ${result.value.passengers[0].lastName}`,
-        email: result.value.contactInfo.email,
-        phone: result.value.contactInfo.phone,
+        name: `${(result.value as any).passengers[0].firstName} ${(result.value as any).passengers[0].lastName}`,
+        email: (result.value as any).contactInfo.email,
+        phone: (result.value as any).contactInfo.phone,
       },
       items: [
         {
-          description: `Flight Booking - ${result.value.pnr}`,
-          quantity: result.value.passengers.length,
-          unitPrice: result.value.priceBreakdown.grandTotal / result.value.passengers.length,
+          description: `Flight Booking - ${(result.value as any).pnr}`,
+          quantity: (result.value as any).passengers.length,
+          unitPrice: result.value.priceBreakdown.grandTotal / (result.value as any).passengers.length,
           total: result.value.priceBreakdown.grandTotal,
         },
       ],
