@@ -79,13 +79,13 @@ export const authenticate = async (
         ip: req.ip,
         userAgent: req.get('User-Agent'),
         endpoint: req.originalUrl,
-        error: tokenResult.error,
+        error: (isErr(tokenResult) ? tokenResult.error : undefined),
       });
 
       const statusCode = isErr(tokenResult) ? tokenResult.error : null.type === 'TOKEN_EXPIRED' ? 401 : 403;
       res.status(statusCode).json({
         success: false,
-        error: tokenResult.error,
+        error: (isErr(tokenResult) ? tokenResult.error : undefined),
       });
       return;
     }
@@ -99,7 +99,7 @@ export const authenticate = async (
       requestLogger.warn('Invalid or expired session', {
         userId: payload.sub,
         sessionId: payload.sessionId,
-        error: sessionResult.error,
+        error: (isErr(sessionResult) ? sessionResult.error : undefined),
       });
 
       res.status(401).json({

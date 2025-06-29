@@ -114,7 +114,7 @@ export class PriceMonitoringProcessor {
       // Get all users with active saved searches
       const usersResult = await this.getActiveUsers();
       if (!isOk(usersResult)) {
-        return err(usersResult.error);
+        return err((isErr(usersResult) ? usersResult.error : undefined));
       }
 
       const users = isOk(usersResult) ? usersResult.value : null;
@@ -253,10 +253,10 @@ export class PriceMonitoringProcessor {
       // Get user's saved searches
       const searchesResult = await flightSearchService.getSavedSearches(userId);
       if (!isOk(searchesResult)) {
-        return err(searchesResult.error);
+        return err((isErr(searchesResult) ? searchesResult.error : undefined));
       }
 
-      const activeSearches = isOk(searchesResult) ? searchesResult.value : null.filter(search => 
+      const activeSearches = isOk(searchesResult) ? searchesResult.value : [].filter(search => 
         search.isActive && 
         search.priceAlerts?.enabled &&
         (!search.expiresAt || new Date(search.expiresAt) > new Date())
@@ -360,7 +360,7 @@ export class PriceMonitoringProcessor {
       // Check current prices
       const priceCheckResult = await flightSearchService.checkSavedSearchPrices(userId);
       if (!isOk(priceCheckResult)) {
-        return err(priceCheckResult.error);
+        return err((isErr(priceCheckResult) ? priceCheckResult.error : undefined));
       }
 
       // Find results for this specific search

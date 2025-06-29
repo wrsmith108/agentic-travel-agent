@@ -322,7 +322,7 @@ export class JWTTokenService {
           return err(signResult.error);
         }
 
-        return ok(signResult.value);
+        return ok((isOk(signResult) ? signResult.value : undefined));
       } finally {
         // Remove rotation lock
         await this.redisClient.del(rotationKey);

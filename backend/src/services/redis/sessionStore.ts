@@ -80,7 +80,7 @@ export class SessionStore {
       if (isErr(userSessionsResult)) {
         // Clean up the session we just created
         await this.redisClient.del(sessionKey);
-        return err(userSessionsResult.error);
+        return err((isErr(userSessionsResult) ? userSessionsResult.error : undefined));
       }
 
       return ok(sessionId);
@@ -110,7 +110,7 @@ export class SessionStore {
         return ok(null);
       }
 
-      const sessionData: SessionData = JSON.parse(getResult.value);
+      const sessionData: SessionData = JSON.parse((isOk(getResult) ? getResult.value : undefined));
 
       // Extend session if configured
       if (this.config.extendOnActivity) {
@@ -158,7 +158,7 @@ export class SessionStore {
         this.config.ttlSeconds
       );
 
-      return setResult.ok ? ok(undefined) : err(setResult.error);
+      return setResult.ok ? ok(undefined) : err((isErr(setResult) ? setResult.error : undefined));
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Session update failed';
       return err(new AppError(500, `Failed to update session: ${message}`, ErrorCodes.DATABASE_ERROR));
@@ -183,7 +183,7 @@ export class SessionStore {
       }
 
       const delResult = await this.redisClient.del(sessionKey);
-      return delResult.ok ? ok(undefined) : err(delResult.error);
+      return delResult.ok ? ok(undefined) : err((isErr(delResult) ? delResult.error : undefined));
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Session deletion failed';
       return err(new AppError(500, `Failed to delete session: ${message}`, ErrorCodes.DATABASE_ERROR));
@@ -210,7 +210,7 @@ export class SessionStore {
         return ok(0);
       }
 
-      const sessionIds: string[] = JSON.parse(sessionIdsResult.value);
+      const sessionIds: string[] = JSON.parse((isOk(sessionIdsResult) ? sessionIdsResult.value : undefined));
       let deletedCount = 0;
 
       // Delete each session
@@ -252,7 +252,7 @@ export class SessionStore {
         return ok([]);
       }
 
-      const sessionIds: string[] = JSON.parse(sessionIdsResult.value);
+      const sessionIds: string[] = JSON.parse((isOk(sessionIdsResult) ? sessionIdsResult.value : undefined));
       const sessions: SessionData[] = [];
 
       // Get each session's data
@@ -340,7 +340,7 @@ export class SessionStore {
           const sessionIdsResult = await this.redisClient.get(userSessionsKey);
           
           if (sessionIdsResult.ok && sessionIdsResult.value) {
-            const sessionIds: string[] = JSON.parse(sessionIdsResult.value);
+            const sessionIds: string[] = JSON.parse((isOk(sessionIdsResult) ? sessionIdsResult.value : undefined));
             
             // Find matching session ID (this is inefficient but works for the constraint)
             for (const sessionId of sessionIds) {
@@ -379,7 +379,7 @@ export class SessionStore {
         return err(keysResult.error);
       }
 
-      const sessionKeys = isOk(keysResult) ? keysResult.value : null.filter(key => 
+      const sessionKeys = isOk(keysResult) ? keysResult.value : [].filter(key => 
         key.startsWith(this.config.keyPrefix) && 
         !key.includes(':users:')
       );
@@ -393,7 +393,7 @@ export class SessionStore {
         const sessionResult = await this.redisClient.get(key);
         if (sessionResult.ok && sessionResult.value) {
           try {
-            const session: SessionData = JSON.parse(sessionResult.value);
+            const session: SessionData = JSON.parse((isOk(sessionResult) ? sessionResult.value : undefined));
             activeUsers.add(session.userId);
             totalAge += Date.now() - session.loginTime;
             validSessions++;
@@ -469,7 +469,7 @@ export class SessionStore {
         return ok(undefined);
       }
 
-      const sessionIds: string[] = JSON.parse(existingResult.value);
+      const sessionIds: string[] = JSON.parse((isOk(existingResult) ? existingResult.value : undefined));
       const filteredIds = sessionIds.filter(id => id !== sessionId);
       
       if (filteredIds.length === 0) {

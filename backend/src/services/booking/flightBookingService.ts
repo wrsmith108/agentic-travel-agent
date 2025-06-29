@@ -75,7 +75,7 @@ export class FlightBookingService {
       // Step 2: Retrieve and validate flight offer
       const offerResult = await this.getFlightOffer(validatedRequest.offerId);
       if (!isOk(offerResult)) {
-        return err(offerResult.error);
+        return err((isErr(offerResult) ? offerResult.error : undefined));
       }
       const flightOffer = isOk(offerResult) ? offerResult.value : null;
 
@@ -99,7 +99,7 @@ export class FlightBookingService {
         priceConfirmation.currentPrice!
       );
       if (!isOk(priceLockResult)) {
-        logger.warn('Failed to lock price', { error: priceLockResult.error });
+        logger.warn('Failed to lock price', { error: (isErr(priceLockResult) ? priceLockResult.error : undefined) });
       }
 
       // Step 5: Create booking with Amadeus
@@ -108,7 +108,7 @@ export class FlightBookingService {
         validatedRequest
       );
       if (!isOk(amadeusBookingResult)) {
-        return err(amadeusBookingResult.error);
+        return err((isErr(amadeusBookingResult) ? amadeusBookingResult.error : undefined));
       }
 
       // Step 6: Process payment (simplified for MVP)
@@ -118,15 +118,15 @@ export class FlightBookingService {
       );
       if (!isOk(paymentResult)) {
         // Rollback booking if payment fails
-        await this.cancelAmadeusBooking(amadeusBookingResult.value.pnr);
-        return err(paymentResult.error);
+        await this.cancelAmadeusBooking((isOk(amadeusBookingResult) ? amadeusBookingResult.value : undefined).pnr);
+        return err((isErr(paymentResult) ? paymentResult.error : undefined));
       }
 
       // Step 7: Create booking confirmation
       const bookingId = uuidv4();
       const bookingConfirmation: BookingConfirmation = {
         bookingId,
-        pnr: amadeusBookingResult.value.pnr,
+        pnr: (isOk(amadeusBookingResult) ? amadeusBookingResult.value : undefined).pnr,
         status: 'CONFIRMED',
         flightOffer,
         passengers: validatedRequest.passengers,
@@ -142,7 +142,7 @@ export class FlightBookingService {
         ...bookingConfirmation,
         userId,
         offerId: validatedRequest.offerId,
-        paymentIntentId: paymentResult.value.paymentIntentId,
+        paymentIntentId: (isOk(paymentResult) ? paymentResult.value : undefined).paymentIntentId,
       };
 
       await this.storeBooking(bookingId, bookingData);
@@ -227,7 +227,7 @@ export class FlightBookingService {
       const bookings: BookingListItem[] = [];
 
       // Fetch all bookings for user
-      for (const key of keysResult.value) {
+      for (const key of (isOk(keysResult) ? keysResult.value : undefined)) {
         const result = await this.redisClient.get(key);
         if (isOk(result) && result.value) {
           const bookingData: BookingData = JSON.parse(result.value);
@@ -296,7 +296,7 @@ export class FlightBookingService {
       // Get booking
       const bookingResult = await this.getBooking(userId, cancellationRequest.bookingId);
       if (!isOk(bookingResult)) {
-        return err(bookingResult.error);
+        return err((isErr(bookingResult) ? bookingResult.error : undefined));
       }
 
       const booking = isOk(bookingResult) ? bookingResult.value : null;
@@ -314,7 +314,7 @@ export class FlightBookingService {
       const amadeusCancelResult = await this.cancelAmadeusBooking(booking.pnr);
       if (!isOk(amadeusCancelResult)) {
         logger.warn('Failed to cancel with Amadeus', { 
-          error: amadeusCancelResult.error,
+          error: (isErr(amadeusCancelResult) ? amadeusCancelResult.error : undefined),
           pnr: booking.pnr,
         });
       }
@@ -327,7 +327,7 @@ export class FlightBookingService {
         );
         if (!isOk(refundResult)) {
           logger.warn('Refund processing failed', { 
-            error: refundResult.error,
+            error: (isErr(refundResult) ? refundResult.error : undefined),
             bookingId: cancellationRequest.bookingId,
           });
         }

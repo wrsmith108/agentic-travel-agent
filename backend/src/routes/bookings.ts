@@ -47,7 +47,7 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
         error: {
           code: 'VALIDATION_ERROR',
           message: 'Invalid booking data',
-          details: validationResult.error.errors,
+          details: (isErr(validationResult) ? validationResult.error : undefined).errors,
         },
       });
     }
@@ -241,7 +241,7 @@ router.post('/:id/cancel', async (req: Request, res: Response, next: NextFunctio
         error: {
           code: 'VALIDATION_ERROR',
           message: 'Invalid cancellation data',
-          details: validationResult.error.errors,
+          details: (isErr(validationResult) ? validationResult.error : undefined).errors,
         },
       });
     }

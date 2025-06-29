@@ -80,7 +80,7 @@ export class FlightSearchService {
       const searchResult = await enhancedAmadeusService.searchFlights(validatedQuery, advancedOptions);
       
       if (!isOk(searchResult)) {
-        return err(searchResult.error);
+        return err((isErr(searchResult) ? searchResult.error : undefined));
       }
 
       const flights = isOk(searchResult) ? searchResult.value : null;
@@ -254,7 +254,7 @@ export class FlightSearchService {
       const savedSearchesResult = await this.getSavedSearches(userId);
       
       if (!savedSearchesResult.success) {
-        return err(savedSearchesResult.error);
+        return err((isErr(savedSearchesResult) ? savedSearchesResult.error : undefined));
       }
 
       const results: PriceTrackingResult[] = [];
@@ -270,7 +270,7 @@ export class FlightSearchService {
 
         if (isOk(searchResult) && searchResult.value.length > 0) {
           // Find the best price
-          const prices = isOk(searchResult) ? searchResult.value : null.map(f => parseFloat(f.price.grandTotal));
+          const prices = isOk(searchResult) ? searchResult.value : [].map(f => parseFloat(f.price.grandTotal));
           const currentBestPrice = Math.min(...prices);
           const bestFlight = isOk(searchResult) ? searchResult.value : null.find(f => parseFloat(f.price.grandTotal) === currentBestPrice);
 

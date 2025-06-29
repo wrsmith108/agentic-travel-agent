@@ -118,7 +118,7 @@ export const register = async (
       return err(systemError('Failed to generate tokens'));
     }
 
-    const { accessToken, refreshToken } = tokenResult.value;
+    const { accessToken, refreshToken } = (isOk(tokenResult) ? tokenResult.value : undefined);
 
     // Update session with refresh token
     updateSessionRefreshToken(session.id, refreshToken);
@@ -213,7 +213,7 @@ export const login = async (
       return err(systemError('Failed to generate tokens'));
     }
 
-    const { accessToken, refreshToken } = tokenResult.value;
+    const { accessToken, refreshToken } = (isOk(tokenResult) ? tokenResult.value : undefined);
 
     // Update session with refresh token
     updateSessionRefreshToken(session.id, refreshToken);
@@ -321,7 +321,7 @@ export const refreshAccessToken = async (
     touchSession(session.id);
 
     return ok({
-      accessToken: newTokenResult.value,
+      accessToken: (isOk(newTokenResult) ? newTokenResult.value : undefined),
       expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(), // 15 minutes
     });
   } catch (error) {

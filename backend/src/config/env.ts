@@ -104,7 +104,7 @@ const parseResult = envSchema.safeParse(process.env);
 
 if (!parseResult.success) {
   console.error('❌ Invalid environment variables:');
-  console.error(parseResult.error.format());
+  console.error((isErr(parseResult) ? parseResult.error : undefined).format());
   process.exit(1);
 }
 

@@ -423,5 +423,3 @@ export const createPasswordVerifier = (bcrypt: BcryptDependency) => {
 // ============================================================================
 // Re-exports for convenience
 // ============================================================================
-
-export type { BcryptDependency, PasswordConfig, PasswordStorageEntry, PasswordHistoryEntry };

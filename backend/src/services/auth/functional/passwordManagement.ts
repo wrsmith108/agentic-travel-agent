@@ -207,7 +207,7 @@ export const resetPasswordWithToken = async (
     return err(validationResult.error);
   }
 
-  const { userId } = validationResult.value;
+  const { userId } = (isOk(validationResult) ? validationResult.value : undefined);
 
   try {
     // Hash new password
@@ -217,7 +217,7 @@ export const resetPasswordWithToken = async (
     }
 
     // Update password
-    await passwordStorage.set(userId, hashResult.value);
+    await passwordStorage.set(userId, (isOk(hashResult) ? hashResult.value : undefined));
 
     // Mark token as used
     await tokenStorage.delete(token);
@@ -284,7 +284,7 @@ export const changeUserPassword = async (
     }
 
     // Update password
-    await passwordStorage.set(userId, hashResult.value);
+    await passwordStorage.set(userId, (isOk(hashResult) ? hashResult.value : undefined));
 
     logger.info('Password changed successfully', { userId, requestId });
 

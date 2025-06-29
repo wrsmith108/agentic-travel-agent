@@ -311,7 +311,7 @@ Parse the user's query and return a JSON response with:
       };
     }
 
-    const { flights, analytics } = searchResult.value;
+    const { flights, analytics } = (isOk(searchResult) ? searchResult.value : undefined);
 
     // Update context
     context.currentSearch = searchQuery;
@@ -321,7 +321,7 @@ Parse the user's query and return a JSON response with:
     const response = this.generateSearchResponse(flights, analytics, searchQuery);
     const suggestions = this.generateSearchSuggestions(flights, analytics);
 
-    return { response, results: searchResult.value, suggestions };
+    return { response, results: (isOk(searchResult) ? searchResult.value : undefined), suggestions };
   }
 
   /**
@@ -356,14 +356,14 @@ Parse the user's query and return a JSON response with:
       };
     }
 
-    const { flights, analytics } = searchResult.value;
+    const { flights, analytics } = (isOk(searchResult) ? searchResult.value : undefined);
 
     // Update context
     context.currentSearch = modifiedSearch;
     context.searchHistory.push(modifiedSearch);
 
     const response = this.generateModificationResponse(flights, analytics, intent.searchQuery);
-    return { response, results: searchResult.value };
+    return { response, results: (isOk(searchResult) ? searchResult.value : undefined) };
   }
 
   /**

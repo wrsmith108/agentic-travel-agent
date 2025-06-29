@@ -118,7 +118,7 @@ export class RedisClient {
       if (!this.isConnected) {
         const connectResult = await this.connect();
         if (!isOk(connectResult)) {
-          return err(connectResult.error);
+          return err((isErr(connectResult) ? connectResult.error : undefined));
         }
       }
 
@@ -139,7 +139,7 @@ export class RedisClient {
       if (!this.isConnected) {
         const connectResult = await this.connect();
         if (!isOk(connectResult)) {
-          return err(connectResult.error);
+          return err((isErr(connectResult) ? connectResult.error : undefined));
         }
       }
 
@@ -165,7 +165,7 @@ export class RedisClient {
       if (!this.isConnected) {
         const connectResult = await this.connect();
         if (!isOk(connectResult)) {
-          return err(connectResult.error);
+          return err((isErr(connectResult) ? connectResult.error : undefined));
         }
       }
 
@@ -186,7 +186,7 @@ export class RedisClient {
       if (!this.isConnected) {
         const connectResult = await this.connect();
         if (!isOk(connectResult)) {
-          return err(connectResult.error);
+          return err((isErr(connectResult) ? connectResult.error : undefined));
         }
       }
 
@@ -207,7 +207,7 @@ export class RedisClient {
       if (!this.isConnected) {
         const connectResult = await this.connect();
         if (!isOk(connectResult)) {
-          return err(connectResult.error);
+          return err((isErr(connectResult) ? connectResult.error : undefined));
         }
       }
 
@@ -232,7 +232,7 @@ export class RedisClient {
       if (!this.isConnected) {
         const connectResult = await this.connect();
         if (!isOk(connectResult)) {
-          return err(connectResult.error);
+          return err((isErr(connectResult) ? connectResult.error : undefined));
         }
       }
 
@@ -253,7 +253,7 @@ export class RedisClient {
       if (!this.isConnected) {
         const connectResult = await this.connect();
         if (!isOk(connectResult)) {
-          return err(connectResult.error);
+          return err((isErr(connectResult) ? connectResult.error : undefined));
         }
       }
 
@@ -274,7 +274,7 @@ export class RedisClient {
       if (!this.isConnected) {
         const connectResult = await this.connect();
         if (!isOk(connectResult)) {
-          return err(connectResult.error);
+          return err((isErr(connectResult) ? connectResult.error : undefined));
         }
       }
 
@@ -291,7 +291,7 @@ export class RedisClient {
       if (!this.isConnected) {
         const connectResult = await this.connect();
         if (!isOk(connectResult)) {
-          return err(connectResult.error);
+          return err((isErr(connectResult) ? connectResult.error : undefined));
         }
       }
 
@@ -312,7 +312,7 @@ export class RedisClient {
       if (!this.isConnected) {
         const connectResult = await this.connect();
         if (!isOk(connectResult)) {
-          return err(connectResult.error);
+          return err((isErr(connectResult) ? connectResult.error : undefined));
         }
       }
 
@@ -347,7 +347,7 @@ export class RedisClient {
       if (!this.isConnected) {
         const connectResult = await this.connect();
         if (!isOk(connectResult)) {
-          return err(connectResult.error);
+          return err((isErr(connectResult) ? connectResult.error : undefined));
         }
       }
 

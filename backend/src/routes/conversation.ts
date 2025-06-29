@@ -90,7 +90,7 @@ router.get('/', async (req: Request, res: Response): Promise<Response | void> =>
     }
 
     // Convert to JSON-serializable format
-    const conversations = isOk(result) ? result.value : null.map(conv => ({
+    const conversations = isOk(result) ? result.value : [].map(conv => ({
       ...conv,
       createdAt: conv.createdAt,
       updatedAt: conv.updatedAt,

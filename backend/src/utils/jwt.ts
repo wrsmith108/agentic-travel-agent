@@ -193,8 +193,8 @@ export const generateTokenPair = (
   }
   
   return ok({
-    accessToken: accessResult.value,
-    refreshToken: refreshResult.value,
+    accessToken: (isOk(accessResult) ? accessResult.value : undefined),
+    refreshToken: (isOk(refreshResult) ? refreshResult.value : undefined),
   });
 };
 

@@ -142,7 +142,7 @@ export const createSessionTokens = (
     refreshToken?: RefreshToken;
     expiresAt: Timestamp;
   } = {
-    accessToken: accessTokenResult.value,
+    accessToken: (isOk(accessTokenResult) ? accessTokenResult.value : undefined),
     expiresAt: timeProvider.timestamp(),
   };
 
@@ -159,7 +159,7 @@ export const createSessionTokens = (
       return err(refreshTokenResult.error);
     }
 
-    result.refreshToken = createRefreshToken(refreshTokenResult.value);
+    result.refreshToken = createRefreshToken((isOk(refreshTokenResult) ? refreshTokenResult.value : undefined));
   }
 
   return ok(result);
@@ -332,7 +332,7 @@ export const refreshAccessToken = async (
   }
 
   return ok({
-    accessToken: accessTokenResult.value,
+    accessToken: (isOk(accessTokenResult) ? accessTokenResult.value : undefined),
     expiresAt: timeProvider.timestamp(),
   });
 };
