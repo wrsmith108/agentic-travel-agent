@@ -332,6 +332,7 @@ export interface EmailVerificationTokenData {
 // ============================================================================
 
 export type { Result } from '@/utils/result';
+export { ok, err, isOk, isErr, map, mapErr, flatMap, unwrapOr } from '@/utils/result';
 
 // ============================================================================
 // Re-export types from types/index.ts for backward compatibility

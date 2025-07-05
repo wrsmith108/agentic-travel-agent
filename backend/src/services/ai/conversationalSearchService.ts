@@ -188,32 +188,43 @@ Current conversation context:
 - Current search: ${JSON.stringify(context.currentSearch)}
 - User preferences: ${JSON.stringify(context.preferences)}
 
-Parse the user's query and return a JSON response with:
+Parse the user's query and return a JSON response. Choose ONE of these actions:
+- "search": When user wants to search for flights
+- "modify": When user wants to change existing search
+- "clarify": When information is missing or ambiguous
+- "save": When user wants to save a search
+- "book": When user wants to book a flight
+- "help": When user needs assistance
+
+Example response format:
 {
-  "action": "search|modify|clarify|save|book|help",
+  "action": "search",
   "searchQuery": {
-    "originLocationCode": "XXX",
-    "destinationLocationCode": "XXX", 
-    "departureDate": "YYYY-MM-DD",
-    "returnDate": "YYYY-MM-DD",
+    "originLocationCode": "JFK",
+    "destinationLocationCode": "LHR",
+    "departureDate": "2024-03-15",
+    "returnDate": "2024-03-22",
     "adults": 1,
     "children": 0,
     "infants": 0,
-    "travelClass": "ECONOMY|PREMIUM_ECONOMY|BUSINESS|FIRST",
-    "nonStop": true/false
+    "travelClass": "ECONOMY",
+    "nonStop": false
   },
   "modifiers": {
-    "flexibleDates": true/false,
+    "flexibleDates": true,
     "priceLimit": 1000,
-    "preferNonStop": true/false,
-    "specificAirlines": ["XX", "YY"]
+    "preferNonStop": true,
+    "specificAirlines": ["BA", "AA"]
   },
   "clarificationNeeded": {
-    "field": "fieldName",
-    "reason": "explanation",
-    "suggestions": ["option1", "option2"]
+    "field": "departureDate",
+    "reason": "User said 'Friday' but multiple Fridays are possible",
+    "suggestions": ["2024-01-05", "2024-01-12"]
   }
-}`;
+}
+
+For one-way trips, omit the "returnDate" field.
+Always use IATA airport codes (3 letters) for originLocationCode and destinationLocationCode.`;
 
       const response = await this.anthropic.messages.create({
         model: 'claude-3-sonnet-20240229',

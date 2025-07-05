@@ -85,9 +85,8 @@ export const createSession = async (
   // Create refresh token for longer sessions
   let refreshToken: JWTToken | undefined;
   if (duration > AUTH_CONSTANTS.SESSION_DURATION.DEFAULT) {
-    refreshToken = jwt.sign({ ...jwtPayload, type: 'refresh' }, config.refreshSecret, {
-      expiresIn: AUTH_CONSTANTS.TOKEN_EXPIRY.REFRESH_TOKEN,
-    }) as JWTToken;
+    // Remove expiresIn option since payload already contains exp property
+    refreshToken = jwt.sign({ ...jwtPayload, type: 'refresh' }, config.refreshSecret) as JWTToken;
   }
 
   logInfo('Session created', {

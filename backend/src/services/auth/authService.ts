@@ -680,29 +680,13 @@ class AuthService {
 
   /**
    * Validate user session and return user data
+   * Delegates to functional auth service for unified session management
    */
   async validateSession(sessionId: string): Promise<SessionUser | null> {
     try {
-      const sessionData = this.sessions[sessionId];
-      if (!sessionData) {
-        return null;
-      }
-
-      // Check if session is expired
-      if (new Date(sessionData.expiresAt) < new Date()) {
-        delete this.sessions[sessionId];
-        return null;
-      }
-
-      // Check if session is active
-      if (!sessionData.isActive) {
-        return null;
-      }
-
-      // Update last accessed time
-      sessionData.lastAccessedAt = createTimestamp();
-
-      return sessionData.user;
+      // Import functional session service
+      const { session } = await import('@/services/auth/functional/session');
+      return session.validate(sessionId);
     } catch (error) {
       logError('Session validation failed', error, { sessionId });
       return null;
@@ -711,18 +695,13 @@ class AuthService {
 
   /**
    * Validate JWT token and return payload
+   * Delegates to functional auth service for unified JWT validation
    */
   async validateJWTToken(token: string): Promise<JWTPayload | null> {
     try {
-      const payload = jwt.verify(token, this.jwtSecret) as JWTPayload;
-
-      // Validate session still exists
-      const sessionUser = await this.validateSession(payload.sessionId);
-      if (!sessionUser) {
-        return null;
-      }
-
-      return payload;
+      // Import functional session service
+      const { session } = await import('@/services/auth/functional/session');
+      return session.validateJWT(token);
     } catch (error) {
       if (error instanceof jwt.JsonWebTokenError) {
         logWarn('Invalid JWT token', { error: error.message });

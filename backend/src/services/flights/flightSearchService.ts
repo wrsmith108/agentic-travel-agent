@@ -194,7 +194,7 @@ export class FlightSearchService {
       const listKey = `saved-searches:${userId}`;
       const listResult = await this.redisClient.get(listKey);
       
-      if (isErr(listResult)) {
+      if (isErr(listResult) || !listResult.value) {
         return ok([]);
       }
 
@@ -333,7 +333,7 @@ export class FlightSearchService {
       const key = `price-alerts:${userId}`;
       const result = await this.redisClient.get(key);
       
-      if (!isOk(result) || isErr(result)) {
+      if (isErr(result) || !result.value) {
         return ok([]);
       }
 
@@ -563,6 +563,40 @@ export class FlightSearchService {
   }
 
   /**
+   * Get user's search history
+   */
+  async getSearchHistory(userId: string): Promise<Result<FlightSearchHistory[], AppError>> {
+    try {
+      const key = `search-history:${userId}`;
+      const result = await this.redisClient.get(key);
+      
+      if (isErr(result) || !result.value) {
+        return ok([]);
+      }
+
+      const histories: FlightSearchHistory[] = JSON.parse(result.value);
+      return ok(histories);
+    } catch (error) {
+      console.error('Failed to get search history:', error);
+      return err(new AppError(500, 'Failed to retrieve search history', ErrorCodes.DATABASE_ERROR));
+    }
+  }
+
+  /**
+   * Clear user's search history
+   */
+  async clearSearchHistory(userId: string): Promise<Result<void, AppError>> {
+    try {
+      const key = `search-history:${userId}`;
+      await this.redisClient.del(key);
+      return ok(undefined);
+    } catch (error) {
+      console.error('Failed to clear search history:', error);
+      return err(new AppError(500, 'Failed to clear search history', ErrorCodes.DATABASE_ERROR));
+    }
+  }
+
+  /**
    * Get price history for a route
    */
   private async getPriceHistory(
@@ -579,6 +613,11 @@ export class FlightSearchService {
       }
 
       const allHistory: FlightPriceHistory[] = JSON.parse(result.value);
+      
+      // Check if parsed data is valid
+      if (!allHistory || !Array.isArray(allHistory)) {
+        return [];
+      }
       
       // Filter by date range (within 30 days)
       const targetDate = new Date(date);

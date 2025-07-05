@@ -266,3 +266,54 @@ const wrapServiceError = (operation: string) => (error: unknown): AppError =>
 - **Pattern Coverage**: 80% automated fixes for Result pattern violations, import conflicts, Date/string mismatches, variable redeclarations, type mismatches, and null references
 - **Sustainable Architecture**: Proactive error prevention replacing reactive error fixing approach with comprehensive documentation and team training materials
 - **Framework Integration**: npm scripts integration (`validate`, `fix-patterns`, `setup-hooks`) for seamless developer workflow and long-term project quality sustainability
+
+---
+
+## 🎯 API Architecture Patterns
+
+### API Endpoint Constants Pattern
+```typescript
+// ❌ Problematic: Hardcoded API paths
+const response = await axios.get('/api/v1/preferences');
+
+// ✅ Correct: Centralized constants
+import { API_ENDPOINTS } from '@/constants/api';
+const response = await axios.get(API_ENDPOINTS.preferences.getPreferences());
+```
+
+**Pattern Rules**:
+- ✅ Always use `API_ENDPOINTS` constants for all API calls
+- ❌ Never hardcode API paths in services
+- ✅ Centralize all endpoint definitions in `constants/api.ts`
+- ❌ Avoid scattered endpoint definitions across services
+
+### Price Alerts Architecture Pattern
+```typescript
+// System-generated alerts (read-only from frontend perspective)
+interface PriceAlert {
+  id: string;
+  flightId: string;
+  userId: string;
+  isRead: boolean;  // Only mutable property
+  createdAt: string;
+  // Generated during batch processing, not user-created
+}
+
+// Frontend operations are limited to:
+const priceAlertService = {
+  getPriceAlerts: async () => { /* fetch alerts */ },
+  markAlertAsRead: async (alertId: string) => { /* mark as read */ },
+  getUnreadCount: async () => { /* count unread */ }
+};
+```
+
+**Architecture Decisions**:
+- Price alerts are **system-generated** during batch processing
+- Frontend has **read-only access** with ability to mark as read
+- No user CRUD operations for creating/deleting alerts
+- Alerts generated when monitored saved searches detect price changes
+
+**[2025-07-02 20:04:00]** - Critical MVP Bug Fix Patterns Documented
+- Added API endpoint constants pattern to prevent 404 errors
+- Documented price alerts architecture pattern (read-only, system-generated)
+- Established frontend/backend contract alignment patterns

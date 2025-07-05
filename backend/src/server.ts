@@ -55,7 +55,7 @@ app.use(
     origin:
       env.NODE_ENV === 'production'
         ? process.env.FRONTEND_URL
-        : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173'],
+        : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173', 'http://localhost:5174'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -142,6 +142,7 @@ import authRoutesOld from './routes/auth';
 import authRoutesNew from './routes/authNew';
 import billingRoutes from './routes/billing';
 import demoRoutes from './routes/demo';
+import devAuthRoutes from './routes/devAuth';
 
 const authRoutes = USE_NEW_AUTH ? authRoutesNew : authRoutesOld;
 app.use('/api/v1/auth', authRoutes);
@@ -154,12 +155,21 @@ import flightRoutes from './routes/flights';
 import monitoringRoutes from './routes/monitoring';
 import travelAgentRoutes from './routes/travelAgent';
 import preferencesRoutes from './routes/preferences';
+import searchesRoutes from './routes/searches';
+import priceAlertsRoutes from './routes/priceAlerts';
 
 app.use('/api/v1/conversations', conversationRoutes);
 app.use('/api/v1/flights', flightRoutes);
 app.use('/api/v1/monitoring', monitoringRoutes);
 app.use('/api/v1/travel-agent', travelAgentRoutes);
 app.use('/api/v1/preferences', preferencesRoutes);
+app.use('/api/v1/searches', searchesRoutes);
+app.use('/api/v1/price-alerts', priceAlertsRoutes);
+
+// Development-only authentication route
+if (process.env.NODE_ENV !== 'production') {
+  app.use('/api/v1/dev', devAuthRoutes);
+}
 
 // Additional routes will be added here
 // app.use('/api/v1/users', userRoutes);

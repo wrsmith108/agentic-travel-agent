@@ -1,22 +1,25 @@
 import { Result, ok, err, isErr } from '@/utils/result';
-import { authService } from './authService';
-import { AuthSuccessResponse, AuthErrorResponse, RegisterRequest, LoginRequest } from '@/schemas/auth';
+import { authService as mainAuthService } from './authService';
+import { AuthSuccessResponse, AuthErrorResponse, RegisterRequest, LoginRequest, SessionUser } from '@/schemas/auth';
 import { AuthSuccess, AuthError } from '@/types/auth';
 
 /**
  * Converts AuthSuccessResponse to AuthSuccess for Result pattern
  */
 const convertToAuthSuccess = (response: AuthSuccessResponse): AuthSuccess => {
+  // response.data.user is the Zod-inferred SessionUser type
+  const user = response.data.user;
+  
   return {
     user: {
-      id: response.data.user.id!,
-      firstName: response.data.user.firstName!,
-      lastName: response.data.user.lastName!,
-      email: response.data.user.email!,
-      createdAt: response.data.user.createdAt!,
-      isEmailVerified: response.data.user.isEmailVerified!,
-      role: response.data.user.role!,
-      lastLoginAt: response.data.user.lastLoginAt,
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      createdAt: user.createdAt,
+      isEmailVerified: user.isEmailVerified,
+      role: user.role,
+      lastLoginAt: user.lastLoginAt,
     },
     accessToken: response.data.accessToken,
     refreshToken: response.data.refreshToken,
@@ -54,7 +57,7 @@ export const authServiceWrapper = {
    * Register user with Result pattern
    */
   async register(data: RegisterRequest): Promise<Result<AuthSuccess, AuthError>> {
-    const response = await authService.registerUser(data);
+    const response = await mainAuthService.registerUser(data);
     
     if (response.success) {
       const authSuccess = convertToAuthSuccess(response as AuthSuccessResponse);
@@ -69,7 +72,7 @@ export const authServiceWrapper = {
    * Login user with Result pattern
    */
   async login(data: LoginRequest): Promise<Result<AuthSuccess, AuthError>> {
-    const response = await authService.loginUser(data);
+    const response = await mainAuthService.loginUser(data);
     
     if (response.success) {
       const authSuccess = convertToAuthSuccess(response as AuthSuccessResponse);
@@ -81,10 +84,31 @@ export const authServiceWrapper = {
   },
 
   /**
+   * Validate user credentials (compatibility method for old routes)
+   * Returns legacy format instead of Result pattern
+   */
+  async validateCredentials(email: string, password: string): Promise<{ success: boolean; user?: any; message?: string }> {
+    const loginData = { email, password };
+    const result = await this.login(loginData);
+    
+    if (isErr(result)) {
+      return {
+        success: false,
+        message: (result.error as AuthError).message || 'Authentication failed'
+      };
+    }
+    
+    return {
+      success: true,
+      user: result.value.user
+    };
+  },
+
+  /**
    * Logout user with Result pattern
    */
   async logout(sessionId: string): Promise<Result<{ message: string }, AuthError>> {
-    const response = await authService.logoutUser(sessionId);
+    const response = await mainAuthService.logoutUser(sessionId);
     
     if (response.success) {
       return ok({ message: response.message });
@@ -97,7 +121,7 @@ export const authServiceWrapper = {
    * Request password reset with Result pattern
    */
   async requestPasswordReset(email: string): Promise<Result<{ message: string; token?: string }, AuthError>> {
-    const response = await authService.requestPasswordReset({ email });
+    const response = await mainAuthService.requestPasswordReset({ email });
     
     if (response.success) {
       return ok({ message: response.message, token: response.token });
@@ -110,7 +134,7 @@ export const authServiceWrapper = {
    * Reset password with Result pattern
    */
   async resetPassword(data: { token: string; newPassword: string }): Promise<Result<AuthSuccess, AuthError>> {
-    const response = await authService.resetPassword(data);
+    const response = await mainAuthService.resetPassword(data);
     
     if ('success' in response && response.success) {
       const authSuccess = convertToAuthSuccess(response as AuthSuccessResponse);
@@ -122,18 +146,10 @@ export const authServiceWrapper = {
   },
 
   /**
-   * Validate credentials with Result pattern
-   */
-  async validateCredentials(email: string, password: string): Promise<{ success: boolean; message?: string; user?: any }> {
-    // This doesn't use Result pattern to match the expected interface
-    return authService.validateCredentials(email, password);
-  },
-
-  /**
    * Get user by ID
    */
   async getUserById(userId: string): Promise<any> {
     // Direct passthrough for now
-    return authService.getUserById(userId);
+    return mainAuthService.getUserById(userId);
   },
 };

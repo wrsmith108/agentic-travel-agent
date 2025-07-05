@@ -75,6 +75,11 @@ export class EnhancedAmadeusService {
     advancedOptions?: AdvancedSearchOptions
   ): Promise<Result<FlightOffer[], AppError>> {
     try {
+      // Check if in demo mode
+      if (env.FEATURE_DEMO_MODE) {
+        return this.generateMockFlightOffers(query, advancedOptions);
+      }
+
       // Check rate limit
       const rateLimitCheck = await this.checkRateLimit('search');
       if (!isOk(rateLimitCheck)) {
@@ -636,6 +641,196 @@ export class EnhancedAmadeusService {
       error.message || defaultMessage,
       ErrorCodes.EXTERNAL_SERVICE_ERROR
     ));
+  }
+
+  /**
+   * Generate mock flight offers for demo mode
+   */
+  private generateMockFlightOffers(
+    query: FlightSearchQuery,
+    advancedOptions?: AdvancedSearchOptions
+  ): Result<FlightOffer[], AppError> {
+    const { originLocationCode, destinationLocationCode, departureDate, adults } = query;
+    
+    // Generate 3-5 mock flight offers
+    const mockOffers: FlightOffer[] = [
+      {
+        
+        id: `mock-${Date.now()}-1`,
+        source: 'AMADEUS',
+        instantTicketingRequired: false,
+        nonHomogeneous: false,
+        oneWay: query.returnDate ? false : true,
+        
+        lastTicketingDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        
+        numberOfBookableSeats: adults,
+        itineraries: [
+          {
+            duration: 'PT8H30M',
+            segments: [
+              {
+                departure: {
+                  iataCode: originLocationCode,
+                  at: `${departureDate}T08:00:00`
+                },
+                arrival: {
+                  iataCode: destinationLocationCode,
+                  at: `${departureDate}T16:30:00`
+                },
+                carrierCode: 'AA',
+                number: '123',
+                aircraft: { code: '777' },
+                operating: { carrierCode: 'AA' },
+                duration: 'PT8H30M',
+                id: '1',
+                numberOfStops: 0,
+                blacklistedInEU: false
+              }
+            ]
+          }
+        ],
+        price: {
+          currency: 'USD',
+          total: '850.00',
+          base: '700.00',
+          fees: [
+            { amount: '50.00', type: 'SUPPLIER' },
+            { amount: '100.00', type: 'TICKETING' }
+          ],
+          grandTotal: '850.00'
+        },
+        pricingOptions: {
+          fareType: ['PUBLISHED'],
+          includedCheckedBagsOnly: true
+        },
+        validatingAirlineCodes: ['AA'],
+        travelerPricings: Array(adults).fill(null).map((_, i) => ({
+          travelerId: String(i + 1),
+          fareOption: 'STANDARD',
+          travelerType: 'ADULT',
+          price: {
+            currency: 'USD',
+            total: (850 / adults).toFixed(2),
+            base: (700 / adults).toFixed(2)
+          },
+          fareDetailsBySegment: [
+            {
+              segmentId: '1',
+              cabin: 'ECONOMY',
+              fareBasis: 'NNQW21BN',
+              brandedFare: 'BASIC',
+              brandedFareLabel: 'Basic Economy',
+              class: 'N',
+              includedCheckedBags: { quantity: 0 }
+            }
+          ]
+        }))
+      },
+      // Add a cheaper option with connection
+      {
+        
+        id: `mock-${Date.now()}-2`,
+        source: 'AMADEUS',
+        instantTicketingRequired: false,
+        nonHomogeneous: false,
+        oneWay: query.returnDate ? false : true,
+        
+        lastTicketingDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        
+        numberOfBookableSeats: adults,
+        itineraries: [
+          {
+            duration: 'PT12H45M',
+            segments: [
+              {
+                departure: {
+                  iataCode: originLocationCode,
+                  at: `${departureDate}T06:00:00`
+                },
+                arrival: {
+                  iataCode: 'ORD',
+                  at: `${departureDate}T09:00:00`
+                },
+                carrierCode: 'UA',
+                number: '456',
+                aircraft: { code: '737' },
+                operating: { carrierCode: 'UA' },
+                duration: 'PT3H00M',
+                id: '1',
+                numberOfStops: 0,
+                blacklistedInEU: false
+              },
+              {
+                departure: {
+                  iataCode: 'ORD',
+                  at: `${departureDate}T11:00:00`
+                },
+                arrival: {
+                  iataCode: destinationLocationCode,
+                  at: `${departureDate}T18:45:00`
+                },
+                carrierCode: 'UA',
+                number: '789',
+                aircraft: { code: '787' },
+                operating: { carrierCode: 'UA' },
+                duration: 'PT7H45M',
+                id: '2',
+                numberOfStops: 0,
+                blacklistedInEU: false
+              }
+            ]
+          }
+        ],
+        price: {
+          currency: 'USD',
+          total: '650.00',
+          base: '550.00',
+          fees: [
+            { amount: '40.00', type: 'SUPPLIER' },
+            { amount: '60.00', type: 'TICKETING' }
+          ],
+          grandTotal: '650.00'
+        },
+        pricingOptions: {
+          fareType: ['PUBLISHED'],
+          includedCheckedBagsOnly: true
+        },
+        validatingAirlineCodes: ['UA'],
+        travelerPricings: Array(adults).fill(null).map((_, i) => ({
+          travelerId: String(i + 1),
+          fareOption: 'STANDARD',
+          travelerType: 'ADULT',
+          price: {
+            currency: 'USD',
+            total: (650 / adults).toFixed(2),
+            base: (550 / adults).toFixed(2)
+          },
+          fareDetailsBySegment: [
+            {
+              segmentId: '1',
+              cabin: 'ECONOMY',
+              fareBasis: 'WNQW21BN',
+              brandedFare: 'BASIC',
+              brandedFareLabel: 'Basic Economy',
+              class: 'W',
+              includedCheckedBags: { quantity: 0 }
+            },
+            {
+              segmentId: '2',
+              cabin: 'ECONOMY',
+              fareBasis: 'WNQW21BN',
+              brandedFare: 'BASIC',
+              brandedFareLabel: 'Basic Economy',
+              class: 'W',
+              includedCheckedBags: { quantity: 0 }
+            }
+          ]
+        }))
+      }
+    ];
+
+    return ok(mockOffers);
   }
 }
 
