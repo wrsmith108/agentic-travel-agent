@@ -1,6 +1,7 @@
 import { Pool, PoolConfig } from 'pg';
 import { env } from './env';
-import logger from '@/utils/logger';
+import createLogger from '@/utils/logger';
+const logger = createLogger('Database');
 
 /**
  * PostgreSQL database configuration and connection management

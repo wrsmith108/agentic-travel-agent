@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
+import { createTimestamp } from '@/services/auth/functional/types';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { JWTPayload, SessionUser, SessionData } from '@/schemas/auth';
@@ -14,7 +15,7 @@ import { UserProfile } from '@/schemas/user';
  */
 export const createMockUserProfile = (overrides?: Partial<UserProfile>): UserProfile => {
   const userId = overrides?.id || uuidv4();
-  const now = new Date().toISOString();
+  const now = createTimestamp();
 
   return {
     id: userId,
@@ -45,9 +46,9 @@ export const createMockSessionUser = (overrides?: Partial<SessionUser>): Session
     email: 'test@example.com',
     firstName: 'Test',
     lastName: 'User',
-    emailVerified: true,
+    isEmailVerified: true,
     role: 'user',
-    createdAt: new Date().toISOString(),
+    createdAt: createTimestamp(),
     ...overrides,
   };
 };
@@ -225,7 +226,7 @@ export const createMockAuthErrorResponse = (errorType: string, message: string, 
     type: errorType,
     message,
     code: code || errorType,
-    timestamp: new Date().toISOString(),
+    timestamp: createTimestamp(),
   },
 });
 

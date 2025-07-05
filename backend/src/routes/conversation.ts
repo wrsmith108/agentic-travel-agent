@@ -6,6 +6,7 @@ import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { authenticate } from '@/middleware/authNew';
 import { validateRequest } from '@/middleware/validation';
+import { isErr, isOk } from '@/utils/result';
 import {
   createConversation,
   getConversation,
@@ -46,7 +47,7 @@ router.post(
 
       const result = createConversation(userId, initialMessage);
 
-      if (!result.ok) {
+      if (isErr(result)) {
         const { type, message, details } = result.error;
         const statusCode = type === 'RATE_LIMIT' ? 429 : 500;
         return res.status(statusCode).json(createConversationError(type, message, details));
@@ -55,11 +56,11 @@ router.post(
       // Convert to JSON-serializable format
       const conversation = {
         ...result.value,
-        createdAt: result.value.createdAt.toISOString(),
-        updatedAt: result.value.updatedAt.toISOString(),
+        createdAt: result.value.createdAt,
+        updatedAt: result.value.updatedAt,
         messages: result.value.messages.map(msg => ({
           ...msg,
-          timestamp: msg.timestamp.toISOString(),
+          timestamp: msg.timestamp,
         })),
       };
 
@@ -83,19 +84,19 @@ router.get('/', async (req: Request, res: Response): Promise<Response | void> =>
 
     const result = getUserConversations(userId);
 
-    if (!result.ok) {
+    if (isErr(result)) {
       const { type, message, details } = result.error;
       return res.status(500).json(createConversationError(type, message, details));
     }
 
     // Convert to JSON-serializable format
-    const conversations = result.value.map(conv => ({
+    const conversations = isOk(result) ? result.value : [].map(conv => ({
       ...conv,
-      createdAt: conv.createdAt.toISOString(),
-      updatedAt: conv.updatedAt.toISOString(),
+      createdAt: conv.createdAt,
+      updatedAt: conv.updatedAt,
       messages: conv.messages.map(msg => ({
         ...msg,
-        timestamp: msg.timestamp.toISOString(),
+        timestamp: msg.timestamp,
       })),
     }));
 
@@ -125,7 +126,7 @@ router.get('/:id', async (req: Request, res: Response): Promise<Response | void>
 
     const result = getConversation(conversationId, userId);
 
-    if (!result.ok) {
+    if (isErr(result)) {
       const { type, message, details } = result.error;
       const statusCode = type === 'NOT_FOUND' ? 404 : 500;
       return res.status(statusCode).json(createConversationError(type, message, details));
@@ -134,11 +135,11 @@ router.get('/:id', async (req: Request, res: Response): Promise<Response | void>
     // Convert to JSON-serializable format
     const conversation = {
       ...result.value,
-      createdAt: result.value.createdAt.toISOString(),
-      updatedAt: result.value.updatedAt.toISOString(),
+      createdAt: result.value.createdAt,
+      updatedAt: result.value.updatedAt,
       messages: result.value.messages.map(msg => ({
         ...msg,
-        timestamp: msg.timestamp.toISOString(),
+        timestamp: msg.timestamp,
       })),
     };
 
@@ -176,7 +177,7 @@ router.post(
 
       const result = await sendMessage(conversationId, userId, content);
 
-      if (!result.ok) {
+      if (isErr(result)) {
         const { type, message, details } = result.error;
         const statusCode = 
           type === 'NOT_FOUND' ? 404 :
@@ -189,7 +190,7 @@ router.post(
       // Convert to JSON-serializable format
       const message = {
         ...result.value,
-        timestamp: result.value.timestamp.toISOString(),
+        timestamp: result.value.timestamp,
       };
 
       return res.json(createMessageSuccess(message));
@@ -223,7 +224,7 @@ router.patch(
 
       const result = updateConversationContext(conversationId, userId, context);
 
-      if (!result.ok) {
+      if (isErr(result)) {
         const { type, message, details } = result.error;
         const statusCode = type === 'NOT_FOUND' ? 404 : 500;
         return res.status(statusCode).json(createConversationError(type, message, details));
@@ -232,11 +233,11 @@ router.patch(
       // Convert to JSON-serializable format
       const conversation = {
         ...result.value,
-        createdAt: result.value.createdAt.toISOString(),
-        updatedAt: result.value.updatedAt.toISOString(),
+        createdAt: result.value.createdAt,
+        updatedAt: result.value.updatedAt,
         messages: result.value.messages.map(msg => ({
           ...msg,
-          timestamp: msg.timestamp.toISOString(),
+          timestamp: msg.timestamp,
         })),
       };
 
@@ -267,7 +268,7 @@ router.post('/:id/clear', async (req: Request, res: Response): Promise<Response 
 
     const result = clearConversation(conversationId, userId);
 
-    if (!result.ok) {
+    if (isErr(result)) {
       const { type, message, details } = result.error;
       const statusCode = type === 'NOT_FOUND' ? 404 : 500;
       return res.status(statusCode).json(createConversationError(type, message, details));
@@ -276,8 +277,8 @@ router.post('/:id/clear', async (req: Request, res: Response): Promise<Response 
     // Convert to JSON-serializable format
     const conversation = {
       ...result.value,
-      createdAt: result.value.createdAt.toISOString(),
-      updatedAt: result.value.updatedAt.toISOString(),
+      createdAt: result.value.createdAt,
+      updatedAt: result.value.updatedAt,
       messages: [],
     };
 
@@ -307,7 +308,7 @@ router.get('/:id/export', async (req: Request, res: Response): Promise<Response 
 
     const result = exportConversation(conversationId, userId);
 
-    if (!result.ok) {
+    if (isErr(result)) {
       const { type, message, details } = result.error;
       const statusCode = type === 'NOT_FOUND' ? 404 : 500;
       return res.status(statusCode).json(createConversationError(type, message, details));
@@ -341,7 +342,7 @@ router.delete('/:id', async (req: Request, res: Response): Promise<Response | vo
 
     const result = deleteConversation(conversationId, userId);
 
-    if (!result.ok) {
+    if (isErr(result)) {
       const { type, message, details } = result.error;
       const statusCode = type === 'NOT_FOUND' ? 404 : 500;
       return res.status(statusCode).json(createConversationError(type, message, details));

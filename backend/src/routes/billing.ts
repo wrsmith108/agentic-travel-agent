@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { createTimestamp } from '@/services/auth/functional/types';
 import { requireAuth } from '@/middleware/auth';
 import { getCostSummary } from '@/middleware/costControl';
 import { sanitizeInputs } from '@/middleware/inputSanitization';
@@ -114,7 +115,7 @@ router.get('/plans', (_req, res) => {
       ],
     },
     meta: {
-      timestamp: new Date().toISOString(),
+      timestamp: createTimestamp(),
     },
   });
 });

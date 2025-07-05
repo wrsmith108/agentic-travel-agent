@@ -1,6 +1,7 @@
 import { createClient } from 'redis';
 import { env } from './env';
-import logger from '@/utils/logger';
+import createLogger from '@/utils/logger';
+const logger = createLogger('Redis');
 
 /**
  * Redis configuration and connection management

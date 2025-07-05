@@ -9,7 +9,7 @@ import { v4 as uuidv4 } from 'uuid';
 import * as authService from '@/services/auth/authServiceNew';
 import { authenticate, userRateLimit } from '@/middleware/authNew';
 import { createRequestLogger } from '@/utils/logger';
-import { isOk } from '@/utils/result';
+import { isOk, isErr } from '@/utils/result';
 import { getStatusCodeFromError } from '@/types/auth';
 import {
   RegisterRequestSchema,
@@ -106,8 +106,8 @@ router.post(
         });
       } else {
         requestLogger.warn('User registration failed', {
-          errorType: result.error.type,
-          message: result.error.message,
+          errorType: (isErr(result) ? result.error.type : ""),
+          message: (isErr(result) ? result.error.message : "An error occurred"),
           email: req.body.email,
         });
 
@@ -166,8 +166,8 @@ router.post(
         });
       } else {
         requestLogger.warn('User login failed', {
-          errorType: result.error.type,
-          message: result.error.message,
+          errorType: (isErr(result) ? result.error.type : ""),
+          message: (isErr(result) ? result.error.message : "An error occurred"),
           email: req.body.email,
         });
 
@@ -325,7 +325,7 @@ router.post(
           error: result.error,
         });
 
-        const statusCode = result.error.type === 'TOKEN_EXPIRED' ? 401 : 403;
+        const statusCode = isErr(result) && result.error.type === 'TOKEN_EXPIRED' ? 401 : 403;
         res.status(statusCode).json({
           success: false,
           error: result.error,
@@ -408,8 +408,8 @@ router.post(
         });
       } else {
         requestLogger.warn('Password reset failed', {
-          errorType: result.error.type,
-          message: result.error.message,
+          errorType: (isErr(result) ? result.error.type : ""),
+          message: (isErr(result) ? result.error.message : "An error occurred"),
         });
 
         const statusCode = getStatusCodeFromError(result.error);

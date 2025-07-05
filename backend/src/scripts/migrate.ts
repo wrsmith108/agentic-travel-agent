@@ -7,8 +7,8 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { Pool } from 'pg';
 import { getDatabaseConfig, createDatabasePool } from '@/config/database';
-import logger from '@/utils/logger';
-
+import createLogger from '@/utils/logger';
+const logger = createLogger('Umigrate');
 interface Migration {
   id: string;
   filename: string;

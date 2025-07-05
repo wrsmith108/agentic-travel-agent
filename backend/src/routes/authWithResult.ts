@@ -1,11 +1,12 @@
 import { Router, Request, Response, NextFunction } from 'express';
+import { createTimestamp } from '@/services/auth/functional/types';
 import rateLimit from 'express-rate-limit';
 import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
 import { authServiceWrapper } from '@/services/auth/authServiceWrapper';
 import { AppError } from '@/middleware/errorHandler';
 import { createRequestLogger } from '@/utils/logger';
-import { isOk } from '@/utils/result';
+import { isOk, isErr } from '@/utils/result';
 import { getStatusCodeFromError } from '@/types/auth';
 import {
   RegisterRequestSchema,
@@ -26,7 +27,7 @@ const authLimiter = rateLimit({
     error: {
       code: 'RATE_LIMIT_EXCEEDED',
       message: 'Too many authentication attempts. Please try again in 15 minutes.',
-      timestamp: new Date().toISOString(),
+      timestamp: createTimestamp(),
     },
   },
   standardHeaders: true,
@@ -110,8 +111,8 @@ router.post(
         });
       } else {
         requestLogger.warn('User registration failed', {
-          errorType: result.error.type,
-          message: result.error.message,
+          errorType: (isErr(result) ? result.error.type : ""),
+          message: (isErr(result) ? result.error.message : "An error occurred"),
           email: req.body.email,
         });
 
@@ -160,8 +161,8 @@ router.post(
         });
       } else {
         requestLogger.warn('User login failed', {
-          errorType: result.error.type,
-          message: result.error.message,
+          errorType: (isErr(result) ? result.error.type : ""),
+          message: (isErr(result) ? result.error.message : "An error occurred"),
           email: req.body.email,
         });
 
@@ -267,7 +268,7 @@ router.post(
         });
       } else {
         // For security, don't reveal if user exists or not
-        if (result.error.type === 'USER_NOT_FOUND') {
+        if ((isErr(result) ? result.error.type : "") === 'USER_NOT_FOUND') {
           res.status(200).json({
             success: true,
             message: 'If an account exists with this email, you will receive password reset instructions.',
@@ -303,7 +304,10 @@ router.post(
         ip: req.ip,
       });
 
-      const result = await authServiceWrapper.resetPassword(req.body.token, req.body.password);
+      const result = await authServiceWrapper.resetPassword({
+        token: req.body.token,
+        newPassword: req.body.password
+      });
 
       if (isOk(result)) {
         requestLogger.info('Password reset successful');
@@ -314,8 +318,8 @@ router.post(
         });
       } else {
         requestLogger.warn('Password reset failed', {
-          errorType: result.error.type,
-          message: result.error.message,
+          errorType: (isErr(result) ? result.error.type : ""),
+          message: (isErr(result) ? result.error.message : "An error occurred"),
         });
 
         const statusCode = getStatusCodeFromError(result.error);

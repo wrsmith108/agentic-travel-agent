@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
+import { createTimestamp } from '@/services/auth/functional/types';
 import {
   UserQuota,
   APICallRecord,
@@ -37,7 +38,7 @@ export class CostTrackingService {
     outputTokens: number,
     endpoint: string
   ): Promise<APICallRecord> {
-    const timestamp = new Date().toISOString();
+    const timestamp = createTimestamp();
     const totalTokens = inputTokens + outputTokens;
 
     // Calculate cost - fallback ensures pricing is always defined
@@ -182,7 +183,7 @@ export class CostTrackingService {
     const storedQuota = await this.loadUserQuota(userId);
     if (storedQuota) {
       // Reset daily usage if new day
-      const isoDate = new Date().toISOString();
+      const isoDate = createTimestamp();
       const today = isoDate.split('T')[0] as string;
       if (storedQuota.usage.currentDay !== today) {
         storedQuota.usage.currentDay = today;
@@ -191,7 +192,7 @@ export class CostTrackingService {
       }
 
       // Reset monthly usage if new month
-      const currentMonth = new Date().toISOString().slice(0, 7);
+      const currentMonth = createTimestamp().slice(0, 7);
       if (storedQuota.usage.currentMonth !== currentMonth) {
         storedQuota.usage.currentMonth = currentMonth;
         storedQuota.usage.monthlyTokensUsed = 0;
@@ -222,8 +223,8 @@ export class CostTrackingService {
         notifyAt80Percent: true,
         notifyAt100Percent: true,
       },
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: createTimestamp(),
+      updatedAt: createTimestamp(),
     };
 
     await this.saveUserQuota(newQuota);
@@ -246,7 +247,7 @@ export class CostTrackingService {
     quota.usage.monthlyTokensUsed += tokensUsed;
     quota.usage.dailyCostUsed += costIncurred;
     quota.usage.monthlyCostUsed += costIncurred;
-    quota.updatedAt = new Date().toISOString();
+    quota.updatedAt = createTimestamp();
 
     // Check if limits exceeded
     if (

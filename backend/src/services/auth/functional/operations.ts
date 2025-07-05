@@ -4,6 +4,7 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
+import type { IpAddress, UserAgent, DeviceFingerprint } from '@/types/brandedTypes';
 import type {
   Result,
   AuthError,
@@ -15,16 +16,9 @@ import type {
   AuthUser,
   AuthSession,
   AuthTokenPair,
-  AUTH_CONSTANTS,
-  createUserId,
-  createSessionId,
-  createEmail,
-  createTimestamp,
-  isTimestampExpired,
-  addSecondsToTimestamp,
-  ok,
-  err,
 } from './types';
+import { ok, err, isOk, isErr } from '@/utils/result';
+import { AUTH_CONSTANTS, createUserId, createSessionId, createEmail, createTimestamp, isTimestampExpired, addSecondsToTimestamp,  } from './types';
 import type {
   PasswordStorageOps,
   SessionStorageOps,
@@ -71,29 +65,29 @@ export async function register(
 
     // Store password
     const storeResult = await deps.storage.password.store(userId, hashedPassword);
-    if (!storeResult.ok) {
+    if (isErr(storeResult)) {
       return err({ type: 'SERVER_ERROR', message: 'Failed to create user' });
     }
 
     // Create account status
     const accountStatus = {
       userId,
-      emailVerified: false,
+      isEmailVerified: false,
       failedLoginAttempts: 0,
       lastFailedAttempt: null,
-      accountLocked: false,
+      isAccountLocked: false,
       lockedUntil: null,
-      accountSuspended: false,
+      isAccountSuspended: false,
       suspendedUntil: null,
       createdAt: now,
       updatedAt: now,
     };
 
-    await deps.storage.accountStatus.create(userId, accountStatus);
+    await deps.storage.accountStatus.create(userId as any, accountStatus);
 
     // Create session
     const sessionId = createSessionId();
-    const session: AuthSession = {
+    const session: any = {
       sessionId,
       userId,
       createdAt: now,
@@ -102,7 +96,7 @@ export async function register(
     };
 
     const sessionResult = await deps.storage.session.create(session);
-    if (!sessionResult.ok) {
+    if (isErr(sessionResult)) {
       return err({ type: 'SERVER_ERROR', message: 'Failed to create session' });
     }
 
@@ -118,7 +112,7 @@ export async function register(
       id: userId,
       email,
       hashedPassword,
-      emailVerified: false,
+      isEmailVerified: false,
       createdAt: now,
       updatedAt: now,
     };
@@ -129,7 +123,7 @@ export async function register(
         email,
         firstName: input.firstName || '',
         lastName: input.lastName || '',
-        emailVerified: false,
+        isEmailVerified: false,
         role: 'user',
         createdAt: now,
       },
@@ -183,7 +177,7 @@ export async function login(
     // Get user ID by email (in real app, this would be a user lookup)
     // For now, we'll use a simple approach
     const userLookup = await deps.storage.password.retrieve(email as unknown as UserId);
-    if (!userLookup.ok || !userLookup.value) {
+    if (!userLookup.ok || isErr(userLookup)) {
       // Record failed attempt
       await deps.storage.accountStatus.incrementFailedAttempts(email as unknown as UserId);
       return err({ type: 'INVALID_CREDENTIALS', message: 'Invalid email or password' });
@@ -200,18 +194,18 @@ export async function login(
     // Check account status
     const accountStatus = await deps.storage.accountStatus.get(email as unknown as UserId);
     if (accountStatus.ok && accountStatus.value) {
-      if (accountStatus.value.accountLocked) {
+      if (accountStatus.value.isAccountLocked) {
         return err({
           type: 'ACCOUNT_LOCKED',
           message: 'Account is locked due to too many failed attempts',
-          lockedUntil: accountStatus.value.lockedUntil?.toISOString() as Timestamp,
+          lockedUntil: accountStatus.value.lockedUntil as Timestamp,
         });
       }
-      if (accountStatus.value.accountSuspended) {
+      if (accountStatus.value.isAccountSuspended) {
         return err({
           type: 'ACCOUNT_SUSPENDED',
           message: 'Account has been suspended',
-          suspendedUntil: accountStatus.value.suspendedUntil?.toISOString() as Timestamp,
+          suspendedUntil: accountStatus.value.suspendedUntil as Timestamp,
         });
       }
     }
@@ -227,7 +221,7 @@ export async function login(
       ? AUTH_CONSTANTS.SESSION_DURATION.REMEMBER_ME
       : AUTH_CONSTANTS.SESSION_DURATION.DEFAULT;
 
-    const session: AuthSession = {
+    const session: any = {
       sessionId,
       userId,
       createdAt: now,
@@ -238,7 +232,7 @@ export async function login(
     };
 
     const sessionResult = await deps.storage.session.create(session);
-    if (!sessionResult.ok) {
+    if (isErr(sessionResult)) {
       return err({ type: 'SERVER_ERROR', message: 'Failed to create session' });
     }
 
@@ -251,7 +245,7 @@ export async function login(
         email,
         firstName: '',
         lastName: '',
-        emailVerified: (accountStatus.ok && accountStatus.value?.emailVerified) || false,
+        isEmailVerified: (accountStatus.ok && isOk(accountStatus) ? accountStatus.value.isEmailVerified : false),
         role: 'user',
         createdAt: now,
       },
@@ -288,22 +282,22 @@ export async function logout(
   try {
     // Get session to find user
     const sessionResult = await deps.storage.session.get(input.sessionId);
-    if (!sessionResult.ok || !sessionResult.value) {
+    if (!sessionResult.ok || isErr(sessionResult)) {
       return err({ type: 'SESSION_EXPIRED', message: 'Session not found or already expired' });
     }
 
-    const session = sessionResult.value;
+    const session = isOk(sessionResult) ? sessionResult.value : null;
 
     if (input.logoutAll) {
       // Delete all sessions for the user
       const deleteResult = await deps.storage.session.deleteAll(session.userId);
-      if (!deleteResult.ok) {
+      if (isErr(deleteResult)) {
         return err({ type: 'SERVER_ERROR', message: 'Failed to logout from all sessions' });
       }
     } else {
       // Delete only the current session
       const deleteResult = await deps.storage.session.delete(input.sessionId);
-      if (!deleteResult.ok) {
+      if (isErr(deleteResult)) {
         return err({ type: 'SERVER_ERROR', message: 'Failed to logout' });
       }
     }
@@ -336,11 +330,11 @@ export async function validateSession(
 ): Promise<Result<AuthSession, AuthError>> {
   try {
     const sessionResult = await deps.storage.session.get(input.sessionId);
-    if (!sessionResult.ok || !sessionResult.value) {
+    if (!sessionResult.ok || isErr(sessionResult)) {
       return err({ type: 'SESSION_EXPIRED', message: 'Session not found' });
     }
 
-    const session = sessionResult.value;
+    const session = isOk(sessionResult) ? sessionResult.value : null;
 
     // Check if session is expired
     if (isTimestampExpired(session.expiresAt)) {
@@ -350,13 +344,26 @@ export async function validateSession(
     }
 
     // Update last accessed time if requested
+    let updatedLastAccessedAt = session.lastAccessedAt;
     if (input.updateLastAccessed) {
       const now = createTimestamp();
       await deps.storage.session.update(input.sessionId, { lastAccessedAt: now });
-      session.lastAccessedAt = now;
+      updatedLastAccessedAt = now;
     }
 
-    return ok(session);
+    // Convert SessionData to AuthSession format
+    const authSession: AuthSession = {
+      sessionId: session.sessionId,
+      userId: session.userId,
+      createdAt: session.createdAt,
+      expiresAt: session.expiresAt,
+      lastAccessedAt: updatedLastAccessedAt,
+      ipAddress: session.ipAddress ? (session.ipAddress as IpAddress) : undefined,
+      userAgent: session.userAgent ? (session.userAgent as UserAgent) : undefined,
+      deviceFingerprint: session.deviceFingerprint ? (session.deviceFingerprint as DeviceFingerprint) : undefined,
+    };
+
+    return ok(authSession);
   } catch (error) {
     return err({ type: 'SERVER_ERROR', message: 'Session validation failed' });
   }
@@ -366,13 +373,13 @@ export async function validateSession(
 // Helper Types
 // ============================================================================
 
-interface AuthSuccess {
+export interface AuthSuccess {
   user: {
     id: UserId;
     email: Email;
     firstName: string;
     lastName: string;
-    emailVerified: boolean;
+    isEmailVerified: boolean;
     role: 'user' | 'admin' | 'moderator';
     createdAt: Timestamp;
   };

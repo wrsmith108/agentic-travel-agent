@@ -1,0 +1,22 @@
+{
+  "profile": {
+    "id": "55a7ef7f-310a-4eca-b213-b69a8e3cebaa",
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "john.doe@example.com",
+    "passwordHash": "$2a$10$VnEdfa7hN02hZeZCnxXUr.dFmzu/nqZCGXpBaxYQfNHSiqhU3HLAq",
+    "preferences": {
+      "currency": "USD",
+      "timezone": "UTC",
+      "preferredDepartureAirport": "JFK",
+      "communicationFrequency": "immediate",
+      "subscriptionTier": "free"
+    },
+    "activeSearches": [],
+    "searchHistory": [],
+    "createdAt": "2025-06-28T04:53:03.344Z",
+    "updatedAt": "2025-06-28T04:53:03.344Z"
+  },
+  "searches": {},
+  "version": "1.0.0"
+}

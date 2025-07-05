@@ -5,35 +5,32 @@
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import type {
-  PlainPassword,
   HashedPassword,
   UserId,
   ResetToken,
-  RequestId,
+  AuthError,
+  PasswordResetTokenData,
+  TokenStorage,
+  TimeProvider,
+  Logger,
+  PasswordResetTokenRecord,
+  PasswordStorage,
+  IdGenerator,
 } from './types';
 import {
-  PlainPassword as createPlainPassword,
-  HashedPassword as createHashedPassword,
-  ResetToken as createResetToken,
+  createHashedPassword,
+  createResetToken,
 } from './types';
-import type {
-  Result,
-  AuthError,
-  PasswordStorage,
-  TokenStorage,
-  PasswordResetTokenRecord,
-  Logger,
-  IdGenerator,
-  TimeProvider,
-} from './types';
-import { ok, err } from './types';
+import { Result, ok, err, isOk, isErr } from '@/utils/result';
+import type { PlainTextPassword } from './password';
 import { AUTH_CONSTANTS } from '@/schemas/auth';
+import { RequestId } from '@/types/brandedTypes';
 
 /**
  * Hash a plain password using bcrypt
  */
 export const hashPassword = async (
-  password: PlainPassword,
+  password: PlainTextPassword,
   saltRounds: number = 12
 ): Promise<Result<HashedPassword, AuthError>> => {
   try {
@@ -52,7 +49,7 @@ export const hashPassword = async (
  * Verify a plain password against a hashed password
  */
 export const verifyPassword = async (
-  password: PlainPassword,
+  password: PlainTextPassword,
   hash: HashedPassword
 ): Promise<Result<boolean, AuthError>> => {
   try {
@@ -100,21 +97,20 @@ export const createPasswordResetToken = async (
   try {
     // Generate token
     const tokenResult = generateResetToken();
-    if (!tokenResult.ok) {
-      return tokenResult;
+    if (isErr(tokenResult)) {
+      return err(tokenResult.error);
     }
 
-    const token = tokenResult.value;
+    const token = isOk(tokenResult) ? tokenResult.value : null;
     const now = timeProvider.now();
     const expiresAt = new Date(now.getTime() + AUTH_CONSTANTS.TOKEN_EXPIRY.RESET_TOKEN * 1000);
 
     // Store token
     const tokenRecord: PasswordResetTokenRecord = {
-      type: 'password_reset',
       userId,
       token,
       expiresAt,
-      createdAt: now,
+      createdAt: now.toISOString(),
       used: false,
     };
 
@@ -122,7 +118,7 @@ export const createPasswordResetToken = async (
 
     logger.info('Password reset token generated', {
       userId,
-      tokenExpiry: expiresAt.toISOString(),
+      tokenExpiry: expiresAt,
       requestId,
     });
 
@@ -195,7 +191,7 @@ export const resetPasswordWithToken = async (
     logger: Logger;
   },
   token: ResetToken,
-  newPassword: PlainPassword,
+  newPassword: PlainTextPassword,
   requestId: RequestId
 ): Promise<Result<UserId, AuthError>> => {
   const { passwordStorage, tokenStorage, logger } = deps;
@@ -206,24 +202,24 @@ export const resetPasswordWithToken = async (
     token
   );
 
-  if (!validationResult.ok) {
-    return validationResult;
+  if (isErr(validationResult)) {
+    return err(validationResult.error);
   }
 
-  const { userId } = validationResult.value;
+  const { userId } = (isOk(validationResult) ? validationResult.value : undefined);
 
   try {
     // Hash new password
     const hashResult = await hashPassword(newPassword);
-    if (!hashResult.ok) {
-      return hashResult;
+    if (isErr(hashResult)) {
+      return err(hashResult.error);
     }
 
     // Update password
-    await passwordStorage.store(userId, hashResult.value);
+    await passwordStorage.set(userId, (isOk(hashResult) ? hashResult.value : undefined));
 
     // Mark token as used
-    await tokenStorage.markUsed(token);
+    await tokenStorage.delete(token);
 
     logger.info('Password reset successful', { userId, requestId });
 
@@ -248,15 +244,15 @@ export const changeUserPassword = async (
     logger: Logger;
   },
   userId: UserId,
-  currentPassword: PlainPassword,
-  newPassword: PlainPassword,
+  currentPassword: PlainTextPassword,
+  newPassword: PlainTextPassword,
   requestId: RequestId
 ): Promise<Result<void, AuthError>> => {
   const { passwordStorage, logger } = deps;
 
   try {
     // Get current password hash
-    const currentHash = await passwordStorage.retrieve(userId);
+    const currentHash = await passwordStorage.get(userId);
     if (!currentHash) {
       logger.error('Password hash not found for user during change', null, { userId });
       return err({
@@ -268,11 +264,11 @@ export const changeUserPassword = async (
 
     // Verify current password
     const verifyResult = await verifyPassword(currentPassword, currentHash);
-    if (!verifyResult.ok) {
-      return verifyResult;
+    if (isErr(verifyResult)) {
+      return err(verifyResult.error);
     }
 
-    if (!verifyResult.value) {
+    if (isErr(verifyResult)) {
       return err({
         type: 'INVALID_CREDENTIALS',
         message: 'Current password is incorrect',
@@ -282,12 +278,12 @@ export const changeUserPassword = async (
 
     // Hash new password
     const hashResult = await hashPassword(newPassword);
-    if (!hashResult.ok) {
-      return hashResult;
+    if (isErr(hashResult)) {
+      return err(hashResult.error);
     }
 
     // Update password
-    await passwordStorage.store(userId, hashResult.value);
+    await passwordStorage.set(userId, (isOk(hashResult) ? hashResult.value : undefined));
 
     logger.info('Password changed successfully', { userId, requestId });
 
@@ -306,7 +302,7 @@ export const changeUserPassword = async (
 /**
  * Validate password strength
  */
-export const validatePasswordStrength = (password: string): Result<PlainPassword, AuthError> => {
+export const validatePasswordStrength = (password: string): Result<PlainTextPassword, AuthError> => {
   if (password.length < 8) {
     return err({
       type: 'VALIDATION_ERROR',
@@ -349,5 +345,5 @@ export const validatePasswordStrength = (password: string): Result<PlainPassword
     });
   }
 
-  return ok(createPlainPassword(password));
+  return ok(password as PlainTextPassword);
 };

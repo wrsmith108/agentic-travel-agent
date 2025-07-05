@@ -1,4 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
+import { createTimestamp } from '@/services/auth/functional/types';
 import { v4 as uuidv4 } from 'uuid';
 import { costTrackingService } from '@/services/costTracking/costTrackingService';
 import { CostContext } from '@/schemas/costControl';
@@ -98,7 +99,7 @@ export const trackLLMCosts = () => {
         },
         meta: {
           requestId,
-          timestamp: new Date().toISOString(),
+          timestamp: createTimestamp(),
         },
       });
       return;
@@ -222,7 +223,7 @@ export const enforceRateLimits = () => {
           },
           meta: {
             requestId: costReq.requestId || uuidv4(),
-            timestamp: new Date().toISOString(),
+            timestamp: createTimestamp(),
           },
         });
       return;
@@ -336,8 +337,8 @@ export const getCostSummary = () => {
       // Get cost breakdown
       const breakdown = await costTrackingService.getUserCostBreakdown(
         userId,
-        startDate as string,
-        endDate as string
+        new Date(String(req.query.startDate)).toISOString(),
+        new Date(String(req.query.endDate)).toISOString()
       );
 
       // Get recommended model
@@ -362,7 +363,7 @@ export const getCostSummary = () => {
         },
         meta: {
           requestId: costReq.requestId || uuidv4(),
-          timestamp: new Date().toISOString(),
+          timestamp: createTimestamp(),
         },
       });
     } catch (error) {
@@ -395,7 +396,7 @@ export const auditLog = (action: string) => {
       path: req.path,
       ip: req.ip,
       userAgent: req.get('user-agent'),
-      timestamp: new Date().toISOString(),
+      timestamp: createTimestamp(),
     });
 
     next();

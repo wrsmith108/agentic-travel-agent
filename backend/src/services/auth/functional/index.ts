@@ -6,6 +6,7 @@
  */
 
 import jwt from 'jsonwebtoken';
+import { isOk, isErr } from '@/utils/result';
 import { logError, logInfo } from '@/utils/logger';
 import type {
   AuthTokenPair,
@@ -13,6 +14,8 @@ import type {
   SessionId,
   Email,
   Timestamp,
+} from './types';
+import {
   createTimestamp,
   AUTH_CONSTANTS,
 } from './types';
@@ -108,11 +111,11 @@ async function checkRateLimit(email: Email): Promise<boolean> {
   const key = `login:${email}`;
   const rateLimit = await storageOps.rateLimit.get(key);
 
-  if (!rateLimit.ok) {
+  if (isErr(rateLimit)) {
     return true; // Allow if we can't check
   }
 
-  if (rateLimit.value && rateLimit.value.lockedUntil) {
+  if (isOk(rateLimit) && rateLimit.value.lockedUntil) {
     const lockedUntil = new Date(rateLimit.value.lockedUntil);
     if (lockedUntil > new Date()) {
       return false; // Still locked
@@ -123,7 +126,7 @@ async function checkRateLimit(email: Email): Promise<boolean> {
     key,
     AUTH_CONSTANTS.SECURITY.LOCKOUT_DURATION * 1000
   );
-  if (!result.ok) {
+  if (isErr(result)) {
     return true; // Allow if we can't increment
   }
 
@@ -197,7 +200,7 @@ const storageOps: StorageOps = {
     get: async (key) => ({ ok: true, value: null }),
     increment: async (key, windowMs) => ({
       ok: true,
-      value: { count: 1, firstAttempt: new Date(), lockedUntil: null },
+      value: { count: 1, windowStart: new Date(), lastAttempt: new Date(), lockedUntil: undefined },
     }),
     reset: async (key) => ({ ok: true, value: undefined }),
     setLockout: async (key, until) => ({ ok: true, value: undefined }),
@@ -262,10 +265,6 @@ export const authService = {
 
 // Export types for external use
 export type {
-  RegisterInput,
-  LoginInput,
-  LogoutInput,
-  ValidateSessionInput,
   Result,
   AuthError,
   UserId,
@@ -280,11 +279,14 @@ export type {
   AuthTokenPair,
 } from './types';
 
+export type {
+  RegisterInput,
+  LoginInput,
+  LogoutInput,
+  ValidateSessionInput,
+} from './operations';
+
 export {
-  ok,
-  err,
-  isOk,
-  isErr,
   createUserId,
   createSessionId,
   createEmail,

@@ -1,0 +1,623 @@
+openapi: 3.0.3
+info:
+  title: AI Travel Agent API
+  description: API for conversational flight search with price monitoring and alerts
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@example.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Development server
+  - url: https://api.travelagent.example.com/v1
+    description: Production server
+
+tags:
+  - name: Authentication
+    description: User authentication endpoints
+  - name: Flights
+    description: Flight search and saved searches
+  - name: Conversations
+    description: AI chat conversations
+  - name: Preferences
+    description: User preferences management
+  - name: Monitoring
+    description: Health and metrics endpoints
+
+paths:
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register new user
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Registration successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Login user
+      operationId: loginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: Logout user
+      operationId: logoutUser
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Logged out successfully
+
+  /flights/search:
+    post:
+      tags:
+        - Flights
+      summary: Search for flights
+      operationId: searchFlights
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FlightSearchRequest'
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlightSearchResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /flights/saved-searches:
+    get:
+      tags:
+        - Flights
+      summary: Get saved searches
+      operationId: getSavedSearches
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: List of saved searches
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SavedSearch'
+    
+    post:
+      tags:
+        - Flights
+      summary: Save a search
+      operationId: saveSearch
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaveSearchRequest'
+      responses:
+        '201':
+          description: Search saved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      message:
+                        type: string
+
+  /flights/saved-searches/{id}:
+    delete:
+      tags:
+        - Flights
+      summary: Delete saved search
+      operationId: deleteSavedSearch
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Search deleted
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /travel-agent/chat:
+    post:
+      tags:
+        - Conversations
+      summary: Chat with AI travel agent
+      operationId: chatWithAgent
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+      responses:
+        '200':
+          description: Agent response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+
+  /preferences:
+    get:
+      tags:
+        - Preferences
+      summary: Get user preferences
+      operationId: getPreferences
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: User preferences
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PreferencesResponse'
+    
+    patch:
+      tags:
+        - Preferences
+      summary: Update preferences
+      operationId: updatePreferences
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PreferencesUpdateRequest'
+      responses:
+        '200':
+          description: Updated preferences
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PreferencesResponse'
+
+  /preferences/reset:
+    post:
+      tags:
+        - Preferences
+      summary: Reset preferences to defaults
+      operationId: resetPreferences
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Preferences reset
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PreferencesResponse'
+
+  /health:
+    get:
+      tags:
+        - Monitoring
+      summary: Health check
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: connect.sid
+
+  schemas:
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - password
+        - firstName
+        - lastName
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        firstName:
+          type: string
+        lastName:
+          type: string
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    AuthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            user:
+              $ref: '#/components/schemas/User'
+            customSessionId:
+              type: string
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+
+    FlightSearchRequest:
+      type: object
+      required:
+        - origin
+        - destination
+        - departureDate
+      properties:
+        origin:
+          type: string
+          pattern: '^[A-Z]{3}$'
+        destination:
+          type: string
+          pattern: '^[A-Z]{3}$'
+        departureDate:
+          type: string
+          format: date
+        returnDate:
+          type: string
+          format: date
+        adults:
+          type: integer
+          minimum: 1
+          maximum: 9
+          default: 1
+        children:
+          type: integer
+          minimum: 0
+          maximum: 8
+          default: 0
+        infants:
+          type: integer
+          minimum: 0
+          maximum: 8
+          default: 0
+        cabinClass:
+          type: string
+          enum: [ECONOMY, PREMIUM_ECONOMY, BUSINESS, FIRST]
+          default: ECONOMY
+        nonStop:
+          type: boolean
+          default: false
+        maxPrice:
+          type: number
+        currency:
+          type: string
+          default: USD
+
+    FlightSearchResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            offers:
+              type: array
+              items:
+                $ref: '#/components/schemas/FlightOffer'
+            meta:
+              type: object
+              properties:
+                count:
+                  type: integer
+
+    FlightOffer:
+      type: object
+      properties:
+        id:
+          type: string
+        price:
+          type: object
+          properties:
+            currency:
+              type: string
+            total:
+              type: string
+            base:
+              type: string
+            grandTotal:
+              type: string
+        itineraries:
+          type: array
+          items:
+            type: object
+        validatingAirlineCodes:
+          type: array
+          items:
+            type: string
+
+    SavedSearch:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        searchParams:
+          type: object
+        priceAlerts:
+          type: object
+          properties:
+            enabled:
+              type: boolean
+            targetPrice:
+              type: number
+            lastCheckedPrice:
+              type: number
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    SaveSearchRequest:
+      type: object
+      required:
+        - name
+        - searchParams
+      properties:
+        name:
+          type: string
+        searchParams:
+          type: object
+        priceAlerts:
+          type: object
+
+    ChatRequest:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+        conversationId:
+          type: string
+
+    ChatResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            response:
+              type: string
+            conversationId:
+              type: string
+            suggestedActions:
+              type: array
+              items:
+                type: object
+
+    PreferencesResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: '#/components/schemas/UserPreferences'
+
+    UserPreferences:
+      type: object
+      properties:
+        userId:
+          type: string
+        notifications:
+          type: object
+          properties:
+            emailEnabled:
+              type: boolean
+            frequency:
+              type: string
+              enum: [INSTANT, HOURLY, DAILY, WEEKLY, NEVER]
+            priceAlerts:
+              type: object
+            searchExpiration:
+              type: object
+            marketing:
+              type: object
+        search:
+          type: object
+          properties:
+            defaultCabinClass:
+              type: string
+            preferredAirlines:
+              type: array
+              items:
+                type: string
+            maxStops:
+              type: integer
+        display:
+          type: object
+          properties:
+            currency:
+              type: string
+            dateFormat:
+              type: string
+            timeFormat:
+              type: string
+            theme:
+              type: string
+
+    PreferencesUpdateRequest:
+      type: object
+      properties:
+        notifications:
+          type: object
+        search:
+          type: object
+        display:
+          type: object
+
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        services:
+          type: object
+        timestamp:
+          type: string
+          format: date-time
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: object
+
+  responses:
+    ValidationError:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    
+    UnauthorizedError:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    
+    NotFoundError:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    
+    ConflictError:
+      description: Resource conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

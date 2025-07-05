@@ -5,8 +5,8 @@
 import session from 'express-session';
 import { RedisStore } from 'connect-redis';
 import { initializeRedis, getRedisConfig, testRedisConnection } from './redis';
-import logger from '@/utils/logger';
-
+import createLogger from '@/utils/logger';
+const logger = createLogger('UsessionStore');
 export type SessionStoreMode = 'redis' | 'memory';
 
 export interface SessionStoreAdapter {

@@ -5,6 +5,7 @@
  */
 
 import jwt from 'jsonwebtoken';
+import { createTimestamp } from '@/services/auth/functional/types';
 import { v4 as uuidv4 } from 'uuid';
 import { env } from '@/config/env';
 import { logInfo, logWarn, logError } from '@/utils/logger';
@@ -53,9 +54,9 @@ export const createSession = async (
     sessionId,
     userId: user.id,
     user,
-    createdAt: now.toISOString(),
-    expiresAt: expiresAt.toISOString(),
-    lastAccessedAt: now.toISOString(),
+    createdAt: createTimestamp(),
+    expiresAt: createTimestamp(expiresAt),
+    lastAccessedAt: createTimestamp(),
     ipAddress: deviceInfo?.ipAddress,
     userAgent: deviceInfo?.userAgent,
     deviceFingerprint: deviceInfo?.fingerprint,
@@ -84,9 +85,8 @@ export const createSession = async (
   // Create refresh token for longer sessions
   let refreshToken: JWTToken | undefined;
   if (duration > AUTH_CONSTANTS.SESSION_DURATION.DEFAULT) {
-    refreshToken = jwt.sign({ ...jwtPayload, type: 'refresh' }, config.refreshSecret, {
-      expiresIn: AUTH_CONSTANTS.TOKEN_EXPIRY.REFRESH_TOKEN,
-    }) as JWTToken;
+    // Remove expiresIn option since payload already contains exp property
+    refreshToken = jwt.sign({ ...jwtPayload, type: 'refresh' }, config.refreshSecret) as JWTToken;
   }
 
   logInfo('Session created', {
@@ -122,7 +122,11 @@ export const validateSession = (sessionId: string): SessionUser | null => {
   }
 
   // Update last accessed time
-  sessionData.lastAccessedAt = new Date().toISOString();
+  const updatedSessionData = {
+    ...sessionData,
+    lastAccessedAt: createTimestamp(),
+  };
+  sessions[sessionId] = updatedSessionData;
 
   return sessionData.user;
 };
@@ -201,7 +205,11 @@ export const getSessionInfo = (sessionId: string): SessionData | null => {
 export const updateSessionActivity = (sessionId: string): void => {
   const session = sessions[sessionId];
   if (session) {
-    session.lastAccessedAt = new Date().toISOString();
+    const updatedSession = {
+      ...session,
+      lastAccessedAt: createTimestamp(),
+    };
+    sessions[sessionId] = updatedSession;
   }
 };
 

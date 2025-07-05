@@ -4,7 +4,8 @@
 
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
-import { Result, ok, err, flatMap, map } from '@/utils/result';
+import { Result, ok, err, flatMap, map, isErr, isOk } from '@/utils/result';
+import { castUserId } from '@/utils/brandedTypeUtils';
 import { 
   generateTokenPair, 
   verifyAccessToken, 
@@ -93,16 +94,16 @@ export const register = async (
     const userId = asUserId(newUser.id);
 
     // Create session
-    const sessionResult = createSession(userId, {
+    const sessionResult = createSession(castUserId(userId), {
       ipAddress: undefined,
       userAgent: undefined,
     });
 
-    if (!sessionResult.ok) {
+    if (isErr(sessionResult)) {
       return err(systemError('Failed to create session'));
     }
 
-    const session = sessionResult.value;
+    const session = isOk(sessionResult) ? sessionResult.value : null;
 
     // Generate tokens
     const tokenResult = generateTokenPair(
@@ -113,11 +114,11 @@ export const register = async (
       false
     );
 
-    if (!tokenResult.ok) {
+    if (isErr(tokenResult)) {
       return err(systemError('Failed to generate tokens'));
     }
 
-    const { accessToken, refreshToken } = tokenResult.value;
+    const { accessToken, refreshToken } = (isOk(tokenResult) ? tokenResult.value : undefined);
 
     // Update session with refresh token
     updateSessionRefreshToken(session.id, refreshToken);
@@ -129,9 +130,9 @@ export const register = async (
         lastName: newUser.lastName,
         email: newUser.email,
         createdAt: newUser.createdAt,
-        emailVerified: false,
+        isEmailVerified: false,
         role: 'user',
-        lastLoginAt: new Date().toISOString(),
+        lastLogin: new Date().toISOString(),
       },
       accessToken,
       refreshToken,
@@ -187,17 +188,17 @@ export const login = async (
     }
 
     // Create session
-    const sessionResult = createSession(userId, {
+    const sessionResult = createSession(castUserId(userId), {
       rememberMe: data.rememberMe,
       ipAddress: undefined,
       userAgent: undefined,
     });
 
-    if (!sessionResult.ok) {
+    if (isErr(sessionResult)) {
       return err(systemError('Failed to create session'));
     }
 
-    const session = sessionResult.value;
+    const session = isOk(sessionResult) ? sessionResult.value : null;
 
     // Generate tokens
     const tokenResult = generateTokenPair(
@@ -208,19 +209,16 @@ export const login = async (
       data.rememberMe
     );
 
-    if (!tokenResult.ok) {
+    if (isErr(tokenResult)) {
       return err(systemError('Failed to generate tokens'));
     }
 
-    const { accessToken, refreshToken } = tokenResult.value;
+    const { accessToken, refreshToken } = (isOk(tokenResult) ? tokenResult.value : undefined);
 
     // Update session with refresh token
     updateSessionRefreshToken(session.id, refreshToken);
 
-    // Update last login time
-    await userDataOps.updateUserData(userId, {
-      lastLoginAt: new Date().toISOString(),
-    });
+    // Note: lastLogin is included in response but not persistently stored
 
     return ok({
       user: {
@@ -229,9 +227,9 @@ export const login = async (
         lastName: user.lastName,
         email: user.email,
         createdAt: user.createdAt,
-        emailVerified: false,
+        isEmailVerified: false,
         role: 'user',
-        lastLoginAt: new Date().toISOString(),
+        lastLogin: new Date().toISOString(),
       },
       accessToken,
       refreshToken,
@@ -279,19 +277,19 @@ export const refreshAccessToken = async (
   try {
     // Verify refresh token
     const tokenResult = verifyRefreshToken(asRefreshToken(refreshToken));
-    if (!tokenResult.ok) {
-      return tokenResult;
+    if (isErr(tokenResult)) {
+      return err(tokenResult.error);
     }
 
-    const tokenPayload = tokenResult.value;
+    const tokenPayload = isOk(tokenResult) ? tokenResult.value : null;
 
     // Find session by refresh token
     const sessionResult = findSessionByRefreshToken(refreshToken);
-    if (!sessionResult.ok) {
+    if (isErr(sessionResult)) {
       return err(invalidCredentials('Invalid refresh token'));
     }
 
-    const session = sessionResult.value;
+    const session = isOk(sessionResult) ? sessionResult.value : null;
 
     // Verify session belongs to user in token
     if (session.userId !== tokenPayload.sub) {
@@ -312,15 +310,15 @@ export const refreshAccessToken = async (
       role: 'user',
     });
 
-    if (!newTokenResult.ok) {
-      return newTokenResult;
+    if (isErr(newTokenResult)) {
+      return err(newTokenResult.error);
     }
 
     // Touch session to update last accessed
     touchSession(session.id);
 
     return ok({
-      accessToken: newTokenResult.value,
+      accessToken: (isOk(newTokenResult) ? newTokenResult.value : undefined),
       expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(), // 15 minutes
     });
   } catch (error) {
@@ -338,8 +336,8 @@ export const verifySession = async (
 ): Promise<Result<Session, AuthError | SessionError>> => {
   const sessionResult = getSession(sessionId as SessionId);
   
-  if (!sessionResult.ok) {
-    return sessionResult;
+  if (isErr(sessionResult)) {
+    return err(sessionResult.error);
   }
 
   // Touch session to update last accessed

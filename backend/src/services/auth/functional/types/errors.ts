@@ -3,6 +3,7 @@
  */
 
 import type { Email, UserId, Timestamp } from './core';
+import { createTimestamp } from '@/services/auth/functional/types';
 
 // Base error type
 export type BaseError = {
@@ -96,7 +97,7 @@ export const createAuthError = (
     type,
     message,
     requestId,
-    timestamp: new Date().toISOString() as Timestamp,
+    timestamp: createTimestamp() as Timestamp,
     ...additionalProps,
   }) as AuthError;
 
@@ -109,7 +110,7 @@ export const createValidationError = (
   message,
   errors,
   requestId,
-  timestamp: new Date().toISOString() as Timestamp,
+  timestamp: createTimestamp() as Timestamp,
 });
 
 export const createStorageError = (
@@ -123,7 +124,7 @@ export const createStorageError = (
     message,
     resource,
     requestId,
-    timestamp: new Date().toISOString() as Timestamp,
+    timestamp: createTimestamp() as Timestamp,
   }) as StorageError;
 
 export const createSecurityError = (
@@ -135,7 +136,7 @@ export const createSecurityError = (
     type,
     message,
     requestId,
-    timestamp: new Date().toISOString() as Timestamp,
+    timestamp: createTimestamp() as Timestamp,
   }) as SecurityError;
 
 export const createSystemError = (
@@ -148,7 +149,7 @@ export const createSystemError = (
   message,
   code,
   requestId,
-  timestamp: new Date().toISOString() as Timestamp,
+  timestamp: createTimestamp() as Timestamp,
   ...(stack !== undefined && { stack }),
 });
 

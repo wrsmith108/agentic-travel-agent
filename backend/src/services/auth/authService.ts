@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs';
+import { createTimestamp } from '@/services/auth/functional/types';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
@@ -31,7 +32,7 @@ interface PasswordResetToken {
   userId: string;
   token: string;
   expiresAt: Date;
-  createdAt: Date;
+  createdAt: string;
   used: boolean;
 }
 
@@ -43,7 +44,7 @@ interface EmailVerificationToken {
   token: string;
   email: string;
   expiresAt: Date;
-  createdAt: Date;
+  createdAt: string;
   used: boolean;
 }
 
@@ -161,7 +162,7 @@ class AuthService {
         email: userProfile.email,
         firstName: userProfile.firstName,
         lastName: userProfile.lastName,
-        emailVerified: !env.REQUIRE_EMAIL_VERIFICATION, // Auto-verify if not required
+        isEmailVerified: !env.REQUIRE_EMAIL_VERIFICATION, // Auto-verify if not required
         role: 'user',
         createdAt: userProfile.createdAt,
       };
@@ -218,6 +219,56 @@ class AuthService {
   }
 
   /**
+   * Validate user credentials (email and password) without creating session
+   */
+  async validateCredentials(email: string, password: string): Promise<{ success: boolean; user?: UserProfile; message?: string }> {
+    try {
+      // Find user by email
+      const userProfile = await this.userDataManager.findUserByEmail(email);
+      if (!userProfile) {
+        await this.recordFailedLoginAttempt(email);
+        return { success: false, message: 'Invalid email or password' };
+      }
+
+      // Check account status
+      const accountStatus = await this.getUserAccountStatus(userProfile.id);
+      if (accountStatus.isAccountLocked) {
+        return { success: false, message: 'Account is locked' };
+      }
+
+      if (accountStatus.isAccountSuspended) {
+        return { success: false, message: 'Account is suspended' };
+      }
+
+      // Verify password
+      const storedPasswordHash = await this.getUserPasswordHash(userProfile.id);
+      if (!storedPasswordHash) {
+        logError('Password hash not found for user', null, { userId: userProfile.id });
+        return { success: false, message: 'Authentication system error' };
+      }
+
+      const passwordValid = await bcrypt.compare(password, storedPasswordHash);
+      if (!passwordValid) {
+        await this.recordFailedLoginAttempt(email);
+        return { success: false, message: 'Invalid email or password' };
+      }
+
+      // Check email verification if required
+      if (env.REQUIRE_EMAIL_VERIFICATION && !accountStatus.isEmailVerified) {
+        return { success: false, message: 'Please verify your email address before logging in' };
+      }
+
+      // Clear failed login attempts on successful authentication
+      this.cleanupFailedLoginAttempts();
+
+      return { success: true, user: userProfile };
+    } catch (error) {
+      logError('Credential validation failed', error, { email });
+      return { success: false, message: 'Authentication system error' };
+    }
+  }
+
+  /**
    * Authenticate user login with password verification and security checks
    */
   async loginUser(data: unknown): Promise<AuthSuccessResponse | AuthErrorResponse> {
@@ -238,8 +289,8 @@ class AuthService {
       if (!rateLimitResult.allowed) {
         return createAuthError(
           'RATE_LIMIT_EXCEEDED',
-          `Too many failed login attempts. Account locked until ${rateLimitResult.lockedUntil?.toISOString()}`,
-          { lockedUntil: rateLimitResult.lockedUntil?.toISOString() },
+          `Too many failed login attempts. Account locked until ${rateLimitResult.lockedUntil}`,
+          { lockedUntil: rateLimitResult.lockedUntil },
           'AUTH_004',
           requestId
         );
@@ -328,7 +379,7 @@ class AuthService {
         email: userProfile.email,
         firstName: userProfile.firstName,
         lastName: userProfile.lastName,
-        emailVerified: accountStatus.isEmailVerified,
+        isEmailVerified: accountStatus.isEmailVerified,
         role: 'user',
         lastLoginAt: new Date().toISOString(),
         createdAt: userProfile.createdAt,
@@ -428,13 +479,13 @@ class AuthService {
         userId: userProfile.id,
         token: resetToken,
         expiresAt,
-        createdAt: new Date(),
+        createdAt: new Date().toISOString(),
         used: false,
       });
 
       logInfo('Password reset token generated', {
         userId: userProfile.id,
-        tokenExpiry: expiresAt.toISOString(),
+        tokenExpiry: expiresAt,
         requestId,
       });
 
@@ -521,7 +572,7 @@ class AuthService {
         email: userProfile.email,
         firstName: userProfile.firstName,
         lastName: userProfile.lastName,
-        emailVerified: true, // Assume verified if they can reset password
+        isEmailVerified: true, // Assume verified if they can reset password
         role: 'user',
         createdAt: userProfile.createdAt,
       };
@@ -629,29 +680,13 @@ class AuthService {
 
   /**
    * Validate user session and return user data
+   * Delegates to functional auth service for unified session management
    */
   async validateSession(sessionId: string): Promise<SessionUser | null> {
     try {
-      const sessionData = this.sessions[sessionId];
-      if (!sessionData) {
-        return null;
-      }
-
-      // Check if session is expired
-      if (new Date(sessionData.expiresAt) < new Date()) {
-        delete this.sessions[sessionId];
-        return null;
-      }
-
-      // Check if session is active
-      if (!sessionData.isActive) {
-        return null;
-      }
-
-      // Update last accessed time
-      sessionData.lastAccessedAt = new Date().toISOString();
-
-      return sessionData.user;
+      // Import functional session service
+      const { session } = await import('@/services/auth/functional/session');
+      return session.validate(sessionId);
     } catch (error) {
       logError('Session validation failed', error, { sessionId });
       return null;
@@ -660,18 +695,13 @@ class AuthService {
 
   /**
    * Validate JWT token and return payload
+   * Delegates to functional auth service for unified JWT validation
    */
   async validateJWTToken(token: string): Promise<JWTPayload | null> {
     try {
-      const payload = jwt.verify(token, this.jwtSecret) as JWTPayload;
-
-      // Validate session still exists
-      const sessionUser = await this.validateSession(payload.sessionId);
-      if (!sessionUser) {
-        return null;
-      }
-
-      return payload;
+      // Import functional session service
+      const { session } = await import('@/services/auth/functional/session');
+      return session.validateJWT(token);
     } catch (error) {
       if (error instanceof jwt.JsonWebTokenError) {
         logWarn('Invalid JWT token', { error: error.message });
@@ -750,7 +780,7 @@ class AuthService {
         : false,
       isAccountSuspended: false,
       failedLoginAttempts: failedAttempts?.count || 0,
-      lastFailedLoginAt: failedAttempts?.lastAttempt.toISOString(),
+      lastFailedLoginAt: failedAttempts?.lastAttempt?.toISOString(),
       lockedUntil: failedAttempts?.lockedUntil?.toISOString(),
     };
   }
@@ -902,7 +932,7 @@ class AuthService {
       token,
       email,
       expiresAt,
-      createdAt: new Date(),
+      createdAt: new Date().toISOString(),
       used: false,
     });
 
@@ -912,7 +942,7 @@ class AuthService {
   private async updateUserLastLogin(userId: string): Promise<void> {
     try {
       await this.userDataManager.updateUserData(userId, {
-        updatedAt: new Date().toISOString(),
+        updatedAt: createTimestamp(),
       });
     } catch (error) {
       logError('Failed to update user last login', error, { userId });

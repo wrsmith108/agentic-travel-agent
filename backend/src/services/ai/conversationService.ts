@@ -4,7 +4,7 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
-import { Result, ok, err, map, flatMap } from '@/utils/result';
+import { Result, ok, err, isOk, isErr, map, flatMap } from '@/utils/result';
 import { v4 as uuidv4 } from 'uuid';
 import { UserId } from '@/types/brandedTypes';
 
@@ -16,7 +16,7 @@ export interface Message {
   id: MessageId;
   role: 'user' | 'assistant';
   content: string;
-  timestamp: Date;
+  timestamp: string;
   metadata?: {
     model?: string;
     tokenCount?: number;
@@ -30,8 +30,8 @@ export interface Conversation {
   title: string;
   messages: Message[];
   context: ConversationContext;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
   active: boolean;
 }
 
@@ -101,8 +101,8 @@ export const createConversation = (
           travelers: { adults: 1, children: 0, infants: 0 },
         },
       },
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       active: true,
     };
 
@@ -156,7 +156,7 @@ export const getUserConversations = (
     .map(id => conversations.get(id))
     .filter((conv): conv is Conversation => conv !== undefined)
     .filter(conv => conv.active)
-    .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
   
   return ok(userConvs);
 };
@@ -171,11 +171,11 @@ export const updateConversationContext = (
 ): Result<Conversation, ConversationError> => {
   const convResult = getConversation(conversationId, userId);
   
-  if (!convResult.ok) {
-    return convResult;
+  if (isErr(convResult)) {
+    return err(convResult.error);
   }
   
-  const conversation = convResult.value;
+  const conversation = isOk(convResult) ? convResult.value : null;
   
   // Deep merge context
   conversation.context = {
@@ -188,7 +188,7 @@ export const updateConversationContext = (
     bookingHistory: contextUpdate.bookingHistory || conversation.context.bookingHistory,
   };
   
-  conversation.updatedAt = new Date();
+  conversation.updatedAt = new Date().toISOString();
   
   return ok(conversation);
 };
@@ -204,18 +204,18 @@ export const sendMessage = async (
   try {
     // Get conversation
     const convResult = getConversation(conversationId, userId);
-    if (!convResult.ok) {
-      return convResult;
+    if (isErr(convResult)) {
+      return err((convResult as any).error);
     }
     
-    const conversation = convResult.value;
+    const conversation = isOk(convResult) ? convResult.value : null;
     
     // Create user message
     const userMessage: Message = {
       id: asMessageId(uuidv4()),
       role: 'user',
       content,
-      timestamp: new Date(),
+      timestamp: new Date().toISOString(),
     };
     
     conversation.messages.push(userMessage);
@@ -252,7 +252,7 @@ export const sendMessage = async (
       id: asMessageId(uuidv4()),
       role: 'assistant',
       content: formattedContent,
-      timestamp: new Date(),
+      timestamp: new Date().toISOString(),
       metadata: {
         model: response.model,
         tokenCount: response.usage.input_tokens + response.usage.output_tokens,
@@ -260,7 +260,7 @@ export const sendMessage = async (
     };
     
     conversation.messages.push(assistantMessage);
-    conversation.updatedAt = new Date();
+    conversation.updatedAt = new Date().toISOString();
     
     // Update title if it's the first exchange
     if (conversation.messages.length === 2) {
@@ -294,7 +294,7 @@ const formatAgentResponse = (rawContent: string): string => {
   // Clean up questions and remove them from main content
   const cleanQuestions = questions
     .map(q => q.trim())
-    .filter(q => q.length > 5 && !q.includes('wondering') && !q.includes('asking'))
+    .filter(q => q.length > 5 && !q?.includes('wondering') && !q?.includes('asking'))
     .map(q => {
       // Remove leading connectors and clean up
       return q.replace(/^(and|or|but|so|also|additionally)\s+/i, '')
@@ -308,7 +308,7 @@ const formatAgentResponse = (rawContent: string): string => {
   let mainContent = content;
   cleanQuestions.forEach(q => {
     // Try to remove the question and surrounding context
-    const originalQ = questions.find(orig => orig.includes(q.split('?')[0]));
+    const originalQ = questions.find((orig: string) => orig && orig.includes(q.split('?')[0]));
     if (originalQ) {
       mainContent = mainContent.replace(originalQ, '');
     }
@@ -438,13 +438,13 @@ export const deleteConversation = (
 ): Result<void, ConversationError> => {
   const convResult = getConversation(conversationId, userId);
   
-  if (!convResult.ok) {
-    return convResult;
+  if (isErr(convResult)) {
+    return err((convResult as any).error);
   }
   
-  const conversation = convResult.value;
+  const conversation = isOk(convResult) ? convResult.value : null;
   conversation.active = false;
-  conversation.updatedAt = new Date();
+  conversation.updatedAt = new Date().toISOString();
   
   return ok(undefined);
 };
@@ -458,13 +458,13 @@ export const clearConversation = (
 ): Result<Conversation, ConversationError> => {
   const convResult = getConversation(conversationId, userId);
   
-  if (!convResult.ok) {
-    return convResult;
+  if (isErr(convResult)) {
+    return err(convResult.error);
   }
   
-  const conversation = convResult.value;
+  const conversation = isOk(convResult) ? convResult.value : null;
   conversation.messages = [];
-  conversation.updatedAt = new Date();
+  conversation.updatedAt = new Date().toISOString();
   conversation.title = 'New Conversation';
   
   return ok(conversation);
@@ -479,18 +479,18 @@ export const exportConversation = (
 ): Result<string, ConversationError> => {
   const convResult = getConversation(conversationId, userId);
   
-  if (!convResult.ok) {
-    return convResult;
+  if (isErr(convResult)) {
+    return err((convResult as any).error);
   }
   
-  const conversation = convResult.value;
+  const conversation = isOk(convResult) ? convResult.value : null;
   
   let markdown = `# ${conversation.title}\n\n`;
   markdown += `Created: ${conversation.createdAt.toLocaleString()}\n\n`;
   
   conversation.messages.forEach(message => {
     const role = message.role === 'user' ? '**You**' : '**Assistant**';
-    markdown += `${role} (${message.timestamp.toLocaleTimeString()}):\n`;
+    markdown += `${role} (${new Date(message.timestamp).toLocaleTimeString()}):\n`;
     markdown += `${message.content}\n\n`;
   });
   

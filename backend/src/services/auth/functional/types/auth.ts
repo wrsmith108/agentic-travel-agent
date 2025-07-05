@@ -3,6 +3,8 @@
  */
 
 import type { UserId, Email, SessionId, AccessToken, RefreshToken, Timestamp } from './core';
+import { dateUtils } from '@/utils/types/dates';
+
 
 // User roles
 export type UserRole = 'user' | 'admin' | 'moderator';
@@ -13,7 +15,7 @@ export type SessionUser = {
   readonly email: Email;
   readonly firstName: string;
   readonly lastName: string;
-  readonly emailVerified: boolean;
+  readonly isEmailVerified: boolean;
   readonly role: UserRole;
   readonly lastLoginAt?: Timestamp;
   readonly createdAt: Timestamp;
@@ -104,7 +106,7 @@ export type PasswordResetTokenData = {
   readonly userId: UserId;
   readonly token: string;
   readonly expiresAt: Date;
-  readonly createdAt: Date;
+  readonly createdAt: string;
   readonly used: boolean;
 };
 
@@ -113,7 +115,7 @@ export type EmailVerificationTokenData = {
   readonly token: string;
   readonly email: Email;
   readonly expiresAt: Date;
-  readonly createdAt: Date;
+  readonly createdAt: string;
   readonly used: boolean;
 };
 

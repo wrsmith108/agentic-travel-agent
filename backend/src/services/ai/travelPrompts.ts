@@ -208,7 +208,7 @@ export function generateMockPriceHistory(
       const d = new Date(date);
       d.setDate(d.getDate() - i);
       history.push({
-        date: d.toISOString().split('T')[0] || d.toISOString(),
+        date: d.toISOString().split('T')[0],
         price: Math.round(800 + Math.random() * 400 + (i < 30 ? i * 10 : 0)),
       });
     }
@@ -238,7 +238,7 @@ export function generateMockPriceHistory(
     const price = Math.round(basePrice * weekdayMultiplier + variance);
 
     const point: any = {
-      date: d.toISOString().split('T')[0] || d.toISOString(),
+      date: d.toISOString().split('T')[0],
       price: Math.max(seasonalData.low, Math.min(seasonalData.high, price)),
     };
 

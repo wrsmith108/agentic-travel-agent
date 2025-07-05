@@ -5,7 +5,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { verifyAccessToken, asAccessToken } from '@/utils/jwt';
 import { verifySession } from '@/services/auth/authServiceNew';
-import { isErr } from '@/utils/result';
+import { isErr, isOk } from '@/utils/result';
 import { createRequestLogger } from '@/utils/logger';
 
 // Extend Express Request type
@@ -79,18 +79,18 @@ export const authenticate = async (
         ip: req.ip,
         userAgent: req.get('User-Agent'),
         endpoint: req.originalUrl,
-        error: tokenResult.error,
+        error: (isErr(tokenResult) ? tokenResult.error : undefined),
       });
 
-      const statusCode = tokenResult.error.type === 'TOKEN_EXPIRED' ? 401 : 403;
+      const statusCode = isErr(tokenResult) && tokenResult.error.type === 'TOKEN_EXPIRED' ? 401 : 403;
       res.status(statusCode).json({
         success: false,
-        error: tokenResult.error,
+        error: (isErr(tokenResult) ? tokenResult.error : undefined),
       });
       return;
     }
 
-    const payload = tokenResult.value;
+    const payload = isOk(tokenResult) ? tokenResult.value : null;
 
     // Verify session is still active
     const sessionResult = await verifySession(payload.sessionId);
@@ -99,7 +99,7 @@ export const authenticate = async (
       requestLogger.warn('Invalid or expired session', {
         userId: payload.sub,
         sessionId: payload.sessionId,
-        error: sessionResult.error,
+        error: (isErr(sessionResult) ? sessionResult.error : undefined),
       });
 
       res.status(401).json({
@@ -157,8 +157,8 @@ export const optionalAuthenticate = async (
   // Try to verify token
   const tokenResult = verifyAccessToken(asAccessToken(token));
   
-  if (tokenResult.ok) {
-    const payload = tokenResult.value;
+  if (isOk(tokenResult)) {
+    const payload = isOk(tokenResult) ? tokenResult.value : null;
     
     // Try to verify session
     const sessionResult = await verifySession(payload.sessionId);

@@ -50,24 +50,33 @@ const createTokenStorage = <T>(): TokenStorage<T> => {
   const storage = new Map<string, T>();
 
   return {
-    get(token: string): T | undefined {
-      return storage.get(token);
+    async get(token: string): Promise<T | null> {
+      return storage.get(token) || null;
     },
 
-    set(token: string, data: T): void {
+    async set(token: string, data: T): Promise<void> {
       storage.set(token, data);
     },
 
-    delete(token: string): boolean {
+    async delete(token: string): Promise<boolean> {
       return storage.delete(token);
     },
 
-    clear(): void {
+    async clear(): Promise<void> {
       storage.clear();
     },
 
-    getAll(): Map<string, T> {
+    async getAll(): Promise<Map<string, T>> {
       return new Map(storage);
+    },
+
+    // Alias methods
+    async store(token: string, data: T): Promise<void> {
+      return this.set(token, data);
+    },
+
+    async retrieve(token: string): Promise<T | null> {
+      return this.get(token);
     },
   };
 };
@@ -121,12 +130,12 @@ export const generateVerificationToken = (): VerificationToken => {
 
 // ===== Cleanup Functions =====
 
-export const cleanupExpiredTokens = (): void => {
+export const cleanupExpiredTokens = async (): Promise<void> => {
   const now = new Date();
   let cleanedCount = 0;
 
   // Clean password reset tokens
-  for (const [token, data] of passwordResetTokens.getAll().entries()) {
+  for (const [token, data] of (await passwordResetTokens.getAll()).entries()) {
     if (data.expiresAt < now || data.used) {
       passwordResetTokens.delete(token);
       cleanedCount++;
@@ -134,7 +143,7 @@ export const cleanupExpiredTokens = (): void => {
   }
 
   // Clean email verification tokens
-  for (const [token, data] of emailVerificationTokens.getAll().entries()) {
+  for (const [token, data] of (await emailVerificationTokens.getAll()).entries()) {
     if (data.expiresAt < now || data.used) {
       emailVerificationTokens.delete(token);
       cleanedCount++;

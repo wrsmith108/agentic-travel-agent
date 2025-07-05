@@ -3,8 +3,10 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import { Result, ok, err } from '@/utils/result';
+import { Result, ok, err, isOk, isErr } from '@/utils/result';
 import { UserId } from '@/types/brandedTypes';
+import { dateUtils } from '@/utils/types/dates';
+
 
 // Session types
 export type SessionId = string & { readonly brand: unique symbol };
@@ -14,7 +16,7 @@ export const createSessionId = (): SessionId => asSessionId(uuidv4());
 export interface Session {
   id: SessionId;
   userId: UserId;
-  createdAt: Date;
+  createdAt: string;
   expiresAt: Date;
   lastAccessedAt: Date;
   ipAddress?: string;
@@ -66,7 +68,7 @@ export const createSession = (
     const session: Session = {
       id: sessionId,
       userId,
-      createdAt: now,
+      createdAt: now.toISOString(),
       expiresAt,
       lastAccessedAt: now,
     };
@@ -136,11 +138,11 @@ export const getSession = (sessionId: SessionId): Result<Session, SessionError> 
 export const touchSession = (sessionId: SessionId): Result<Session, SessionError> => {
   const sessionResult = getSession(sessionId);
   
-  if (!sessionResult.ok) {
-    return sessionResult;
+  if (isErr(sessionResult)) {
+    return err(sessionResult.error);
   }
   
-  const session = sessionResult.value;
+  const session = isOk(sessionResult) ? sessionResult.value : null;
   session.lastAccessedAt = new Date();
   
   sessions.set(sessionId, session);
@@ -219,11 +221,11 @@ export const updateSessionRefreshToken = (
 ): Result<Session, SessionError> => {
   const sessionResult = getSession(sessionId);
   
-  if (!sessionResult.ok) {
-    return sessionResult;
+  if (isErr(sessionResult)) {
+    return err(sessionResult.error);
   }
   
-  const session = sessionResult.value;
+  const session = isOk(sessionResult) ? sessionResult.value : null;
   session.refreshToken = refreshToken;
   
   sessions.set(sessionId, session);
@@ -255,11 +257,11 @@ export const extendSession = (
 ): Result<Session, SessionError> => {
   const sessionResult = getSession(sessionId);
   
-  if (!sessionResult.ok) {
-    return sessionResult;
+  if (isErr(sessionResult)) {
+    return err(sessionResult.error);
   }
   
-  const session = sessionResult.value;
+  const session = isOk(sessionResult) ? sessionResult.value : null;
   const extension = additionalTime || SESSION_DURATION;
   session.expiresAt = new Date(session.expiresAt.getTime() + extension);
   

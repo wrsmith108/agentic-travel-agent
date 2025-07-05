@@ -218,13 +218,26 @@ Task("Backend Team", "Implement APIs according to Memory specifications");
 ```
 
 ## Code Style Preferences
+
+### Core Development Philosophy
+**TEST-DRIVEN DEVELOPMENT IS NON-NEGOTIABLE**. Write tests first, then code.
+See comprehensive guidelines: `/docs/DEVELOPMENT-GUIDELINES.md`
+
+### Key Principles
+- Write failing tests before any production code
+- Use TypeScript strict mode (no `any` types)
+- Embrace functional programming (immutability, pure functions)
+- Test behavior, not implementation
+- Use Zod for schema-first development
+
+### Quick Reference
 - Use ES modules (import/export) syntax
-- Destructure imports when possible
-- Use TypeScript for all new code
-- Follow existing naming conventions
+- Prefer `type` over `interface`
+- Never mutate data - return new objects
+- Small, composable functions
+- Use Result types for error handling
 - Add JSDoc comments for public APIs
 - Use async/await instead of Promise chains
-- Prefer const/let over var
 
 ## Workflow Guidelines
 - Always run typecheck after making code changes
@@ -232,6 +245,16 @@ Task("Backend Team", "Implement APIs according to Memory specifications");
 - Use meaningful commit messages
 - Create feature branches for new functionality
 - Ensure all tests pass before merging
+
+## TypeScript Error Prevention (MANDATORY)
+- **Result Type Handling**: Always use `isOk()/isErr()` guards, never access `.error` or `.value` directly
+- **Import Discipline**: Import Result utilities from `@/utils/result`, branded types from `@/types/brandedTypes`
+- **Type Exports**: Export all types that other modules depend on
+- **Consistent Naming**: Use `is` prefix for boolean properties (e.g., `isEmailVerified`)
+- **No Mixed Patterns**: Complete migrations before using new patterns (don't mix Result with success/error objects)
+- **Pre-commit Validation**: TypeScript errors must be fixed before committing
+- **Automated Fixes**: Use `scripts/fix-result-patterns.js` for common Result usage errors
+- See `/backend/docs/TYPESCRIPT_ERROR_PREVENTION.md` for complete guide
 
 ## Important Notes
 - **Use TodoWrite extensively** for all complex task coordination
@@ -243,4 +266,28 @@ Task("Backend Team", "Implement APIs according to Memory specifications");
 - **Monitor progress** with TodoRead during long-running operations
 - **Enable parallel execution** with --parallel flags for maximum efficiency
 
-This configuration ensures optimal use of Claude Code's batch tools for swarm orchestration and parallel task execution with full Claude-Flow capabilities.
+## CRITICAL: Scope Control Guidelines
+
+### Before Implementing ANY Feature:
+1. **CHECK MVP_SCOPE.md** - Located at `/backend/docs/MVP_SCOPE.md`
+2. **VERIFY USER REQUEST** - Only implement features explicitly requested
+3. **ASK WHEN UNCERTAIN** - If not clearly in scope, ask for clarification
+4. **NO SCOPE CREEP** - Do not add "nice to have" features without approval
+
+### Accountability Rules:
+- I am accountable for staying within agreed scope
+- Adding unrequested features wastes time and adds complexity
+- The MVP scope is defined and should not be expanded without explicit approval
+- When continuing work, always check what was agreed to, not what seems logical to add
+
+### Current MVP Scope (AI Travel Agent):
+1. ✅ Conversational flight search
+2. ✅ Saved searches with price monitoring
+3. ✅ Batch processing for price checks
+4. ✅ Email notifications for price alerts
+5. 📋 User preferences system (remaining)
+6. 📋 API documentation (remaining)
+
+**NOT IN SCOPE**: Booking, payments, e-tickets, hotels, car rentals, etc.
+
+This configuration ensures optimal use of Claude Code's batch tools for swarm orchestration and parallel task execution with full Claude-Flow capabilities while maintaining strict scope control.

@@ -2,8 +2,8 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { FileOps, FilePath, asFilePath } from './types';
 import { UserDataFile, validateUserDataFile } from '@/schemas/user';
-import logger from '@/utils/logger';
-
+import createLogger from '@/utils/logger';
+const logger = createLogger('UfileOperations');
 /**
  * Create file operations for a given data directory
  */

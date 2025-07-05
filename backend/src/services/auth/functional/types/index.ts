@@ -5,6 +5,8 @@
  */
 
 import type { z } from 'zod';
+import { dateUtils } from '@/utils/types/dates';
+import type { VerificationToken, ResetToken } from '@/types/brandedTypes';
 
 // Import types for use in interface definitions
 import type {
@@ -80,14 +82,10 @@ export { AUTH_CONSTANTS } from './auth';
 
 // ===== Additional Branded Types (not in core.ts) =====
 export type JWTToken = string & { readonly brand: unique symbol };
-export type VerificationToken = string & { readonly brand: unique symbol };
-export type ResetToken = string & { readonly brand: unique symbol };
 export type RequestId = string & { readonly brand: unique symbol };
 
 // Constructors for additional branded types
 export const JWTToken = (token: string): JWTToken => token as JWTToken;
-export const VerificationToken = (token: string): VerificationToken => token as VerificationToken;
-export const ResetToken = (token: string): ResetToken => token as ResetToken;
 export const RequestId = (id: string): RequestId => id as RequestId;
 
 // ===== Token Record Types (for storage) =====
@@ -95,7 +93,7 @@ export interface PasswordResetToken {
   userId: CoreUserId;
   token: ResetToken;
   expiresAt: Date;
-  createdAt: Date;
+  createdAt: string;
   used: boolean;
 }
 
@@ -104,7 +102,7 @@ export interface EmailVerificationToken {
   token: VerificationToken;
   email: CoreEmail;
   expiresAt: Date;
-  createdAt: Date;
+  createdAt: string;
   used: boolean;
 }
 
@@ -237,3 +235,10 @@ export interface ValidationResult<T> {
   data?: T;
   error?: z.ZodError;
 }
+// Re-export operation types
+export type {
+  RegisterInput,
+  LoginInput,
+  LogoutInput,
+  ValidateSessionInput,
+} from '../operations';

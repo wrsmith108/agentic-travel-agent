@@ -10,16 +10,20 @@ import type {
   SessionId,
   JWTToken,
   RefreshToken,
-  VerificationToken,
   ResetToken,
   Duration,
   Timestamp,
 } from './types';
+import type { VerificationToken } from '@/types/brandedTypes';
 import {
   JWTToken as createJWTToken,
   RefreshToken as createRefreshToken,
-  VerificationToken as createVerificationToken,
-} from './types';
+} from './types/index';
+import { VerificationToken as createVerificationToken } from '@/types/brandedTypes';
+import {
+  Duration as createDuration,
+  SessionId as createSessionId,
+} from './types/core';
 import type {
   Result,
   AuthError,
@@ -29,7 +33,7 @@ import type {
   TimeProvider,
   Logger,
 } from './types';
-import { ok, err } from './types';
+import { ok, err, isOk, isErr } from '@/utils/result';;
 import { AUTH_CONSTANTS } from '@/schemas/auth';
 
 /**
@@ -133,8 +137,8 @@ export const createSessionTokens = (
 
   // Generate access token
   const accessTokenResult = generateJWT(jwtPayload, crypto.jwtSecret);
-  if (!accessTokenResult.ok) {
-    return accessTokenResult;
+  if (isErr(accessTokenResult)) {
+    return err(accessTokenResult.error);
   }
 
   const result: {
@@ -142,7 +146,7 @@ export const createSessionTokens = (
     refreshToken?: RefreshToken;
     expiresAt: Timestamp;
   } = {
-    accessToken: accessTokenResult.value,
+    accessToken: (isOk(accessTokenResult) ? accessTokenResult.value : undefined),
     expiresAt: timeProvider.timestamp(),
   };
 
@@ -152,14 +156,14 @@ export const createSessionTokens = (
     const refreshTokenResult = generateJWT(
       refreshPayload,
       crypto.jwtRefreshSecret,
-      AUTH_CONSTANTS.TOKEN_EXPIRY.REFRESH_TOKEN
+      createDuration(AUTH_CONSTANTS.TOKEN_EXPIRY.REFRESH_TOKEN)
     );
 
-    if (!refreshTokenResult.ok) {
-      return refreshTokenResult;
+    if (isErr(refreshTokenResult)) {
+      return err(refreshTokenResult.error);
     }
 
-    result.refreshToken = createRefreshToken(refreshTokenResult.value);
+    result.refreshToken = createRefreshToken((isOk(refreshTokenResult) ? refreshTokenResult.value : undefined));
   }
 
   return ok(result);
@@ -198,8 +202,8 @@ export const createEmailVerificationToken = async (
   try {
     // Generate token
     const tokenResult = generateVerificationToken();
-    if (!tokenResult.ok) {
-      return tokenResult;
+    if (isErr(tokenResult)) {
+      return err(tokenResult.error);
     }
 
     const token = tokenResult.value;
@@ -210,12 +214,11 @@ export const createEmailVerificationToken = async (
 
     // Store token
     const tokenRecord: EmailVerificationTokenRecord = {
-      type: 'email_verification',
       userId,
       token,
       email,
       expiresAt,
-      createdAt: now,
+      createdAt: now.toISOString(),
       used: false,
     };
 
@@ -224,7 +227,7 @@ export const createEmailVerificationToken = async (
     logger.info('Email verification token generated', {
       userId,
       email,
-      tokenExpiry: expiresAt.toISOString(),
+      tokenExpiry: expiresAt,
     });
 
     return ok(token);
@@ -299,14 +302,14 @@ export const refreshAccessToken = async (
 
   // Verify refresh token
   const verifyResult = verifyJWT(createJWTToken(refreshToken), crypto.jwtRefreshSecret);
-  if (!verifyResult.ok) {
-    return verifyResult;
+  if (isErr(verifyResult)) {
+    return err(verifyResult.error);
   }
 
-  const payload = verifyResult.value;
+  const payload = isOk(verifyResult) ? verifyResult.value : null;
 
   // Validate session still exists
-  const isValidSession = await sessionValidator(payload.sessionId);
+  const isValidSession = await sessionValidator(createSessionId(payload.sessionId));
   if (!isValidSession) {
     return err({
       type: 'SESSION_EXPIRED',
@@ -327,12 +330,12 @@ export const refreshAccessToken = async (
   };
 
   const accessTokenResult = generateJWT(newPayload, crypto.jwtSecret);
-  if (!accessTokenResult.ok) {
-    return accessTokenResult;
+  if (isErr(accessTokenResult)) {
+    return err(accessTokenResult.error);
   }
 
   return ok({
-    accessToken: accessTokenResult.value,
+    accessToken: (isOk(accessTokenResult) ? accessTokenResult.value : undefined),
     expiresAt: timeProvider.timestamp(),
   });
 };

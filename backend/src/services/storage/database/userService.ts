@@ -4,6 +4,7 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
+import { createTimestamp } from '@/services/auth/functional/types';
 import {
   UserProfile,
   CreateUserProfile,
@@ -11,8 +12,8 @@ import {
   validateUserProfile,
 } from '@/schemas/user';
 import { executeQuery, executeTransaction } from '@/config/database';
-import logger from '@/utils/logger';
-
+import createLogger from '@/utils/logger';
+const logger = createLogger('UuserService');
 // Re-export branded types for compatibility
 export type UserId = string & { readonly brand: unique symbol };
 export type Email = string & { readonly brand: unique symbol };
@@ -55,8 +56,8 @@ function rowToUserProfile(row: any): UserProfile {
     preferences: row.preferences,
     activeSearches: row.active_searches || [],
     searchHistory: row.search_history || [],
-    createdAt: row.created_at.toISOString(),
-    updatedAt: row.updated_at.toISOString(),
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
   });
 }
 
@@ -107,8 +108,8 @@ export const createUser = async (
       id: uuidv4(),
       activeSearches: [],
       searchHistory: [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: createTimestamp(),
+      updatedAt: createTimestamp(),
     };
 
     const validatedProfile = validateUserProfile(profile);
@@ -207,7 +208,7 @@ export const updateUserData = async (
         ...updates,
         id: currentUser.id, // Prevent ID changes
         createdAt: currentUser.createdAt, // Preserve creation date
-        updatedAt: new Date().toISOString(),
+        updatedAt: createTimestamp(),
       };
 
       const validatedProfile = validateUserProfile(updatedProfile);

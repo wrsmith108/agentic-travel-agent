@@ -9,8 +9,8 @@ import { initializeDatabase } from '@/config/database';
 import { createUser, findUserByEmail, asEmail } from '@/services/storage/database/userService';
 import { getUserDataManagerOps } from '@/services/storage/functional';
 import { UserDataFile, validateUserDataFile } from '@/schemas/user';
-import logger from '@/utils/logger';
-
+import createLogger from '@/utils/logger';
+const logger = createLogger('UmigrateFileData');
 const DATA_DIR = path.join(__dirname, '../../data/users');
 
 interface MigrationStats {

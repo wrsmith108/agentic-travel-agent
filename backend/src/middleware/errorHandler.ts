@@ -1,7 +1,8 @@
 import type { Request, Response, NextFunction } from 'express';
+import { createTimestamp } from '@/services/auth/functional/types';
 import { z } from 'zod';
-import logger from '../utils/logger';
-
+import createLogger from '../utils/logger';
+const logger = createLogger('UerrorHandler');
 // Custom error class
 export class AppError extends Error {
   public statusCode: number;
@@ -49,6 +50,19 @@ export const ErrorCodes = {
   INTERNAL_SERVER_ERROR: 'INTERNAL_SERVER_ERROR',
   BAD_REQUEST: 'BAD_REQUEST',
   SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
+  AUTH_ERROR: 'AUTH_ERROR',
+  INTERNAL_ERROR: 'INTERNAL_ERROR',
+  DATABASE_ERROR: 'DATABASE_ERROR',
+  UNAUTHORIZED: 'UNAUTHORIZED',
+  NOT_FOUND: 'NOT_FOUND',
+  CONFLICT: 'CONFLICT',
+  SERVICE_ERROR: 'SERVICE_ERROR',
+  RATE_LIMIT: 'RATE_LIMIT',
+  EXTERNAL_SERVICE_ERROR: 'EXTERNAL_SERVICE_ERROR',
+  PAYMENT_ERROR: 'PAYMENT_ERROR',
+  EXPIRED_TOKEN: 'EXPIRED_TOKEN',
+  TOKEN_REFRESH_FAILED: 'TOKEN_REFRESH_FAILED',
+  FORBIDDEN: 'FORBIDDEN',
 } as const;
 
 // 404 handler
@@ -60,7 +74,7 @@ export const notFoundHandler = (req: Request, res: Response): void => {
       message: `Resource not found: ${req.method} ${req.originalUrl}`,
     },
     meta: {
-      timestamp: new Date().toISOString(),
+      timestamp: createTimestamp(),
       ...(req.id && { requestId: req.id }),
     },
   };
@@ -124,7 +138,7 @@ export const errorHandler = (
       details: process.env.NODE_ENV === 'development' ? details : undefined,
     },
     meta: {
-      timestamp: new Date().toISOString(),
+      timestamp: createTimestamp(),
       ...(req.id && { requestId: req.id }),
     },
   };

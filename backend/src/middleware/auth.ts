@@ -1,4 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
+import { createTimestamp } from '@/services/auth/functional/types';
 import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
 import { authService } from '@/services/auth/authService';
@@ -90,11 +91,11 @@ const createAuthErrorResponse = (
     code,
     message,
     details,
-    timestamp: new Date().toISOString(),
+    timestamp: createTimestamp(),
   },
   meta: {
     requestId: requestId || uuidv4(),
-    timestamp: new Date().toISOString(),
+    timestamp: createTimestamp(),
   },
 });
 

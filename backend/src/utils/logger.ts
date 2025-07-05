@@ -81,6 +81,14 @@ export function createRequestLogger(requestId: string): winston.Logger {
   return logger.child({ requestId });
 }
 
+// Create service-specific logger
+export function createLogger(service: string): winston.Logger {
+  return logger.child({ service });
+}
+
+// Export as default for backward compatibility
+export default createLogger;
+
 // Log unhandled errors
 process.on('unhandledRejection', (reason: unknown, promise: Promise<unknown>) => {
   logger.error('Unhandled Rejection at:', { promise, reason });
@@ -92,8 +100,8 @@ process.on('uncaughtException', (error: Error) => {
   setTimeout(() => process.exit(1), 1000);
 });
 
-// Export logger instance
-export default logger;
+// Base logger instance available for direct use
+export { logger };
 
 // Convenience methods
 export const logInfo = (message: string, meta?: Record<string, unknown>): void => {
